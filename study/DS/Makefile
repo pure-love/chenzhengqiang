@@ -1,8 +1,8 @@
 #author:chenzhengqiang
 #start date:2015/8/2
 
-PROG_SUFFIX:=cpp
-CC:=g++
+PROG_SUFFIX:=c
+CC:=gcc
 CFLAGS=-g -W -Wall
 
 INCLUDE_DIR:=./include/
