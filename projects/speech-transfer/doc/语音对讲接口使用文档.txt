@@ -1,0 +1,77 @@
+主要参照include目录下的speech1986.h文件
+
+摄像头的处理流程参照camera_run函数
+PC端的处理流程参照 imitate_client函数
+
+现对一些关键个API进行说明：
+摄像头和PC端共有的API：
+(1)封装rtp头：
+bool generate_rtp_header(RTP_HEADER & rtp_header, int payload_type );
+参数说明：
+rtp_header为引用类型参数，
+payload_type值为13表示私有信令，值97表示opus音频，其它值非法，函数返回false；
+返回值说明：true 封装成功，false封装失败
+
+(2)发送私有信令：
+bool send_personal_signalling(int sock_fd, struct sockaddr_in & transfer_addr,
+                              const RTP_HEADER & rtp_header, 
+                              const char * channel,int flags,int action);
+关键形参说明：
+rtp_header：为通过调用generate_rtp_header函数封装成的rtp头
+channael：聊天室的频道名称
+flags:PC常值指示PC端，CAMERA常值指示摄像头
+action:CREATE和CANCEL常值指示摄像头欲创建或取消该频道，JOIN和LEAVE常值指示PC端欲加入或离开该频道
+
+返回值说明：
+true指示发送私有信令成功，false指示失败
+
+(3)获取opus 解码句柄：
+OpusDecoder * get_opus_decoder( int sample_rate )
+参数说明：
+sample_rate为采样率：此参数应传固定值8000
+
+(4)从rtp包中解码opus并获取到pcm流：
+size_t get_pcm_stream(OpusDecoder *opus_decoder,opus_int16 *pcm_stream,
+                      size_t stream_size, uint8_t *rtp_packet,size_t packet_size );
+
+关键参数说明：
+opus_decoder:调用get_opus_decoder获取到的解码句柄
+pcm_stream:用来缓存pcm流的缓冲区
+stream_size:pcm流缓冲区大小，此值至少为MIN_FRAME_SAMP大小（MIN_FRAME_SAMP为320）
+rtp_packet:为调用recvfrom获取到的udp包
+packet_size：udp包大小
+
+返回值说明：
+返回值为-1:表示解码异常或入参错误
+返回值为0表示此udp包不是负载了opus的rtp包
+返回值大于0：为对rtp荷载的opus流解码后的字节数
+
+
+摄像头使用的API：
+（1）获取pulse audio的句柄：
+     pa_simple * register_pulse_audio_handler();
+（2）删除pulse audio句柄：
+     void delete_pulse_audio_handler( pa_simple *pa_handler );
+（3） 调用pulse audio 播放pcm流：
+ bool play_pcm_stream(pa_simple *pulse_audio,const char *pcm_stream, size_t stream_size );
+ 参数说明：
+ pulse_audio:pulse audio句柄
+ pcm_stream:通过调用get_pcm_stream获取到的pcm流缓冲区
+ stream_size:调用get_pcm_stream获得的合法返回值 
+ 
+PC端使用的API：
+（1）获取opus编码器：
+ OpusEncoder * get_opus_encoder( int sample_rate );
+ 参数说明：sample_rate为编码的采样率，应该传入固定值8000
+
+（2）发送采集到的pcm流并封装成rtp包：
+bool send_speech_message( int sock_fd, struct sockaddr_in & transfer_addr,
+                          const RTP_HEADER & rtp_header, 
+                          OpusEncoder * opus_encoder,
+                          const opus_int16 *pcm_stream,
+                          size_t stream_size );
+关键参数说明： 
+rtp_header:为调用generate_rtp_header获取到的rtp包报头，此时负载类型必须设置为97
+opus_encoder：调用get_opus_encoder获取到的opus编码器
+pcm_stream：PC端自行采集到的pcm流
+stream_size：pcm流大小，应该设置为最小采样率大小320
