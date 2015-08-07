@@ -1,0 +1,73 @@
+#!/bin/bash
+#script name:streamer
+#author:chenzhengqiang
+#start date:2015/4/28
+#company:swwy
+
+
+#information about this service
+#service name:streamer
+#install path:/usr/local/bin/streamer
+
+service=streamer
+go=/usr/local/bin/streamer
+lock=/usr/local/bin/streamer.lock
+pid_file=/var/run/streamer.pid
+
+
+function start(){
+    pid=`pidof $service`
+    if [ -n "$pid" ];then
+       echo "Start failed,service(pid $pid) is running."
+       exit 0
+    fi
+    echo -n "Starting Services Streamer......"
+    touch $pid_file
+    $go $IP
+    pid=`pidof $service` 
+    echo $pid > $pid_file
+    sleep 0.3
+    echo "(pid $pid)          [    OK    ]"
+    pid=`pidof $service`
+    touch $lock
+}
+
+function stop(){
+    pid=`pidof $service`
+    if [ -n "$pid" ];then
+        echo -n "Shuting Down Service Streamer......"
+        sleep 0.3
+        kill -9 $pid
+        if [ $? -ne 0 ];then
+        	echo "                    [    OK    ]"
+	else
+		echo "(pid $pid)	  [   FAILED ]"
+	fi		
+    else
+        echo "Error:service is not running."
+    fi
+    rm -rf $lock
+    rm -rf $pid_file
+} 
+
+
+function status(){
+    pid=`pidof $service`
+    if [ -n "$pid" ];then
+        echo "service streamer(pid $pid) is running"
+    else
+        echo "service streamer has stoped"
+    fi
+}
+
+function restart(){
+    stop
+    start
+}
+
+case "$1" in
+"start") start;;
+"stop")  stop;;
+"status") status;;
+"restart") restart;;        
+esac
