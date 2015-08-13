@@ -27,8 +27,10 @@ struct SERVER_REPLY
 #define REMOTE_IP (argv[1])
 #define REMOTE_PORT (atoi(argv[2]))
 #define CHANNEL "balabalabala"
+#define PCM_FILE "speech.pcm"
 
 static const size_t SIGNALLING_BUF=64;
+static const int      FIXED_OPUS_SIZE = 40;
 static const size_t BUFSIZE=640;
 static const size_t CHANNELS = 1;
 static const size_t LSB_DEPTH = 16;
@@ -38,18 +40,18 @@ static const size_t USE_VBR_CONSTANT = 1;
 static const int PERSONAL_SINGLING_TYPE= 3;
 static const int OPUS_RTP_PAYLOAD_TYPE = 0;
 
+
+static int START_PORT=1314;
 static const char * help="Usage:./%s <server address> <server port>\n";
 
 //the global pulse audio object "pa_sample_spec" ,used to initialzing pa_simple
-/*static const pa_sample_spec ss = {
+static const pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
         .rate = 8000,
         .channels = 1
     };
-*/
-
 // initialize the pulse audio playback handler with the low latency attrubte object
-/*pa_simple * get_pa_playback_handler()
+pa_simple * get_pa_playback_handler()
 {
     pa_buffer_attr bufattr;
     bufattr.fragsize = (uint32_t)-1;
@@ -67,7 +69,7 @@ static const char * help="Usage:./%s <server address> <server port>\n";
     }
     return s_play;
 }
-*/
+
 
 //init the rtp header's field with default value
 //payload type 13 indicates personal signalling,97 indicates opus audio signalling
@@ -107,7 +109,8 @@ void generate_rtp_packet(uint8_t *rtp_packet,size_t packet_size,
 
 
 //as the function name described,try send the create request to
-//speech transfer server in specified minutes
+//speech transfer server in specified minutes,in which you have
+//minutes/time_out chance to create the channel
 bool try_create_in_minutes(int minutes,int time_out,int sock_fd,const char * server_ip,
                                 int server_port,const uint8_t *rtp_packet, size_t packet_size )
 {
@@ -163,6 +166,7 @@ bool try_create_in_minutes(int minutes,int time_out,int sock_fd,const char * ser
     return true;
 }
 
+
 OpusDecoder * get_opus_decoder()
 {
 
@@ -182,6 +186,34 @@ OpusDecoder * get_opus_decoder()
 }
 
 
+//try to bind a udp port till success
+//-1 indicates error,otherwise return the binded udp port
+int try_bind_a_udpport(int udp_sock_fd,int start_port )
+{
+    struct sockaddr_in local_addr;
+    memset(&local_addr,0,sizeof(local_addr));
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+    local_addr.sin_port = htons(start_port);
+    while( true )
+    {
+         int ret = bind(udp_sock_fd,(struct sockaddr *)&local_addr,sizeof(local_addr));
+         if( ret != 0 )
+         {
+             if( errno != EADDRINUSE )
+             return -1;
+             start_port +=2;
+             if( start_port >= 65535-2 )
+             return -1;
+             local_addr.sin_port = htons(start_port);
+             continue;
+         }
+         break;
+    }
+    return start_port;
+}
+
+
 int main( int argc, char ** argv )
 {
       if( argc != 3 )
@@ -189,118 +221,76 @@ int main( int argc, char ** argv )
           fprintf(stderr,help,argv[0]);
           exit(EXIT_FAILURE);
       }
-      
+
+      //generate the rtp packet for sending personal signalling
+      //and the rtp packet size is fixed 76 bytes
       RTP_HEADER rtp_header;
       init_default_rtp_header(rtp_header,PAYLOAD_OTHER);
       uint8_t rtp_packet[76];
       generate_rtp_packet(rtp_packet,sizeof(rtp_packet),CHANNEL,rtp_header);
 
+      
       int udp_server_fd = socket(AF_INET,SOCK_DGRAM,0);
-      struct sockaddr_in local_addr;
-      memset(&local_addr,0,sizeof(local_addr));
-      local_addr.sin_family = AF_INET;
-      local_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-      local_addr.sin_port = htons(1314);
-      bind(udp_server_fd,(struct sockaddr *)&local_addr,sizeof(local_addr));
-      bool ok = try_create_in_minutes(1,10,udp_server_fd,"127.0.0.1",54320,rtp_packet,76);
-      if( ! ok )
-      return -1; 
+      int reuse = 1;
+      setsockopt (udp_server_fd, SOL_SOCKET, SO_REUSEADDR,  
+                          &reuse, sizeof (reuse));  
+      //try to bind one port till success 
+      int udp_server_port = try_bind_a_udpport(udp_server_fd,START_PORT);
+      if( udp_server_port == -1)
+      {
+          fprintf(stderr,"try bind a udp port failed\n");
+          exit(EXIT_FAILURE);
+      }
+      //try to create the channel in specified minutes
+      bool create_ok=try_create_in_minutes(1,10,udp_server_fd,REMOTE_IP,REMOTE_PORT,rtp_packet,sizeof(rtp_packet));
+      if( !create_ok )
+      exit(EXIT_FAILURE);
       close(udp_server_fd);
-      //rtp_session_destroy(session_send); 
-      RtpSession * session_recv =  oRTP_recv_init(1314,1315,0);
+
+      //opus related
+      OpusDecoder * opus_decoder = get_opus_decoder();
+      if( opus_decoder == NULL )
+      {
+          fprintf(stderr,"failed to get opus decoder\n");
+          exit(EXIT_FAILURE);
+      }
+      
+      //initialize the oRTP object for receiving the opus data transfered by transfer server
+      RtpSession * session_recv =  oRTP_recv_init(udp_server_port,udp_server_port+1,0);
+      rtp_session_set_rtp_socket_recv_buffer_size(session_recv,65535);
       int total_bytes = 0;
       unsigned int timestamp = 0;
-      unsigned char buffer[1024];
+      unsigned char buffer[40];
+      int error,count=0;
+      FILE *fpcm_handler = fopen(PCM_FILE,"w");
+      int times = 0;
       while(true)
       {
-          total_bytes = oRTP_recv_now(session_recv,buffer,1024,timestamp);
-          if( total_bytes == -1 )
+          total_bytes = oRTP_recv_now(session_recv,buffer,sizeof(buffer),timestamp);
+          if( total_bytes <= 0 )
           {
-                    printf("buffer size is too small\n");
-                    continue;
+               continue;
           }
-          else if( total_bytes > 0)
-          printf("session0:received %d bytes timestamp:%u\n",total_bytes,timestamp);
-          
+          else
+          {
+              opus_int16 buf[320]; 
+              opus_int32 decode_bytes = decode_opus_stream(opus_decoder,buffer,
+                                                                                 FIXED_OPUS_SIZE,buf,sizeof(buf));
+              ++times;
+              fprintf(stdout,"%d decode_bytes:%d\n",times,(int)decode_bytes);
+              (pa_simple_write(s_play, (uint8_t *)buf, 640, &error) < 0) 
+              {
+                   fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
+                   ++count;
+                   if( count == 99 )
+                   break;    
+              }
+          }
+          //fwrite(buf,sizeof(opus_int16),decode_bytes,fpcm_handler);
       }
-    /*(void)argc;
-    
-    (void)argv;
 
-    if( argc != 3 )
-    {
-        fprintf(stderr,"camera startup failed;usage:%s <server_ip> <server_port>",argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    RTP_HEADER rtp_header;
-    init_default_rtp_header(rtp_header,PERSONAL_SINGLING_TYPE);
-    uint8_t rtp_packet[RTP_HEADER_LEAST_SIZE+FIXED_AES_ENCRYPT_SIZE];
-    generate_rtp_packet(rtp_packet,sizeof(rtp_packet),CHANNEL,rtp_header);
-    int sock_fd = socket(AF_INET,SOCK_DGRAM,0);
-    if( sock_fd < 0 )
-    {
-         fprintf(stderr,"socket() failed:%s",strerror(errno));
-         exit(EXIT_FAILURE);   
-    }
-    bool ok = try_create_in_minutes(1,10,sock_fd,REMOTE_IP,REMOTE_PORT,rtp_packet,sizeof(rtp_packet));
-    if( !ok )
-    {
-        fprintf(stderr,"try create channel in 1 minute failed,you might restart it or just terminate\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    //now camera has create the channel succeeded,
-    //so just play the pcm data receiving from speech transfer server
-    size_t received_bytes;
-    uint8_t rtp_packet_transfer[1024];
-    OpusDecoder * opus_decoder = get_opus_decoder();
-
-    if( opus_decoder == NULL )
-    {
-        fprintf(stderr,"get_opus_decoder() failed\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    fprintf(stdout,"Camera create channel %s in chatroom succeeded\n"\
-             "Just ready for playing pcm data receiving from speech transfer server\n\n",CHANNEL);
-    
-    struct sockaddr_in remote_addr;
-    socklen_t addr_len = sizeof(remote_addr);
-    int error;
-    int count=0;
-    int times = 0;
-   while(true)
-   {
-        received_bytes = recvfrom(sock_fd,rtp_packet_transfer,1024,0,(struct sockaddr *)&remote_addr,&addr_len);
-        //the rtp header hold 12 bytes and the encoded pcm data is 40 bytes
-        //so 52
-        if( received_bytes != 52)
-        continue;    
-        int ret = rtp_header_parse(rtp_packet_transfer,received_bytes,rtp_header);
-        if( ret == -1 )
-        {
-             continue;
-        }
-
-        if( rtp_header.payload_type != 97 )
-        {
-             continue; 
-        }
-        
-        ++times;
-        if( times < 0 )
-        times = 0;    
-        opus_int16 buf[320]; 
-        opus_int32 decode_bytes = decode_opus_stream(opus_decoder,rtp_packet_transfer+rtp_header.offset,
-                                                                                 40,buf,320);
-        fprintf(stdout,"[%d]decode_bytes:%d\n",times,(int)decode_bytes);
-        if (pa_simple_write(s_play, (uint8_t *)buf, 640, &error) < 0) {
-            fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
-            ++count;
-            if( count == 99 )
-            exit(EXIT_FAILURE);    
-            continue;
-        }
-   }*/
+   pa_simple_free(s_play);   
+   opus_decoder_destroy(opus_decoder);   
+   fclose(fpcm_handler);
    return 0;
 }

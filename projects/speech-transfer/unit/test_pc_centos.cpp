@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     opus_enc_info.bandwidth = OPUS_AUTO;
     opus_enc_info.bitrate = BIT_RATE;
     opus_enc_info.channels = CHANNELS;
-    opus_enc_info.packet_loss_percentage = 0;
+    opus_enc_info.packet_loss_percentage = 10;
     opus_enc_info.sample_rate = SAMPLE_RATE;
     opus_enc_info.use_vbr = USE_VBR;
     opus_enc_info.use_vbr_constant = USE_VBR_CONSTANT;
@@ -118,6 +118,7 @@ int main(int argc, char **argv)
     //memset(pcm_stream,0,sizeof(pcm_stream));
 
     //encode the file stream with the specified frame sample size
+    int times = 0;
     while( ( read_bytes = fread(pcm_stream,sizeof(opus_int16),MIN_FRAME_SAMP,fpcm_handler)) > 0 )
     {
         encode_bytes = encode_pcm_stream(opus_encoder,pcm_stream,MIN_FRAME_SAMP,data,MAX_PACKET);
@@ -127,14 +128,15 @@ int main(int argc, char **argv)
             fclose(fopus_handler);
             return false;
         }
-        printf("encode bytes %d\n",encode_bytes);
+        ++times;
+        printf("%d encode bytes %d\n",times,encode_bytes);
         rtp_packet = new uint8_t[RTP_HEADER_LEAST_SIZE+encode_bytes];
         rtp_header.payload_type= 0;
         rtp_packet_encapsulate(rtp_packet,RTP_HEADER_LEAST_SIZE+encode_bytes,data,encode_bytes,rtp_header);
         sendto(sock_fd, rtp_packet, RTP_HEADER_LEAST_SIZE+encode_bytes, 0,
                   (struct sockaddr *)&pin, sizeof(pin));
         delete rtp_packet;
-        rtp_packet = NULL;
+        rtp_packet = NULL; 
         //memset(pcm_stream,0,sizeof(pcm_stream));
         fwrite(&data[0],sizeof(unsigned char),encode_bytes,fopus_handler);
         memset(data,0,sizeof(data));
