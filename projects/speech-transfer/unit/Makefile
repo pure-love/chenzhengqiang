@@ -8,11 +8,11 @@ SUFFIX:=cpp
 vpath %.h ../include/
 vpath %.$(SUFFIX) ../src/
 
-TARGET:=gomix
+TARGET:=camera
 CC:=g++
-OBJS:=test_mix netutility logging rtp aes opus signalling speech_mix
-
-CFLAGS:=-g -lpthread -lcrypto -lopus -W -Wall -I/usr/include -L/usr/lib 
+#OBJS:=test_mix netutility logging rtp aes opus signalling speech_mix
+OBJS:=test_camera ortp_send ortp_recv logging netutility rtp aes opus signalling
+CFLAGS:=-g -lpthread -lcrypto -lopus -lortp -W -Wall
 INCLUDE_DIR:=./../include/
 INSTALL_DIR:=/usr/local/bin
 CONFIG_FILE:=./config/server.conf

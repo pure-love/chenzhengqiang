@@ -3,8 +3,13 @@
 #include "rtp.h"
 #include "aes.h"
 #include "opus.h"
-#include <pulse/simple.h>
-#include <pulse/error.h>
+//#include <pulse/simple.h>
+//#include <pulse/error.h>
+#include"ortp_recv.h"
+#include"ortp_send.h"
+#include <ortp/telephonyevents.h>
+#include <signal.h>
+
 
 
 //used to receiving the speech transfer server's reply
@@ -20,30 +25,31 @@ struct SERVER_REPLY
 
 
 #define REMOTE_IP (argv[1])
-#define REMOTE_PORT (argv[2])
+#define REMOTE_PORT (atoi(argv[2]))
 #define CHANNEL "balabalabala"
 
-static const SIGNALLING_BUF=64;
+static const size_t SIGNALLING_BUF=64;
 static const size_t BUFSIZE=640;
 static const size_t CHANNELS = 1;
 static const size_t LSB_DEPTH = 16;
 static const size_t USE_VBR = 0;
 static const size_t USE_VBR_CONSTANT = 1;
 //global variable specify the personal singling type
-static const int PERSONAL_SINGLING_TYPE=13;
-static const int OPUS_RTP_PAYLOAD_TYPE = 97;
+static const int PERSONAL_SINGLING_TYPE= 3;
+static const int OPUS_RTP_PAYLOAD_TYPE = 0;
 
+static const char * help="Usage:./%s <server address> <server port>\n";
 
 //the global pulse audio object "pa_sample_spec" ,used to initialzing pa_simple
-static const pa_sample_spec ss = {
+/*static const pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
         .rate = 8000,
         .channels = 1
     };
-
+*/
 
 // initialize the pulse audio playback handler with the low latency attrubte object
-pa_simple * get_pa_playback_handler()
+/*pa_simple * get_pa_playback_handler()
 {
     pa_buffer_attr bufattr;
     bufattr.fragsize = (uint32_t)-1;
@@ -61,7 +67,7 @@ pa_simple * get_pa_playback_handler()
     }
     return s_play;
 }
-
+*/
 
 //init the rtp header's field with default value
 //payload type 13 indicates personal signalling,97 indicates opus audio signalling
@@ -135,7 +141,7 @@ bool try_create_in_minutes(int minutes,int time_out,int sock_fd,const char * ser
 
          FD_ZERO(&udp_readfds);
          FD_SET(sock_fd,&udp_readfds);
-         int ret = select(sock_fd+1,&sock_fd,NULL,NULL,&tv_timeout);
+         int ret = select(sock_fd+1,&udp_readfds,NULL,NULL,&tv_timeout);
          if( ret == -1 )
          {
               fprintf(stderr,"select() failed:%s",strerror(errno));
@@ -175,9 +181,49 @@ OpusDecoder * get_opus_decoder()
     return opus_decoder;
 }
 
+
 int main( int argc, char ** argv )
 {
-    (void)argc;
+      if( argc != 3 )
+      {
+          fprintf(stderr,help,argv[0]);
+          exit(EXIT_FAILURE);
+      }
+      
+      RTP_HEADER rtp_header;
+      init_default_rtp_header(rtp_header,PAYLOAD_OTHER);
+      uint8_t rtp_packet[76];
+      generate_rtp_packet(rtp_packet,sizeof(rtp_packet),CHANNEL,rtp_header);
+
+      int udp_server_fd = socket(AF_INET,SOCK_DGRAM,0);
+      struct sockaddr_in local_addr;
+      memset(&local_addr,0,sizeof(local_addr));
+      local_addr.sin_family = AF_INET;
+      local_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+      local_addr.sin_port = htons(1314);
+      bind(udp_server_fd,(struct sockaddr *)&local_addr,sizeof(local_addr));
+      bool ok = try_create_in_minutes(1,10,udp_server_fd,"127.0.0.1",54320,rtp_packet,76);
+      if( ! ok )
+      return -1; 
+      close(udp_server_fd);
+      //rtp_session_destroy(session_send); 
+      RtpSession * session_recv =  oRTP_recv_init(1314,1315,0);
+      int total_bytes = 0;
+      unsigned int timestamp = 0;
+      unsigned char buffer[1024];
+      while(true)
+      {
+          total_bytes = oRTP_recv_now(session_recv,buffer,1024,timestamp);
+          if( total_bytes == -1 )
+          {
+                    printf("buffer size is too small\n");
+                    continue;
+          }
+          else if( total_bytes > 0)
+          printf("session0:received %d bytes timestamp:%u\n",total_bytes,timestamp);
+          
+      }
+    /*(void)argc;
     
     (void)argv;
 
@@ -255,6 +301,6 @@ int main( int argc, char ** argv )
             exit(EXIT_FAILURE);    
             continue;
         }
-   }
+   }*/
    return 0;
 }

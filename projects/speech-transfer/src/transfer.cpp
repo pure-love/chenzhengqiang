@@ -1,21 +1,26 @@
 /*
 *@author:chenzhengqiang
 *@start date:2015/6/25
+*@modified date:
 *@desc:verify the client's personal singling and transfer speech message
 */
 
 #include "common.h"
+#include "ortp_recv.h"
+#include "ortp_send.h"
 #include "rtp.h"
 #include "logging.h"
 #include "transfer.h"
 #include "aes.h"
+#include <climits>
 
 
 //macro specify the max receive buffer
 #define MAX_RECV_BUF 65535
 //global variable specify the personal singling type
-static const int PERSONAL_SINGLING_TYPE=13;
-static const int OPUS_RTP_PAYLOAD_TYPE = 97;
+static const int PERSONAL_SINGLING_TYPE=3;
+static const int OPUS_RTP_PAYLOAD_TYPE = 0;
+static unsigned int timestamp = 0;
 
 //only for camera when receive its request,then reply it
 struct SERVER_REPLY
@@ -145,10 +150,14 @@ static inline chat_room_iter get_chat_room_iter(const std::string & channel )
 #@desc:broadcast the speech message to others in a chatroom,except itself
 */
 void broadcast_speech_message(int sock_fd, const uint8_t *rtp_packet,size_t size,
-                                                             const std::string &ID,chat_room_referrence_iter cr_iter)
+                                                             const std::string &ID,chat_room_referrence_iter cr_iter,RtpSession * session )
 {
+
+    
+
     client_iter c_iter = cr_iter->second.begin();
     int ret = 0;
+    (void)ret;
     while( c_iter != cr_iter->second.end() )
     {
         if(c_iter->first == ID )
@@ -157,9 +166,8 @@ void broadcast_speech_message(int sock_fd, const uint8_t *rtp_packet,size_t size
             continue;
         }
         
-        log_module(LOG_DEBUG,"BROADCAST_SPEECH_MESSAGE","SEND SPEECH MESSAGE TO IP:%s PORT:%d SEND BYTES:%d",
+        log_module(LOG_DEBUG,"BROADCAST_SPEECH_MESSAGE","SEND SPEECH MESSAGE TO ID:%s PORT:%d SEND BYTES:%d",
                                            c_iter->first.c_str(),c_iter->second.conn_port,size);
-        
         ret = sendto(sock_fd,rtp_packet,size, 0,
                            (struct sockaddr *)&(c_iter->second.conn_addr), 
                            sizeof(c_iter->second.conn_addr));
@@ -169,8 +177,13 @@ void broadcast_speech_message(int sock_fd, const uint8_t *rtp_packet,size_t size
              log_module(LOG_INFO,"BROADCAST_SPEECH_MESSAGE","ERROR OCCURRED WHEN SEND MESSAGE TO:IP=%s PORT=%d"\
                                "ERROR INFORMATION:%s",c_iter->first.c_str(),c_iter->second.conn_port,strerror(errno));                  
         }
+        
         ++c_iter;
     }
+    if(timestamp >= (UINT_MAX -160))
+    timestamp = 0;
+    else
+    timestamp+=160;
 }
 
 
@@ -193,6 +206,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
     }
 
     //initialize the logger
+    ortp_scheduler_init();
     logging_init(config.log_file.c_str(),config.log_level);
     struct rlimit rt;
     rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
@@ -268,6 +282,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
 void handle_udp_msg( int sock_fd )
 {   
      log_module(LOG_DEBUG,"HANDLE_UDP_MSG","+++++++++++++++++START++++++++++++++++++++");
+     RtpSession * session = NULL;
      ssize_t received_bytes;
      uint8_t rtp_packet[MAX_RECV_BUF];
      CONN_CLIENT conn_client;
@@ -325,7 +340,8 @@ void handle_udp_msg( int sock_fd )
                  //just broadcast this speech message to all clients in chatroom,including the camera
                  log_module(LOG_DEBUG,"HANDLE_UDP_MESSAGE","BROADCAST SPEECH MESSAGE START");
                  log_module(LOG_DEBUG,"HANDLE_UDP_MESSAGE","RTP HEADER'S SEQUENCE NO:%d",rtp_header.sequence_no);
-                 broadcast_speech_message(sock_fd,rtp_packet,received_bytes,ID,cr_iter);
+                 broadcast_speech_message(sock_fd,rtp_packet,received_bytes,ID,cr_iter,session);
+                 
                  log_module(LOG_DEBUG,"HANDLE_UDP_MESSAGE","BROADCAST SPEECH MESSAGE DONE");
              }
              else

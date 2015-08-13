@@ -10,9 +10,9 @@ vpath %.$(SUFFIX) src/
 
 TARGET:=go
 CC:=g++
-OBJS:=main transfer netutility logging rtp aes opus
+OBJS:=main transfer netutility logging rtp aes opus ortp_send
 
-CFLAGS:=-g -lpthread -lcrypto -Wall -lopus -I/usr/include -L/usr/lib
+CFLAGS:=-g -lpthread -lcrypto -Wall -lopus -lortp -I/usr/include -L/usr/lib
 INCLUDE_DIR:=./include/
 INSTALL_DIR:=/usr/local/bin
 CONFIG_FILE:=./config/server.conf

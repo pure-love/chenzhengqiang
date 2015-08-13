@@ -3,8 +3,8 @@
 #include "aes.h"
 #include "opus.h"
 
-#define REMOTE_IP "192.168.1.211"
-#define REMOTE_PORT 54321
+#define REMOTE_IP "127.0.0.1"
+#define REMOTE_PORT 54320
 
 #define LOCAL_IP "0.0.0.0"
 #define LOCAL_PORT 12380
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     rtp_header.extension=0;
     rtp_header.csrc_count=0;	
     rtp_header.marker=1;
-    rtp_header.payload_type=13;
+    rtp_header.payload_type=3;
     rtp_header.sequence_no=0;
     rtp_header.timestamp=0;
     rtp_header.ssrc=0;
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
         }
         printf("encode bytes %d\n",encode_bytes);
         rtp_packet = new uint8_t[RTP_HEADER_LEAST_SIZE+encode_bytes];
-        rtp_header.payload_type= 97;
+        rtp_header.payload_type= 0;
         rtp_packet_encapsulate(rtp_packet,RTP_HEADER_LEAST_SIZE+encode_bytes,data,encode_bytes,rtp_header);
         sendto(sock_fd, rtp_packet, RTP_HEADER_LEAST_SIZE+encode_bytes, 0,
                   (struct sockaddr *)&pin, sizeof(pin));
