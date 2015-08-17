@@ -74,17 +74,17 @@ int main(int argc, char *argv[])
 		return -ENOENT;
 	}
 
-	for (i = 0; i < (int)input_fmtctx->nb_streams; i++) {
+	for (i = 0; i < (int)input_fmtctx->nb_streams; i++ ) {
 		AVStream *in_stream = input_fmtctx->streams[i];
 		AVStream *out_stream = avformat_new_stream(output_fmtctx,
 				in_stream->codec->codec);
-		if (out_stream < 0) {
+		if ( out_stream < 0 ) {
 			printf("av_log 4\n");
 			av_log(NULL, AV_LOG_ERROR,
 					"Alloc new Stream error\n");
 			return -EINVAL;
 		}
-
+        
 		avcodec_copy_context(output_fmtctx->streams[i]->codec,
 				input_fmtctx->streams[i]->codec);
 
