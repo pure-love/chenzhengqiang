@@ -12,7 +12,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=ts_muxer
 CC:=g++
-OBJS:=Main Mux Audio Video Ts FileIo Mybs Mycrc_32  
+OBJS:=test_ts_muxer ts_muxer aac h264 ts crc my_bs mycrc_32  
 
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
 
@@ -37,7 +37,7 @@ $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz
+	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
 install:
 	-mv $(TARGET) $(INSTALL_DIR)
 	-cp -f $(SERVICE) /etc/init.d/$(TARGET)

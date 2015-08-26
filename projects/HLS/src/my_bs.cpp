@@ -1,5 +1,4 @@
 #include "my_bs.h"
-
 void bs_init( bs_t *s, void *p_data, int i_data )
 {
 	s->p_start = (unsigned char *)p_data;		//用传入的p_data首地址初始化p_start，只记下有效数据的首地址

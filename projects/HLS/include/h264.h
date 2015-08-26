@@ -1,13 +1,11 @@
-#ifndef _CZQ_H264_H_
-#define _CZQ_H264_H_
+#ifndef _CZQ_VIDEO_H_
+#define _CZQ_VIDEO_H_
+
+#include "ts.h"
 #include "my_bs.h"
 #include <cstdio>
-
 #define  MAX_VIDEO_TAG_BUF_SIZE   1024 * 1024
 #define  VIDEO_TAG_HEADER_LENGTH  11
-
-extern unsigned int decode_video_done;
-
 
 //H264一帧数据的结构体
 typedef struct Tag_NALU_t
@@ -47,11 +45,13 @@ enum Frametype_e
 };
 
 
-NALU_t *allocate_h264_nal_unit(int buffersize);
-void free_h264_nal_unit(NALU_t *nal_unit);
+NALU_t *AllocNALU(int buffersize);   //分配nal 资源
+void FreeNALU(NALU_t * n);           //释放nal 资源 
 int FindStartCode2 (unsigned char *Buf);         //判断nal 前缀是否为3个字节
 int FindStartCode3 (unsigned char *Buf);         //判断nal 前缀是否为4个字节
-int read_h264_nal_unit (FILE *fh264_handler,NALU_t * nalu);
-int get_frame_type_from_nal( FILE *fh264_handler, NALU_t * nal);
-int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,unsigned int & frame_length, unsigned int & frame_type);
+int GetAnnexbNALU (FILE *,NALU_t *nalu);                //填写nal 数据和头
+int GetFrameType(NALU_t * n);                    //获取帧类型
+int read_h264_frame(FILE *,unsigned char * h264_frame, unsigned int & frame_length, unsigned int & frame_type);
+int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigned long h264_pts,TsPes & h264_pes);
+
 #endif

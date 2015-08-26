@@ -1,19 +1,18 @@
 /*
 @author:chenzhengqiang
-@start date:2015/8/25
+@version:1.0
+@start date:2015/8/26
 @modified date:
-@desc:h264 media file related
+@desc:providing the api for handling h264 file
 */
 
 #include "errors.h"
 #include "h264.h"
 #include <cstdio>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 
-unsigned int decode_video_done = 0;
-
-NALU_t *allocate_h264_nal_unit(int buffersize)
+NALU_t *AllocNALU(int buffersize)
 {
 	NALU_t *nal_unit;
 
@@ -34,7 +33,7 @@ NALU_t *allocate_h264_nal_unit(int buffersize)
 	return nal_unit;
 }
 
-void free_h264_nal_unit(NALU_t *nal_unit)
+void FreeNALU(NALU_t *nal_unit)
 {
 	if (nal_unit)
 	{
@@ -71,7 +70,7 @@ int FindStartCode3 (unsigned char *Buf)
 	}
 }
 
-int read_h264_nal_unit (FILE *fh264_handler,NALU_t * nalu)
+int GetAnnexbNALU ( FILE *fh264_handler, NALU_t * nalu )
 {
 	int pos = 0;                  //一个nal到下一个nal 数据移动的指针
 	int StartCodeFound  = 0;      //是否找到下一个nal 的前缀
@@ -159,10 +158,10 @@ int read_h264_nal_unit (FILE *fh264_handler,NALU_t * nalu)
 	nalu->nal_reference_idc = nalu->buf[0] & 0x60;                 // 2 bit
 	nalu->nal_unit_type = (nalu->buf[0]) & 0x1f;                   // 5 bit
 	free(Buf);
-	return OK;                                        
+	return ((info3 == 1)? 4 : 3);                                               
 }
 
-int get_frame_type_from_nal(NALU_t * nal)
+int GetFrameType(NALU_t * nal)
 {
 	bs_t s;
 	int frame_type = 0; 
@@ -239,22 +238,27 @@ int get_frame_type_from_nal(NALU_t * nal)
 	return 1;
 }
 
-int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,unsigned int & frame_length, unsigned int & frame_type)
+
+/*
+@desc:
+ read a frame from h264 file and then 
+*/
+int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,
+                             unsigned int & frame_length, unsigned int & frame_type)
 {
 	NALU_t * nal_unit = NULL;
-	
 	//分配nal 资源
-	nal_unit = allocate_h264_nal_unit(MAX_VIDEO_TAG_BUF_SIZE); 
+	nal_unit = AllocNALU(MAX_VIDEO_TAG_BUF_SIZE); 
 
 	//读取一帧数据
-	int ret = read_h264_nal_unit( fh264_handler, nal_unit );
-	if ( ret == OK )
+	int startcodeprefix_size = GetAnnexbNALU( fh264_handler, nal_unit );
+	if (startcodeprefix_size == 0)
 	{
-	     return ret;
+		return FILE_EOF;
 	}
 
 	//判断帧类型
-	get_frame_type_from_nal(nal_unit);
+	GetFrameType(nal_unit);
 	frame_type = nal_unit->Frametype;
 
 	if (nal_unit->startcodeprefix_len == 3)
@@ -270,7 +274,7 @@ int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,unsigned int 
 		h264_frame[1] = 0x00;
 		h264_frame[2] = 0x00;
 		h264_frame[3] = 0x01;
-		memcpy(h264_frame + 4,nal_unit->buf,nal_unit->len);
+		memcpy( h264_frame + 4,nal_unit->buf,nal_unit->len);
 	}
 	else
 	{
@@ -279,8 +283,84 @@ int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,unsigned int 
 
 	frame_length = nal_unit->startcodeprefix_len + nal_unit->len;
 
-	free_h264_nal_unit(nal_unit);                                                   //释放nal 资源 
+	FreeNALU(nal_unit);                                                   //释放nal 资源 
 	return OK;
 }
 
 
+
+
+/*
+@desc:
+ encapsulate the h264 frame to pes packet
+*/
+int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigned long h264_pts,TsPes & h264_pes)
+{
+	unsigned int h264pes_pos = 0;
+	h264pes_pos += frame_length;
+
+       memcpy(h264_pes.Es,h264_frame,frame_length);
+	h264_pes.packet_start_code_prefix = 0x000001;
+	h264_pes.stream_id = TS_H264_STREAM_ID;                               //E0~EF表示是视频的,C0~DF是音频,H264-- E0
+	h264_pes.PES_packet_length = 0 ;                                      //一帧数据的长度 不包含 PES包头 ,这个8 是 自适应的长度,填0 可以自动查找
+	h264_pes.Pes_Packet_Length_Beyond = frame_length;
+
+	if ( frame_length> 0xFFFF)                                          //如果一帧数据的大小超出界限
+	{
+		h264_pes.PES_packet_length = 0x00;
+		h264_pes.Pes_Packet_Length_Beyond = frame_length;
+		h264pes_pos += 16;
+	}
+	else
+	{
+		h264_pes.PES_packet_length = 0x00;
+		h264_pes.Pes_Packet_Length_Beyond = frame_length;
+		h264pes_pos += 14;
+	}
+	h264_pes.marker_bit = 0x02;
+	h264_pes.PES_scrambling_control = 0x00;                               //人选字段 存在，不加扰
+	h264_pes.PES_priority = 0x00;
+	h264_pes.data_alignment_indicator = 0x00;
+	h264_pes.copyright = 0x00;
+	h264_pes.original_or_copy = 0x00;
+	h264_pes.PTS_DTS_flags = 0x02;                                         //10'：PTS字段存在,DTS不存在
+	h264_pes.ESCR_flag = 0x00;
+	h264_pes.ES_rate_flag = 0x00;
+	h264_pes.DSM_trick_mode_flag = 0x00;
+	h264_pes.additional_copy_info_flag = 0x00;
+	h264_pes.PES_CRC_flag = 0x00;
+	h264_pes.PES_extension_flag = 0x00;
+	h264_pes.PES_header_data_length = 0x05;                                //后面的数据 包括了PTS所占的字节数
+
+	//清 0 
+	h264_pes.tsptsdts.pts_32_30  = 0;
+	h264_pes.tsptsdts.pts_29_15 = 0;
+	h264_pes.tsptsdts.pts_14_0 = 0;
+
+	h264_pes.tsptsdts.reserved_1 = 0x0003;                                 //填写 pts信息
+	// Videopts大于30bit，使用最高三位 
+	if(h264_pts > 0x7FFFFFFF)
+	{
+		h264_pes.tsptsdts.pts_32_30 = (h264_pts >> 30) & 0x07;                 
+		h264_pes.tsptsdts.marker_bit1 = 0x01;
+	}
+	else 
+	{
+		h264_pes.tsptsdts.marker_bit1 = 0;
+	}
+	// Videopts大于15bit，使用更多的位来存储
+	if(h264_pts > 0x7FFF)
+	{
+		h264_pes.tsptsdts.pts_29_15 = (h264_pts >> 15) & 0x007FFF ;
+		h264_pes.tsptsdts.marker_bit2 = 0x01;
+	}
+	else
+	{
+		h264_pes.tsptsdts.marker_bit2 = 0;
+	}
+	//使用最后15位
+	h264_pes.tsptsdts.pts_14_0 = h264_pts & 0x007FFF;
+	h264_pes.tsptsdts.marker_bit3 = 0x01;
+
+	return h264pes_pos;
+}

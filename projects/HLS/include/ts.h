@@ -1,12 +1,6 @@
-/*
-@author:chenzhengqiang
-@start date:2015/8/25
-@modified date:
-@desc:ts structure related
-*/
-
 #ifndef _CZQ_TS_H_
 #define _CZQ_TS_H_
+#include "crc.h"
 
 #define TS_PACKET_HEADER               4
 #define TS_PACKET_SIZE                 188
@@ -135,11 +129,11 @@ typedef struct Tag_TsPtsDts
 }TsPtsDts;
 
 //PES包结构体，包括PES包头和ES数据 ,头 19 个字节
-typedef struct _PES_PACKET
+typedef struct Tag_TsPes
 {
-	unsigned int    packet_start_code_prefix : 24;//起始：0x000001
+	unsigned int   packet_start_code_prefix : 24;//起始：0x000001
 	unsigned char  stream_id : 8;                //基本流的类型和编号
-	unsigned int    PES_packet_length : 16;       //包长度,就是帧数据的长度，可能为0,要自己算,做多16位，如果超出则需要自己算
+	unsigned int   PES_packet_length : 16;       //包长度,就是帧数据的长度，可能为0,要自己算,做多16位，如果超出则需要自己算
 	unsigned char  marker_bit:2;                 //必须是：'10'
 	unsigned char  PES_scrambling_control:2;     //pes包有效载荷的加扰方式
 	unsigned char  PES_priority:1;               //有效负载的优先级
@@ -154,10 +148,10 @@ typedef struct _PES_PACKET
 	unsigned char  PES_CRC_flag:1;               //1:crc字段存在，0：不存在
 	unsigned char  PES_extension_flag:1;         //1：扩展字段存在，0：不存在
 	unsigned char  PES_header_data_length :8;    //后面数据的长度，
-	TsPtsDts         ts_pts_dts;                     //ptsdts结构体对象，10个字节
-	unsigned char  ES[MAX_ONE_FRAME_SIZE];       //一帧 原始数据
-	unsigned int   PES_packet_length_beyond;     //如果PES_packet_length的大小不能满足一帧数据的长度则用这个代替
-}PES_PACKET;
+	TsPtsDts       tsptsdts;                     //ptsdts结构体对象，10个字节
+	unsigned char  Es[MAX_ONE_FRAME_SIZE];       //一帧 原始数据
+	unsigned int   Pes_Packet_Length_Beyond;     //如果PES_packet_length的大小不能满足一帧数据的长度则用这个代替
+}TsPes;
 
 extern Continuity_Counter continuity_counter;     //包类型计数器
 

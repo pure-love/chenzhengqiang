@@ -1,34 +1,31 @@
 /*
 @author:chenzhengqiang
-@start date:2015/8/25
+@version:1.0
+@start date:2015/8/26
 @modified date:
-@desc:handle the aac file,providing apis like the following:
- obtain the adts header either read a aac frame from aac file 
+@desc:providing the api of handling aac:obtain the adts header,read a frame from aac file
 */
 
 #include "errors.h"
 #include "aac.h"
-#include<cstdio>
-#include<cstring>
+#include <cstring>
 
 /*
-@args:faac_handler[in],adts_header[out]
 @returns:0 indicates ok,others see the errors.h
-@desc:read the adts header from aac file
+@desc:read the adts header from aac file,and then saving the adts data to ADTS_HEADER
 */
-int obtain_aac_adts_header( FILE *faac_handler, ADTS_HEADER & adts_header )
+int obtain_aac_adts_header(FILE *faac_handler, ADTS_HEADER & adts_header,unsigned char *adts_header_buffer )
 {
-       unsigned char adts_header_buffer[ADTS_HEADER_LENGTH];
-       if( faac_handler == NULL )
+       if( faac_handler == NULL || adts_header_buffer == NULL )
        return ARGUMENT_ERROR;
        
-	unsigned int readsize = 0;
-	readsize = fread(adts_header_buffer,sizeof(unsigned char),ADTS_HEADER_LENGTH,faac_handler);
-	
-	if (readsize == 0)
+	size_t read_bytes = 0;
+	read_bytes = fread(adts_header_buffer,sizeof(unsigned char),ADTS_HEADER_LENGTH,faac_handler);
+	if (read_bytes == 0)
 	{
-		return FILE_EOF;
+	      return FILE_EOF;
 	}
+	
 	if ((adts_header_buffer[0] == 0xFF)&&((adts_header_buffer[1] & 0xF0) == 0xF0))    //syncword 12个1
 	{
 		adts_header.syncword = (adts_header_buffer[0] << 4 )  | (adts_header_buffer[1]  >> 4);
@@ -55,34 +52,106 @@ int obtain_aac_adts_header( FILE *faac_handler, ADTS_HEADER & adts_header )
 }
 
 
-
 /*
-@args:faac_handler[in],frame_buffer[out]
-@returns:0 indicates ok,others see the erros.h
-@desc:read the adts header from aac file ,then we know the aac frame's length.
- as we alrerady know the frame's length,then just call the fread
+@returns:0 indicates ok,others see the errors.h
+@desc:read a frame from aac file,then save the data to aac frame buffer
 */
-int read_aac_frame( FILE *faac_handler,unsigned char * aac_frame, unsigned int & frame_length )
+int read_aac_frame( FILE *faac_handler,unsigned char * aac_frame ,unsigned int & frame_length )
 {
-       if( faac_handler == NULL || aac_frame == NULL )
-       return ARGUMENT_ERROR;
-       
 	ADTS_HEADER  adts_header ;
-	size_t read_bytes = 0;
+	unsigned int read_bytes = 0;
 
-	int ret = obtain_aac_adts_header(faac_handler,adts_header);
-	if (  ret != OK )
+	//read the adts header,then we know the frame length
+	int ret = obtain_aac_adts_header(faac_handler,adts_header,aac_frame);
+       if( ret != OK )
 	{
-	    return ret;
+		return ret;
 	}
+       
+	//fill the data into aac_frame
+	read_bytes = fread(aac_frame+ADTS_HEADER_LENGTH,sizeof(unsigned char),
+	                             adts_header.aac_frame_length - ADTS_HEADER_LENGTH, faac_handler );
     
-	read_bytes= fread(aac_frame+ADTS_HEADER_LENGTH,sizeof(unsigned char),adts_header.aac_frame_length - ADTS_HEADER_LENGTH,faac_handler);
-	if ( read_bytes != adts_header.aac_frame_length - ADTS_HEADER_LENGTH )
+	if (read_bytes != adts_header.aac_frame_length - ADTS_HEADER_LENGTH)
 	{
-	     return FILE_LENGTH_ERROR;
+		return FILE_LENGTH_ERROR;
 	}
 
        frame_length = adts_header.aac_frame_length;
 	return OK;
 }
 
+
+
+/*
+@returns:void
+@desc:encapsulate pes with aac frame buffer and the display timestamp
+*/
+void aac_frame_2_pes( unsigned char *aac_frame, unsigned int frame_length, unsigned long aac_pts,TsPes  & aac_pes )
+{
+       
+       memcpy(aac_pes.Es,aac_frame,frame_length );
+	unsigned int aacpes_pos = 0;
+	aacpes_pos += frame_length ;
+
+	aac_pes.packet_start_code_prefix = 0x000001;
+	aac_pes.stream_id = TS_AAC_STREAM_ID;                                //E0~EF表示是视频的,C0~DF是音频,H264-- E0
+	aac_pes.PES_packet_length = 0 ; // frame_length + 8 ;             //一帧数据的长度 不包含 PES包头 ,8自适应段的长度
+	aac_pes.Pes_Packet_Length_Beyond = frame_length;                  //= OneFrameLen_aac;     //这里读错了一帧  
+	if (frame_length > 0xFFFF)                                          //如果一帧数据的大小超出界限
+	{
+		aac_pes.PES_packet_length = 0x00;
+		aac_pes.Pes_Packet_Length_Beyond = frame_length;  
+		aacpes_pos += 16;
+	}
+	else
+	{
+		aac_pes.PES_packet_length = 0x00;
+		aac_pes.Pes_Packet_Length_Beyond = frame_length;  
+		aacpes_pos += 14;
+	}
+	aac_pes.marker_bit = 0x02;
+	aac_pes.PES_scrambling_control = 0x00;                               //人选字段 存在，不加扰
+	aac_pes.PES_priority = 0x00;
+	aac_pes.data_alignment_indicator = 0x00;
+	aac_pes.copyright = 0x00;
+	aac_pes.original_or_copy = 0x00;
+	aac_pes.PTS_DTS_flags = 0x02;                                        //10'：PTS字段存在,DTS不存在
+	aac_pes.ESCR_flag = 0x00;
+	aac_pes.ES_rate_flag = 0x00;
+	aac_pes.DSM_trick_mode_flag = 0x00;
+	aac_pes.additional_copy_info_flag = 0x00;
+	aac_pes.PES_CRC_flag = 0x00;
+	aac_pes.PES_extension_flag = 0x00;
+	aac_pes.PES_header_data_length = 0x05;                               //后面的数据 包括了PTS所占的字节数
+
+	aac_pes.tsptsdts.pts_32_30  = 0;
+	aac_pes.tsptsdts.pts_29_15 = 0;
+	aac_pes.tsptsdts.pts_14_0 = 0;
+
+	aac_pes.tsptsdts.reserved_1 = 0x03;                                 //填写 pts信息
+	
+	// Adudiopts大于30bit，使用最高三位 
+	if( aac_pts > 0x7FFFFFFF )
+	{
+		aac_pes.tsptsdts.pts_32_30 = (aac_pts >> 30) & 0x07;                 
+		aac_pes.tsptsdts.marker_bit1 = 0x01;
+	}
+	else 
+	{
+		aac_pes.tsptsdts.marker_bit1 = 0;
+	}
+	// Videopts大于15bit，使用更多的位来存储
+	if( aac_pts > 0x7FFF)
+	{
+		aac_pes.tsptsdts.pts_29_15 = (aac_pts >> 15) & 0x007FFF ;
+		aac_pes.tsptsdts.marker_bit2 = 0x01;
+	}
+	else
+	{
+		aac_pes.tsptsdts.marker_bit2 = 0;
+	}
+	//使用最后15位
+	aac_pes.tsptsdts.pts_14_0 = aac_pts & 0x007FFF;
+	aac_pes.tsptsdts.marker_bit3 = 0x01;
+}
