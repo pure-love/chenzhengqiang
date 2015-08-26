@@ -12,7 +12,6 @@
 #include <cstdlib>
 #include <cstring>
 
-unsigned char frame_buffer[MAX_ONE_FRAME_SIZE];
 unsigned int WritePacketNum = 0;
 static const int H264_FRAME_RATE = 60;
 
@@ -251,8 +250,8 @@ int PES2TS(FILE *fts_handler,TsPes * ts_pes,unsigned int Video_Audio_PID ,Ts_Ada
 	AdaptiveLength = 188 - 4 - 1 - ((ts_pes->Pes_Packet_Length_Beyond - FirstPacketLoadLength)% 184)  ;  //要填写0XFF的长度
 	if ((WritePacketNum % 40) == 0)                                                         //每40个包打一个 pat,一个pmt
 	{
-		Write_Pat(fts_handler,frame_buffer);                                                         //创建PAT
-		Write_Pmt(fts_handler,frame_buffer);                                                         //创建PMT
+		Write_Pat(fts_handler,ts_pes->Es);                                                         //创建PAT
+		Write_Pmt(fts_handler,ts_pes->Es);                                                         //创建PMT
 	}
 	//开始处理第一个包,分片包的个数最少也会是两个 
 	WriteStruct_Packetheader(TSbuf,Video_Audio_PID,0x01,0x03);                              //PID = TS_H264_PID,有效荷载单元起始指示符_play_init = 0x01, ada_field_C,0x03,含有调整字段和有效负载 ；
@@ -317,8 +316,8 @@ int PES2TS(FILE *fts_handler,TsPes * ts_pes,unsigned int Video_Audio_PID ,Ts_Ada
 
 		if ((WritePacketNum % 40) == 0)                                                         //每40个包打一个 pat,一个pmt
 		{
-			Write_Pat(fts_handler,frame_buffer);                                                         //创建PAT
-		Write_Pmt(fts_handler,frame_buffer);                                                            //创建PMT
+			Write_Pat(fts_handler,ts_pes->Es);                                                         //创建PAT
+		Write_Pmt(fts_handler,ts_pes->Es);                                                            //创建PMT
 		}
 		if(ts_pes->Pes_Packet_Length_Beyond >= 184)
 		{
@@ -336,8 +335,8 @@ int PES2TS(FILE *fts_handler,TsPes * ts_pes,unsigned int Video_Audio_PID ,Ts_Ada
 			{
 				if ((WritePacketNum % 40) == 0)                                                         //每40个包打一个 pat,一个pmt
 				{
-					Write_Pat(fts_handler,frame_buffer);                                                         //创建PAT
-		Write_Pmt(fts_handler,frame_buffer);                                                           //创建PMT
+					Write_Pat(fts_handler,ts_pes->Es);                                                         //创建PAT
+		Write_Pmt(fts_handler,ts_pes->Es);                                                           //创建PMT
 				}
 
 				WriteStruct_Packetheader(TSbuf,Video_Audio_PID,0x00,0x03);   //PID = TS_H264_PID,不是有效荷载单元起始指示符_play_init = 0x00, ada_field_C,0x03,含有调整字段和有效负载；
@@ -355,8 +354,8 @@ int PES2TS(FILE *fts_handler,TsPes * ts_pes,unsigned int Video_Audio_PID ,Ts_Ada
 			{
 				if ((WritePacketNum % 40) == 0)                                                         //每40个包打一个 pat,一个pmt
 				{
-					Write_Pat(fts_handler,frame_buffer);                                                         //创建PAT
-		Write_Pmt(fts_handler,frame_buffer);                                                       //创建PMT
+					Write_Pat(fts_handler,ts_pes->Es);                                                         //创建PAT
+		Write_Pmt(fts_handler,ts_pes->Es);                                                       //创建PMT
 				}
 
 				WriteStruct_Packetheader(TSbuf,Video_Audio_PID,0x00,0x03);  //PID = TS_H264_PID,不是有效荷载单元起始指示符_play_init = 0x00, ada_field_C,0x03,含有调整字段和有效负载；
@@ -405,31 +404,16 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
        FILE *faac_handler = fopen( aac_file,"r" );
        FILE *fts_handler = fopen( ts_file,"w" );
 	ADTS_HEADER adts_header;
-    
-	int ret = obtain_aac_adts_header( faac_handler, adts_header, frame_buffer);
-       if( ret != OK )
-       return ret;
-
-       //we get the aac's samplerate from adts header
-	if (adts_header.sf_index == 0x04)
-	{
-		aac_frame_samplerate = 44100;
-	}
-	else if (adts_header.sf_index == 0x03)
-	{
-		aac_frame_samplerate = 48000;
-	}
-	
-	if (fseek(faac_handler, 0, 0) < 0) 
-	{
-		printf("fseek : pAudio_Aac_File Error\n");
-		return getchar();
-	}
-
+       //obtain the aac file's samplerate
+       aac_frame_samplerate = obtain_aac_file_samplerate( aac_file);
 	unsigned int frame_length = 0;
        bool handle_h264_done = false;
        bool handle_aac_done = false;
-    
+
+       unsigned char h264_frame[MAX_ONE_FRAME_SIZE];
+       unsigned char aac_frame[MAX_ONE_FRAME_SIZE];
+       int ret;
+       
 	for (;;)
 	{
 	       if( handle_h264_done && handle_aac_done )
@@ -438,13 +422,13 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 		/* write interleaved audio and video frames */
 		if ( ( aac_pts > h264_pts ) &&  ( !handle_h264_done ) )
 		{
-                    ret = read_h264_frame(fh264_handler,frame_buffer,frame_length, h264_frame_type);
+                    ret = read_h264_frame(fh264_handler,h264_frame,frame_length, h264_frame_type);
                     if( ret != OK )
                     {
                         handle_h264_done = true;
                         continue;
                     }
-                    h264_frame_2_pes(frame_buffer,frame_length,h264_pts,h264_pes); 
+                    h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes); 
 			//Take_Out_Pes(&h264_pes ,h264_pts,0x00,&h264_frame_type);
 			if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
 			{
@@ -469,13 +453,13 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 		}
 		else if( ! handle_aac_done )
 		{
-			ret = read_aac_frame(faac_handler,frame_buffer,frame_length);
+			ret = read_aac_frame( faac_handler,aac_frame,frame_length );
                     if( ret != OK )
                     {
                         handle_aac_done = true;
                         continue;
                     }
-                    aac_frame_2_pes(frame_buffer,frame_length,aac_pts,aac_pes);
+                    aac_frame_2_pes( aac_frame,frame_length,aac_pts,aac_pes);
 			if (aac_pes.Pes_Packet_Length_Beyond != 0)
 			{
 				printf("PES_AUDIO  :  SIZE = %d\n",aac_pes.Pes_Packet_Length_Beyond);
