@@ -17,15 +17,27 @@
 //the flv's aac sequence header
 struct FLV_AAC_SEQUENCE_HEADER
 {
-	uint8_t sample_index1:3;
-	uint8_t object_type:5;
-	uint8_t reserved:3;//000
-	uint8_t channel:4;
-	uint8_t sample_index2:1;
-	
+        uint8_t sample_index1:3;
+        uint8_t object_type:5;
+        uint8_t reserved:3;//000
+        uint8_t channel:4;
+        uint8_t sample_index2:1;	
 };
 
 
+
+struct FLV_AVC_SEQUENCE_HEADER
+{
+        uint8_t configure_version;
+        uint8_t avc_profile_indication;
+        uint8_t profile_compatibility;
+        uint8_t avc_level_indication;
+        uint8_t reserved1:6;
+        uint8_t nal_unit_length:2;
+        uint8_t reserved:3;
+        uint8_t sps_size:5;
+        uint8_t pps_size;
+};
 //the adts
 struct AAC_ADTS_HEADER
 {
@@ -56,25 +68,32 @@ struct AAC_ADTS_HEADER
 };
 
 
+//the h264 space
+static const int H264_SPACE=0x010000;
+
 //class flv_demux inherited from base class flv
 //for the common interface's sake
 //varify the flv format and so on
 class flv_demux:public flv
 {
     public:
-        flv_demux( const char * flv_file, const char * aac_file );
+        flv_demux( const char * flv_file, const char * h264_file,const char * aac_file );
         ~flv_demux();
         void demux_for_aac();
         void demux_for_h264();
         void demux_for_h264_aac();
         void get_aac_adts_frame( uint8_t *flv_aac_packet,uint8_t *aac_adts_frame, const int & data_size);
+    public:
+        enum{DEMUX_H264,DEMUX_AAC};
     private:
         void get_flv_aac_sequence_header( const int & data_size );
-        void goto_h264_demux( const int & data_size );
+        bool do_flv_demux( int action );
     private:
         const char *_flv_file;
         FILE *_fflv_handler;
+        FILE * _f264_handler;
         FILE *_faac_handler;
+        bool _find_h264_sequence_header;
         bool _find_aac_sequence_header;
         FLV_AAC_SEQUENCE_HEADER _flv_aac_sequence_header;
         AAC_ADTS_HEADER _aac_adts_header;

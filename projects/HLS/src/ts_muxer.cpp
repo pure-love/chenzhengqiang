@@ -13,7 +13,7 @@
 #include <cstring>
 
 unsigned int WritePacketNum = 0;
-static const int H264_FRAME_RATE = 20;
+static const int H264_FRAME_RATE = 15;
 
 int Write_Pat(FILE *fts_handler,unsigned char * buf)
 {
@@ -416,11 +416,11 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
        
 	for (;;)
 	{
-	       if( handle_h264_done && handle_aac_done )
+	       if( handle_h264_done )
               break;
            
 		/* write interleaved audio and video frames */
-		if ( ( aac_pts > h264_pts ) &&  ( !handle_h264_done ) )
+		if ( aac_pts > h264_pts && !handle_h264_done )
 		{
                     ret = read_h264_frame(fh264_handler,h264_frame,frame_length, h264_frame_type);
                     if( ret != OK )
@@ -451,7 +451,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 				}
 			}
 		}
-		else if( ! handle_aac_done )
+		else if( h264_pts >= aac_pts && ! handle_aac_done )
 		{
 			ret = read_aac_frame( faac_handler,aac_frame,frame_length );
                     if( ret != OK )

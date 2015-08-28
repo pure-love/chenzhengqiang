@@ -12,11 +12,10 @@
 #include<cstdio>
 #include<stdint.h>
 
-#define hton8(x)    ((x>>8)&0xff)
 #define hton16(x)  (((x>>8)&0xff)|((x<<8)&0xff00))
 #define hton24(x)  (((x>>16)&0xff)|((x<<16)&0xff0000)|(x&0xff00))
 #define hton32(x)  (((x>>24)&0xff)|((x>>8) &0xff00)|\
-((x<<8)&0xff0000)|((x<<24)&0xff000000))
+((x<<8)&0xff0000) |((x<<24)&0xff000000))
 
 
 #define STR(x) (x.c_str())
@@ -25,6 +24,8 @@
 #define FSET(x,f) (fseek(f,x,SEEK_SET))
 
 
+
+//the bits_io class
 class bits_io
 {
     public:
