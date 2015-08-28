@@ -6,7 +6,7 @@
 
 #define  WIDTH  720.00          //宽 
 #define  HEIGHT 468.00          //高
-#define  FRAMERATE 15.00        //视频帧率
+#define  FRAMERATE 15.00  //视频帧率
 
 
 int main()
