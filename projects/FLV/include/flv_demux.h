@@ -44,7 +44,6 @@ struct FLV_AVC_SEQUENCE_HEADER
 struct AAC_ADTS_HEADER
 {
 	unsigned	char check1;
-	
 	unsigned    char protection:1;//误码校验1
 	unsigned    char layer:2;//哪个播放器被使用0x00
 	unsigned    char ver:1;//版本 0 for MPEG-4, 1 for MPEG-2
@@ -71,7 +70,7 @@ struct AAC_ADTS_HEADER
 
 
 //the h264 space
-static const int H264_SPACE=0x010000;
+static const int H264_SPACE=0x01000000;
 
 
 //the common used data structure for storing the flv tag header info

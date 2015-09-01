@@ -4,6 +4,7 @@
 #include "ts.h"
 #include "my_bs.h"
 #include <cstdio>
+#include <stdint.h>
 #define  MAX_VIDEO_TAG_BUF_SIZE   1024 * 1024
 #define  VIDEO_TAG_HEADER_LENGTH  11
 
@@ -45,12 +46,13 @@ enum Frametype_e
 };
 
 
-NALU_t *AllocNALU(int buffersize);   //分配nal 资源
-void FreeNALU(NALU_t * n);           //释放nal 资源 
-int FindStartCode2 (unsigned char *Buf);         //判断nal 前缀是否为3个字节
-int FindStartCode3 (unsigned char *Buf);         //判断nal 前缀是否为4个字节
-int GetAnnexbNALU (FILE *,NALU_t *nalu);                //填写nal 数据和头
-int GetFrameType(NALU_t * n);                    //获取帧类型
+NALU_t *allocate_nal_unit(int buffersize);
+void free_nal_unit(NALU_t * n);  
+int is_the_right_nalu_prefix3( unsigned char * stream_buf );  
+int is_the_right_nalu_prefix4 (unsigned char * stream_buf ); 
+int read_h264_nal_unit(FILE *,NALU_t *nalu);                //填写nal 数据和头
+int get_h264_frame_type(NALU_t * n);                    //获取帧类型
+int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu );
 int read_h264_frame(FILE *,unsigned char * h264_frame, unsigned int & frame_length, unsigned int & frame_type);
 int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigned long h264_pts,TsPes & h264_pes);
 

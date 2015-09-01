@@ -12,7 +12,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=ts_muxer
 CC:=g++
-OBJS:=test_ts_muxer ts_muxer aac h264 ts crc my_bs mycrc_32  
+OBJS:=test_ts_muxer ts_muxer aac h264 ts crc my_bs mycrc_32 flv bits_io flv_demux 
 
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
 

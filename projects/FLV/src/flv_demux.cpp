@@ -5,6 +5,7 @@
 @start date:2015/8/27
 @modified date:
 @desc:the implementation of flv demux for aac,h264
+      all rights reserved!
 */
 
 #include "flv.h"
@@ -183,6 +184,7 @@ bool flv_demux::get_flv_tag_header_info( FLV_TAG_HEADER_INFO & tag_header_info )
 
 void flv_demux::demux_for_h264( const char * h264_file )
 {    
+     FILE *fts_handler = fopen("./test.ts","wb");
      FILE *f264_handler = fopen( h264_file, "wb");
      if(f264_handler == NULL )
      return;
@@ -192,7 +194,6 @@ void flv_demux::demux_for_h264( const char * h264_file )
    
      if(fseek( _fflv_handler , _flv_header_length+4,SEEK_SET) != 0 )
      {
-         printf("FSEEK ERROR:%s\n",strerror(errno));
          return;
      }
 
@@ -211,10 +212,10 @@ void flv_demux::demux_for_h264( const char * h264_file )
             {
                 int frametype_codecid=0;
 	         bits_io::read_8_bit( frametype_codecid, _fflv_handler );
-                if( ((frametype_codecid & 0xf0) >>4) == 1 )
+                if( (( frametype_codecid & 0xf0) >>4 ) == 1 )
                 //printf("This Is Key Frame\n");
                 ;
-                else if( ((frametype_codecid & 0xf0) >>4) == 2)
+                else if( ((frametype_codecid & 0xf0) >>4 ) == 2)
                 //printf("This Is Inter Frame\n"); 
                 ;
 	         int avc_packet_type=0;
@@ -224,46 +225,58 @@ void flv_demux::demux_for_h264( const char * h264_file )
 	         fseek( _fflv_handler, 3, SEEK_CUR );
 
                 
-	         int temp_length=0;
-	         char * tempbuff = NULL; 
+	         int frame_length=0;
+	         char * h264_frame = NULL; 
+             
 	         if ( avc_packet_type == 0)
 	        {
-	             
-		      fseek( _fflv_handler,6,SEEK_CUR );
-                   bits_io::read_16_bit(temp_length, _fflv_handler );
-		      temp_length = hton16( temp_length );
-                   printf("sssize:%d\n",temp_length);
-                   
-                   tempbuff=(char*)malloc( temp_length );
-		      fread(tempbuff,1,temp_length, _fflv_handler );
-		      fwrite(&H264_SPACE,1,3, f264_handler );
-		      fwrite(tempbuff,1,temp_length, f264_handler );
-		      free(tempbuff);
 
-                   bits_io::read_8_bit(temp_length, _fflv_handler );//ppsn
-                   bits_io::read_16_bit(temp_length, _fflv_handler );//ppssize
-                   temp_length = hton16(temp_length);
-		      printf("ppsize:%d\n",temp_length);
-                   tempbuff=(char*)malloc(temp_length);
-		      fread(tempbuff,1,temp_length, _fflv_handler );
-		      fwrite(&H264_SPACE,1,3, f264_handler );
-		      fwrite(tempbuff,1,temp_length, f264_handler );
-		      free(tempbuff);
+		      fseek( _fflv_handler,6,SEEK_CUR );
+                   bits_io::read_16_bit(frame_length, _fflv_handler );
+		      frame_length = hton16( frame_length );
+                   printf("sps size:%d\n",frame_length);
+                   
+                   h264_frame=(char*)malloc( frame_length+4);
+                   if( h264_frame == NULL )
+                   return;
+                   
+                   memcpy(h264_frame,&H264_SPACE,4);
+		      fread(h264_frame+4,1,frame_length, _fflv_handler );
+		      //fwrite(&H264_SPACE,1,3, f264_handler );
+		      fwrite(h264_frame,1,frame_length+4, f264_handler );
+		      free(h264_frame);
+
+                   bits_io::read_8_bit(frame_length, _fflv_handler );//ppsn
+                   bits_io::read_16_bit(frame_length, _fflv_handler );//ppssize
+                   frame_length = hton16(frame_length);
+		      printf("pps size:%d\n",frame_length);
+              
+                   h264_frame=(char*)malloc(frame_length+4);
+                   if( h264_frame == NULL )
+                   return;
+                   
+                   memcpy(h264_frame,&H264_SPACE,4);
+		      fread(h264_frame+4,1,frame_length,  _fflv_handler );
+		      fwrite(h264_frame,1,frame_length+4, f264_handler );
+		      free(h264_frame);
 	        }
               else if( avc_packet_type == 1)
 	       {
 	              //this is AVC NALU
-                    int countsize=2+3;
+                    int countsize=2+4;
                     while( countsize < tag_header_info.tag_data_size )
                     {
-                    	bits_io::read_32_bit(temp_length, _fflv_handler );
-                           temp_length = hton32( temp_length );
-                    	tempbuff=(char*)malloc( temp_length );
-                    	fread(tempbuff,1,temp_length, _fflv_handler );
-                    	fwrite(&H264_SPACE,1,3, f264_handler );
-                    	fwrite(tempbuff,1,temp_length, f264_handler );
-                    	free(tempbuff);
-                    	countsize+=(temp_length+4);
+                    	bits_io::read_32_bit(frame_length, _fflv_handler );
+                           frame_length = hton32( frame_length);
+                    	h264_frame=(char*)malloc( frame_length+4);
+                           if( h264_frame == NULL )
+                           return;
+                           memcpy(h264_frame,&H264_SPACE,4);
+                    	fread(h264_frame+4,1,frame_length, _fflv_handler );
+                           //fwrite(&H264_SPACE,1,4, f264_handler );
+                    	fwrite(h264_frame,1,frame_length+4, f264_handler );
+                    	free(h264_frame);
+                    	countsize+=(frame_length+5);
                     }
 	       }
              else

@@ -420,7 +420,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
               break;
            
 		/* write interleaved audio and video frames */
-		if ( aac_pts > h264_pts && !handle_h264_done )
+		if (true)
 		{
                     ret = read_h264_frame(fh264_handler,h264_frame,frame_length, h264_frame_type);
                     if( ret != OK )
@@ -428,6 +428,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
                         handle_h264_done = true;
                         continue;
                     }
+                    
                     h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes); 
 			//Take_Out_Pes(&h264_pes ,h264_pts,0x00,&h264_frame_type);
 			if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
@@ -451,7 +452,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 				}
 			}
 		}
-		else if( h264_pts >= aac_pts && ! handle_aac_done )
+		else if( false )
 		{
 			ret = read_aac_frame( faac_handler,aac_frame,frame_length );
                     if( ret != OK )

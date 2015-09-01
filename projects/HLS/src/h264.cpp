@@ -12,13 +12,13 @@
 #include <cstdlib>
 #include <cstring>
 
-NALU_t *AllocNALU(int buffersize)
+NALU_t *allocate_nal_unit(int buffersize)
 {
 	NALU_t *nal_unit;
 
 	if ((nal_unit = (NALU_t*)calloc (1, sizeof(NALU_t))) == NULL)
 	{
-		printf("AllocNALU Error: Allocate Meory To NALU_t Failed ");
+		printf("allocate_nal_unit Error: Allocate Meory To NALU_t Failed ");
 		getchar();
 	}
 
@@ -27,13 +27,13 @@ NALU_t *AllocNALU(int buffersize)
 	if ((nal_unit->buf = (unsigned char*)calloc (buffersize, sizeof (char))) == NULL)
 	{
 		free (nal_unit);
-		printf ("AllocNALU Error: Allocate Meory To NALU_t Buffer Failed ");
+		printf ("allocate_nal_unit Error: Allocate Meory To NALU_t Buffer Failed ");
 		getchar();
 	}
 	return nal_unit;
 }
 
-void FreeNALU(NALU_t *nal_unit)
+void free_nal_unit(NALU_t *nal_unit)
 {
 	if (nal_unit)
 	{
@@ -46,7 +46,7 @@ void FreeNALU(NALU_t *nal_unit)
 	}
 }
 
-int FindStartCode2 (unsigned char *Buf)
+int is_the_right_nalu_prefix3 (unsigned char *Buf)
 {
 	if(Buf[0]!=0 || Buf[1]!=0 || Buf[2] !=1)               //Check whether buf is 0x000001
 	{
@@ -58,7 +58,7 @@ int FindStartCode2 (unsigned char *Buf)
 	}
 }
 
-int FindStartCode3 (unsigned char *Buf)
+int is_the_right_nalu_prefix4 (unsigned char *Buf)
 {
 	if(Buf[0]!=0 || Buf[1]!=0 || Buf[2] !=0 || Buf[3] !=1)  //Check whether buf is 0x00000001
 	{
@@ -70,98 +70,100 @@ int FindStartCode3 (unsigned char *Buf)
 	}
 }
 
-int GetAnnexbNALU ( FILE *fh264_handler, NALU_t * nalu )
+int read_h264_nal_unit( FILE *fh264_handler, NALU_t * nalu )
 {
 	int pos = 0;                  //一个nal到下一个nal 数据移动的指针
-	int StartCodeFound  = 0;      //是否找到下一个nal 的前缀
+	int start_code_prefix_found  = 0;      //是否找到下一个nal 的前缀
 	int rewind = 0;               //判断 前缀所占字节数 3或 4
-	unsigned char * Buf = NULL;
+	unsigned char * nal_unit_buffer = NULL;
 	static int info2 =0 ;
 	static int info3 =0 ;
 
-	if ((Buf = (unsigned char*)calloc (nalu->max_size , sizeof(char))) == NULL) 
+	if ((nal_unit_buffer = (unsigned char*)calloc (nalu->max_size , sizeof(char))) == NULL) 
 	{
 		printf ("GetAnnexbNALU Error: Could not allocate Buf memory\nal_unit");
 	}
 
 	nalu->startcodeprefix_len = 3;      //初始化前缀位三个字节
 
-	if (3 != fread (Buf, 1, 3, fh264_handler))//从文件读取三个字节到buf
+	if (3 != fread (nal_unit_buffer, 1, 3, fh264_handler))//从文件读取三个字节到buf
 	{
-		free(Buf);
+		free(nal_unit_buffer);
 		return 0;
 	}
-	info2 = FindStartCode2 (Buf);       //Check whether Buf is 0x000001
+    
+	info2 = is_the_right_nalu_prefix3 (nal_unit_buffer);       //Check whether Buf is 0x000001
 	if(info2 != 1) 
 	{
-		//If Buf is not 0x000001,then read one more byte
-		if(1 != fread(Buf + 3, 1, 1, fh264_handler))
+		//if the prefix code is not 0x000001,then read one more byte
+		if(1 != fread(nal_unit_buffer + 3, 1, 1, fh264_handler))
 		{
-			free(Buf);
+			free(nal_unit_buffer);
 			return 0;
 		}
-		info3 = FindStartCode3 (Buf);   //Check whether Buf is 0x00000001
+		info3 = is_the_right_nalu_prefix4 (nal_unit_buffer);   //Check whether Buf is 0x00000001
 		if (info3 != 1)                 //If not the return -1
 		{ 
-			free(Buf);
+			free(nal_unit_buffer);
 			return -1;
 		}
 		else 
 		{
-			//If Buf is 0x00000001,set the prefix length to 4 bytes
+			//if the prefix code is 0x00000001,then set the prefix length to 4 bytes
 			pos = 4;
 			nalu->startcodeprefix_len = 4;
 		}
 	} 
 	else
 	{
-		//If Buf is 0x000001,set the prefix length to 3 bytes
+		//if the prefix code is 0x000001,set the prefix length to 3 bytes
 		pos = 3;
 		nalu->startcodeprefix_len = 3;
 	}
 	//寻找下一个字符符号位， 即 寻找一个nal 从一个0000001 到下一个00000001
-	StartCodeFound = 0;
+	start_code_prefix_found = 0;
 	info2 = 0;
 	info3 = 0;
-	while (!StartCodeFound)
+	while (!start_code_prefix_found)
 	{
 		if (feof (fh264_handler))                                 //如果到了文件结尾
 		{
 			nalu->len = (pos-1) - nalu->startcodeprefix_len;  //从0 开始
-			memcpy (nalu->buf, &Buf[nalu->startcodeprefix_len], nalu->len);     
+			memcpy (nalu->buf, &nal_unit_buffer[nalu->startcodeprefix_len], nalu->len);     
 			nalu->forbidden_bit = nalu->buf[0] & 0x80;      // 1 bit--10000000
 			nalu->nal_reference_idc = nalu->buf[0] & 0x60;  // 2 bit--01100000
 			nalu->nal_unit_type = (nalu->buf[0]) & 0x1f;    // 5 bit--00011111
-			free(Buf);
+			free(nal_unit_buffer);
 			return ((info3 == 1)? 4 : 3);
 		}
-		Buf[pos++] = fgetc (fh264_handler);                       //Read one char to the Buffer 一个字节一个字节从文件向后找
-		info3 = FindStartCode3(&Buf[pos-4]);		        //Check whether Buf is 0x00000001 
+		nal_unit_buffer[pos++] = fgetc (fh264_handler);                       //Read one char to the Buffer 一个字节一个字节从文件向后找
+		info3 = is_the_right_nalu_prefix4(&nal_unit_buffer[pos-4]);		        //Check whether Buf is 0x00000001 
 		if(info3 != 1)
 		{
-			info2 = FindStartCode2(&Buf[pos-3]);            //Check whether Buf is 0x000001
+			info2 = is_the_right_nalu_prefix3(&nal_unit_buffer[pos-3]);            //Check whether Buf is 0x000001
 		}
-		StartCodeFound = (info2 == 1 || info3 == 1);        //如果找到下一个前缀
+		start_code_prefix_found = (info2 == 1 || info3 == 1);        //如果找到下一个前缀
 	}
 
 	rewind = (info3 == 1)? -4 : -3;
 
 	if (0 != fseek (fh264_handler, rewind, SEEK_CUR))			    //将文件内部指针移动到 nal 的末尾
 	{
-		free(Buf);
+		free(nal_unit_buffer);
 		printf("GetAnnexbNALU Error: Cannot fseek in the bit stream file");
 	}
 
-	nalu->len = (pos + rewind) -  nalu->startcodeprefix_len;       //设置包含nal 头的数据长度
-	memcpy (nalu->buf, &Buf[nalu->startcodeprefix_len], nalu->len);//拷贝一个nal 数据到数组中
-	nalu->forbidden_bit = nalu->buf[0] & 0x80;                     //1 bit  设置nal 头
+	nalu->len = (pos + rewind) -  nalu->startcodeprefix_len; 
+	memcpy (nalu->buf, &nal_unit_buffer[nalu->startcodeprefix_len], nalu->len);//拷贝一个nal 数据到数组中
+	nalu->forbidden_bit = nalu->buf[0] & 0x80;          
 	nalu->nal_reference_idc = nalu->buf[0] & 0x60;                 // 2 bit
 	nalu->nal_unit_type = (nalu->buf[0]) & 0x1f;                   // 5 bit
-	free(Buf);
+	free(nal_unit_buffer);
 	return ((info3 == 1)? 4 : 3);                                               
 }
 
-int GetFrameType(NALU_t * nal)
+
+int get_h264_frame_type(NALU_t * nal)
 {
 	bs_t s;
 	int frame_type = 0; 
@@ -241,24 +243,24 @@ int GetFrameType(NALU_t * nal)
 
 /*
 @desc:
- read a frame from h264 file and then 
+ read a frame from h264 file 
 */
 int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,
                              unsigned int & frame_length, unsigned int & frame_type)
 {
 	NALU_t * nal_unit = NULL;
 	//分配nal 资源
-	nal_unit = AllocNALU(MAX_VIDEO_TAG_BUF_SIZE); 
+	nal_unit = allocate_nal_unit( MAX_VIDEO_TAG_BUF_SIZE ); 
 
 	//读取一帧数据
-	int startcodeprefix_size = GetAnnexbNALU( fh264_handler, nal_unit );
+	int startcodeprefix_size = read_h264_nal_unit( fh264_handler, nal_unit );
 	if (startcodeprefix_size == 0)
 	{
 		return FILE_EOF;
 	}
 
 	//判断帧类型
-	GetFrameType(nal_unit);
+	get_h264_frame_type(nal_unit);
 	frame_type = nal_unit->Frametype;
 
 	if (nal_unit->startcodeprefix_len == 3)
@@ -282,8 +284,7 @@ int read_h264_frame(FILE *fh264_handler,unsigned char * h264_frame,
 	}
 
 	frame_length = nal_unit->startcodeprefix_len + nal_unit->len;
-
-	FreeNALU(nal_unit);                                                   //释放nal 资源 
+	free_nal_unit(nal_unit);                                                   //释放nal 资源 
 	return OK;
 }
 
@@ -364,3 +365,141 @@ int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigne
 
 	return h264pes_pos;
 }
+
+
+
+/*
+@desc:read a nal unit from input stream buffer 
+*/
+int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu )
+{
+       if( stream_buffer == NULL || buffer_size <= 3 )
+       return ARGUMENT_ERROR;
+       
+	int nalu_pos = 0;
+       int stream_pos = 0;
+	int start_code_prefix_found  = 0;   
+	uint8_t * nal_unit_buffer = NULL;
+    
+	static int info2 =0 ;
+	static int info3 =0 ;
+
+	if ((nal_unit_buffer = (unsigned char*)calloc (nalu->max_size , sizeof(char))) == NULL ) 
+	{
+		return -1;
+	}
+
+	nalu->startcodeprefix_len = 3; 
+       memcpy(nal_unit_buffer,stream_buffer+stream_pos,3);
+       stream_pos+=3;
+	info2 = is_the_right_nalu_prefix3(nal_unit_buffer);       //Check whether nal_unit_buffer is 0x000001
+	if( info2 != 1 ) 
+	{
+		//if nal_unit_buffer is not 0x000001,then read one more byte cause it could be 0x00000001
+		if( (stream_pos +1) >= buffer_size )
+             return -1;
+        
+             memcpy(nal_unit_buffer+3,stream_buffer+stream_pos,1);
+             stream_pos+=1;
+		info3 = is_the_right_nalu_prefix4 ( nal_unit_buffer );   //Check whether nal_unit_buffer is 0x00000001
+		if (info3 != 1)                 //If not the return -1
+		{ 
+			free(nal_unit_buffer);
+			return -1;
+		}
+		else 
+		{
+			//if nal_unit_buffer is 0x00000001,set the prefix length to 4 bytes
+			nalu_pos = 4;
+			nalu->startcodeprefix_len = 4;
+		}
+	} 
+	else
+	{
+		//if nal_unit_buffer is 0x000001,set the prefix length to 3 bytes
+		nalu_pos = 3;
+		nalu->startcodeprefix_len = 3;
+	}
+    
+	//go to find the next nalu prefix code
+	start_code_prefix_found = 0;
+	info2 = 0;
+	info3 = 0;
+    
+	while (!start_code_prefix_found )
+	{
+		if ( stream_pos >= buffer_size )         
+		{
+			nalu->len = (nalu_pos-1) - nalu->startcodeprefix_len;
+			memcpy (nalu->buf, &nal_unit_buffer[nalu->startcodeprefix_len], nalu->len);     
+			nalu->forbidden_bit = nalu->buf[0] & 0x80;      // 1 bit--10000000
+			nalu->nal_reference_idc = nalu->buf[0] & 0x60;  // 2 bit--01100000
+			nalu->nal_unit_type = (nalu->buf[0]) & 0x1f;    // 5 bit--00011111
+			free(nal_unit_buffer);
+			return stream_pos;
+		}
+        
+		nal_unit_buffer[nalu_pos++] = stream_buffer[stream_pos++];
+		info3 = is_the_right_nalu_prefix4(&nal_unit_buffer[nalu_pos-4]);		        //Check whether nal_unit_buffer is 0x00000001 
+		if(info3 != 1)
+		{
+			info2 = is_the_right_nalu_prefix3(&nal_unit_buffer[nalu_pos-3]);            //Check whether nal_unit_buffer is 0x000001
+		}
+		start_code_prefix_found = (info2 == 1 || info3 == 1);   
+	}
+
+       int back_pos = (info3 == 1)? -4 : -3;
+       stream_pos+=back_pos;
+	nalu->len = nalu_pos+back_pos-nalu->startcodeprefix_len; 
+	memcpy (nalu->buf, &nal_unit_buffer[nalu->startcodeprefix_len], nalu->len);
+	nalu->forbidden_bit = nalu->buf[0] & 0x80;      
+	nalu->nal_reference_idc = nalu->buf[0] & 0x60;                 // 2 bit
+	nalu->nal_unit_type = (nalu->buf[0]) & 0x1f;                   // 5 bit
+	free(nal_unit_buffer);
+	return stream_pos;                                    
+}
+
+
+
+int read_h264_frame( const uint8_t * input_stream,uint8_t stream_size, unsigned char * h264_frame,
+                                       unsigned int & frame_length, unsigned int & frame_type)
+{
+	NALU_t * nal_unit = NULL;
+	nal_unit = allocate_nal_unit(MAX_VIDEO_TAG_BUF_SIZE); 
+
+	int ret = read_h264_nal_unit( input_stream,stream_size,nal_unit );
+	if (ret != OK )
+	{
+		return ret;
+	}
+
+	//判断帧类型
+	get_h264_frame_type(nal_unit);
+	frame_type = nal_unit->Frametype;
+
+	if ( nal_unit->startcodeprefix_len == 3 )
+	{
+		h264_frame[0] = 0x00;
+		h264_frame[1] = 0x00;
+		h264_frame[2] = 0x01;
+		memcpy(h264_frame + 3,nal_unit->buf,nal_unit->len);
+	}
+	else if (nal_unit->startcodeprefix_len == 4 )
+	{
+		h264_frame[0] = 0x00;
+		h264_frame[1] = 0x00;
+		h264_frame[2] = 0x00;
+		h264_frame[3] = 0x01;
+		memcpy( h264_frame + 4,nal_unit->buf,nal_unit->len);
+	}
+	else
+	{
+		return STREAM_FORMAT_ERROR;
+	}
+
+	frame_length = nal_unit->startcodeprefix_len + nal_unit->len;
+	free_nal_unit(nal_unit);                                                   //释放nal 资源 
+	return OK;
+}
+
+

@@ -15,4 +15,6 @@ static const int FILE_EOF = 97;
 static const int FILE_FORMAT_ERROR = 96;
 static const int FILE_LENGTH_ERROR = 95;
 static const int LENGTH_OVERFLOW = 94;
+static const int STREAM_FORMAT_ERROR = 93;
+static const int STREAM_LENGTH_ERROR = 92;
 #endif
