@@ -12,17 +12,17 @@
 
 using namespace std;
 
-static const char *usage="usage:%s <flv file> <h264file> <aacfile>\n";
+static const char *usage="usage:%s <flv file> <aacfile>\n";
 
 int main( int argc, char ** argv )
 {
-    if( argc != 4 )
+    if( argc != 3 )
     {
         printf(usage,argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    flv_demux test_flv_demux(argv[1],argv[2],argv[3]);
-    test_flv_demux.demux_for_aac();
+    flv_demux test_flv_demux(argv[1]);
+    test_flv_demux.demux_for_aac( argv[2] );
     return 0;
 }

@@ -15,8 +15,8 @@
 #include <errno.h>
 extern int errno;
 
-flv_demux::flv_demux( const char * flv_file, const char* h264_file, const char * aac_file ):_flv_file(flv_file),
-_fflv_handler( NULL ),_faac_handler( NULL ),_find_aac_sequence_header(false)
+flv_demux::flv_demux( const char * flv_file ):_flv_file(flv_file),
+                                   _fflv_handler( NULL ),_find_aac_sequence_header(false)
 
 {
     memset(&_aac_adts_header,0,sizeof(_aac_adts_header));
@@ -28,25 +28,6 @@ _fflv_handler( NULL ),_faac_handler( NULL ),_find_aac_sequence_header(false)
         printf("FOPEN ERROR:%s\n",strerror(errno));
         exit( EXIT_FAILURE );
     }
-
-    _f264_handler = fopen( h264_file, "w");
-    if( _f264_handler == NULL )
-    {
-        fclose( _fflv_handler );
-        _fflv_handler = NULL;
-        printf("FOPEN ERROR:%s\n",strerror(errno));
-        exit( EXIT_FAILURE );
-    }
-    
-    _faac_handler = fopen( aac_file, "w" );
-    if( _faac_handler == NULL )
-    {
-        if( _fflv_handler != NULL )
-        fclose( _fflv_handler );
-        fclose(_f264_handler);
-        printf("FOPEN ERROR:%s\n",strerror(errno));
-        exit(EXIT_FAILURE);
-    }
 }
 
 
@@ -54,17 +35,13 @@ flv_demux::~flv_demux()
 {
     if( _fflv_handler != NULL )
     fclose( _fflv_handler );
-    if( _f264_handler != NULL )
-    fclose( _f264_handler );    
-    if( _faac_handler != NULL )
-    fclose( _faac_handler );    
 }
 
 
-void flv_demux::demux_for_aac()
+void flv_demux::demux_for_aac( const char * aac_file )
 {
-
-    if( _fflv_handler == NULL || _faac_handler == NULL )
+    FILE *faac_handler = fopen( aac_file, "wb");
+    if( faac_handler == NULL )
     return;
     
     if( !verify_format_ok( _flv_file ) )
@@ -72,62 +49,41 @@ void flv_demux::demux_for_aac()
    
     if(fseek( _fflv_handler ,_flv_header_length+4,SEEK_SET) != 0 )
     {
-         printf("FSEEK ERROR:%s\n",strerror(errno));
          return;
     }
 
+    FLV_TAG_HEADER_INFO tag_header_info;
     while( true )
     {
-         //read the tag type field,which holds 8 bit
-         int tag_type=0;
-         if( !bits_io::read_8_bit(tag_type,_fflv_handler ))
-         {  
-            return;
-         }
-         
-         //read the data size field,which holds 24 bit
-         int data_size = 0;
-         if( ! bits_io::read_24_bit( data_size, _fflv_handler ))
-         return;
-
-         //read the timestamp and the timestampextend field, which hold 32 bit total
-         int timestamp = 0;
-         if( ! bits_io::read_32_bit( timestamp, _fflv_handler ) )
-         return;
-         
-         //now convert the data_size and timestamp to network byte order
-         data_size = hton24(data_size);
-         int tmp_timestamp = timestamp;
-         timestamp = hton24( tmp_timestamp);
-         timestamp |=( tmp_timestamp & 0xff000000 );
-
+         memset( &tag_header_info,0, sizeof(tag_header_info));
+         if( ! get_flv_tag_header_info( tag_header_info ) )
+         break;   
          //we didn't care about the stream ID,so just skip 3 bytes
-	  fseek( _fflv_handler ,3,SEEK_CUR);
-         
+	  fseek( _fflv_handler,3,SEEK_CUR );
         long cur_pos = ftell( _fflv_handler );
         
-	  if( tag_type == flv::TAG_AAC )
+	  if( tag_header_info.tag_type == flv::TAG_AAC )
         {
             if( !_find_aac_sequence_header )
             {
-                get_flv_aac_sequence_header(data_size);
+                get_flv_aac_sequence_header();
             }
             else
             {   
                 
-                uint8_t *flv_aac_packet = new uint8_t[data_size];
+                uint8_t *flv_aac_packet = new uint8_t[tag_header_info.tag_data_size];
                 if( flv_aac_packet == NULL  )
                 return;
 
-                int read_bytes = fread( flv_aac_packet,sizeof(uint8_t),data_size,_fflv_handler );
-                if( read_bytes != data_size )
+                int read_bytes = fread( flv_aac_packet,sizeof(uint8_t),tag_header_info.tag_data_size,_fflv_handler );
+                if( read_bytes != tag_header_info.tag_data_size )
                 {
                     delete [] flv_aac_packet;
                     flv_aac_packet = NULL;
                     return;
                 }
 
-                uint8_t *aac_adts_frame = new uint8_t[(data_size-2)+sizeof(AAC_ADTS_HEADER )];
+                uint8_t *aac_adts_frame = new uint8_t[(tag_header_info.tag_data_size-2)+sizeof(AAC_ADTS_HEADER )];
                 if( aac_adts_frame == NULL )
                 {
                     delete [] flv_aac_packet;
@@ -136,9 +92,9 @@ void flv_demux::demux_for_aac()
                 }
 
                 //get the aac adts frame
-                get_aac_adts_frame( flv_aac_packet,aac_adts_frame,data_size);
+                get_aac_adts_frame( flv_aac_packet,aac_adts_frame,tag_header_info.tag_data_size);
                 //and then just write the aac adts frame to aac file
-                fwrite( aac_adts_frame,sizeof(uint8_t),(data_size-2)+sizeof(AAC_ADTS_HEADER ),_faac_handler );
+                fwrite( aac_adts_frame,sizeof(uint8_t),(tag_header_info.tag_data_size-2)+sizeof(AAC_ADTS_HEADER ),faac_handler );
 
                 delete [] flv_aac_packet;
                 flv_aac_packet = NULL;
@@ -148,14 +104,17 @@ void flv_demux::demux_for_aac()
         }
         else
         {
-          ;
+             ;
         }
-	 fseek( _fflv_handler, cur_pos+data_size+4,SEEK_SET);
+	 fseek( _fflv_handler, cur_pos+tag_header_info.tag_data_size+4,SEEK_SET);
     }
+    if( faac_handler != NULL )
+    fclose(faac_handler);
+    faac_handler = NULL;
 }
 
 
-void flv_demux::get_flv_aac_sequence_header( const int & data_size )
+void flv_demux::get_flv_aac_sequence_header()
 {
      int tag_header_info=0;
      int aac_packet_type=0;
@@ -166,14 +125,13 @@ void flv_demux::get_flv_aac_sequence_header( const int & data_size )
      if ( aac_packet_type == 0x00 )
 	{
 		_find_aac_sequence_header = true;
-		fread(&_flv_aac_sequence_header,1,sizeof(_flv_aac_sequence_header),_fflv_handler);
-        
-		_aac_adts_header.check1=0xff;
-		_aac_adts_header.check2=0xf;
-		_aac_adts_header.check3=0x1f;
-		_aac_adts_header.check4=0x3f;
-		_aac_adts_header.protection=1;
-		_aac_adts_header.ObjectType=0;
+		fread( &_flv_aac_sequence_header,1, sizeof(_flv_aac_sequence_header), _fflv_handler );
+		_aac_adts_header.check1 = 0xff;
+		_aac_adts_header.check2 = 0xf;
+		_aac_adts_header.check3 = 0x1f;
+		_aac_adts_header.check4 = 0x3f;
+		_aac_adts_header.protection = 1;
+		_aac_adts_header.ObjectType = 0;
 		_aac_adts_header.SamplingIndex=_flv_aac_sequence_header.sample_index2 |_flv_aac_sequence_header.sample_index1<<1;
 		_aac_adts_header.channel2=_flv_aac_sequence_header.channel;		
 		return;
@@ -196,12 +154,39 @@ void flv_demux::get_aac_adts_frame( uint8_t *flv_aac_packet,uint8_t *aac_adts_fr
         memcpy(aac_adts_frame+sizeof( AAC_ADTS_HEADER ),flv_aac_packet+2,data_size-2); 
 }
 
-
-void flv_demux::demux_for_h264()
+bool flv_demux::get_flv_tag_header_info( FLV_TAG_HEADER_INFO & tag_header_info )
 {
-     if( _fflv_handler == NULL || _f264_handler == NULL )
+
+         //read the tag type field,which holds 8 bit
+         if( !bits_io::read_8_bit( tag_header_info.tag_type,_fflv_handler ))
+         {  
+            return false;
+         }
+         
+         //read the data size field,which holds 24 bit
+         if( ! bits_io::read_24_bit(tag_header_info.tag_data_size, _fflv_handler ))
+         return false;
+
+         //read the timestamp and the timestampextend field, which hold 32 bit total
+         if( ! bits_io::read_32_bit(tag_header_info.tag_timestamp, _fflv_handler ) )
+         return false;
+         
+         //now convert the data_size and timestamp to network byte order
+         tag_header_info.tag_data_size = hton24(tag_header_info.tag_data_size);
+         int tmp_timestamp = tag_header_info.tag_timestamp;
+         tag_header_info.tag_timestamp = hton24( tmp_timestamp);
+         tag_header_info.tag_timestamp |=( tmp_timestamp & 0xff000000 );
+
+         return true;
+}
+
+
+void flv_demux::demux_for_h264( const char * h264_file )
+{    
+     FILE *f264_handler = fopen( h264_file, "wb");
+     if(f264_handler == NULL )
      return;
-    
+     
      if( !verify_format_ok( _flv_file ) )
      return;
    
@@ -211,33 +196,18 @@ void flv_demux::demux_for_h264()
          return;
      }
 
+     FLV_TAG_HEADER_INFO tag_header_info;
      while( true )
      {
-          
-            int tag_type=0;
-            int timestamp =0;
-            int tmp_timestamp = 0;
-            int data_size =0;
-            
-            if (!bits_io::read_8_bit( tag_type,_fflv_handler ))
-            break;
-            
-            if (!bits_io::read_24_bit( data_size , _fflv_handler ))
-            break;
-            
-            if(!bits_io::read_32_bit( timestamp, _fflv_handler ))
-            break;
-
-            data_size = hton24( data_size );
-            tmp_timestamp = timestamp;
-            timestamp = hton24( tmp_timestamp);
-            timestamp |=( tmp_timestamp & 0xff000000 );
-            
+     
+            memset( &tag_header_info,0, sizeof(tag_header_info));
+            if( ! get_flv_tag_header_info( tag_header_info ) )
+                   break;        
             //we didn't care the stream ID,so just skip it which holds 3 bits
             fseek(_fflv_handler, 3, SEEK_CUR );
             int cur_pos= ftell( _fflv_handler );
             
-            if( tag_type == flv::TAG_H264 )
+            if( tag_header_info.tag_type == flv::TAG_H264 )
             {
                 int frametype_codecid=0;
 	         bits_io::read_8_bit( frametype_codecid, _fflv_handler );
@@ -266,8 +236,8 @@ void flv_demux::demux_for_h264()
                    
                    tempbuff=(char*)malloc( temp_length );
 		      fread(tempbuff,1,temp_length, _fflv_handler );
-		      fwrite(&H264_SPACE,1,3, _f264_handler );
-		      fwrite(tempbuff,1,temp_length, _f264_handler );
+		      fwrite(&H264_SPACE,1,3, f264_handler );
+		      fwrite(tempbuff,1,temp_length, f264_handler );
 		      free(tempbuff);
 
                    bits_io::read_8_bit(temp_length, _fflv_handler );//ppsn
@@ -276,57 +246,22 @@ void flv_demux::demux_for_h264()
 		      printf("ppsize:%d\n",temp_length);
                    tempbuff=(char*)malloc(temp_length);
 		      fread(tempbuff,1,temp_length, _fflv_handler );
-		      fwrite(&H264_SPACE,1,3, _f264_handler );
-		      fwrite(tempbuff,1,temp_length, _f264_handler );
+		      fwrite(&H264_SPACE,1,3, f264_handler );
+		      fwrite(tempbuff,1,temp_length, f264_handler );
 		      free(tempbuff);
-
-                      /*
-		         int configure_version=0;
-                      bits_io::read_8_bit( configure_version, _fflv_handler );
-                      printf("configure version:0x%x\n",configure_version);
-                      //we didn't care about the sps[1] sps[2] sps[3],so just skip 3 bytes
-                      fseek( _fflv_handler, 3, SEEK_CUR );
-
-                      int reserved_6bit_and_nal_unit_len = 0;
-                      bits_io::read_8_bit( reserved_6bit_and_nal_unit_len , _fflv_handler );
-                      printf("reserved_6bit_and_nal_unit_len:0x%x\n", reserved_6bit_and_nal_unit_len );
-
-                      int reserved_and_sps_size = 0;
-                      bits_io::read_8_bit( reserved_and_sps_size, _fflv_handler );
-                      printf("reserved_and_sps_size:0x%x\n",reserved_and_sps_size);
-                      int sps_size = reserved_and_sps_size & 0x1f;
-                      printf("sps size:0x%x\n", sps_size);
-
-                      
-                      char *sps_buffer=(char*)malloc( sps_size );
-                      fread(sps_buffer,1,sps_size, _fflv_handler );
-                      fwrite(&H264_SPACE,1,3, _f264_handler );
-                      //fwrite(&sps_size,1,1,_f264_handler);
-		         fwrite(sps_buffer,1, sps_size, _f264_handler );
-		         free(sps_buffer);
-
-                      int pps_size = 0;
-                      bits_io::read_8_bit( pps_size, _fflv_handler );
-                      printf("pps size:0x%x\n", pps_size);
-                      char *pps_buffer = (char *) malloc( pps_size );
-                      fread(pps_buffer,1,pps_size, _fflv_handler );
-                      fwrite(&H264_SPACE,1,3, _f264_handler );
-                      //fwrite(&pps_size,1,1,_f264_handler );
-		         fwrite(pps_buffer,1,pps_size, _f264_handler );
-		         free(pps_buffer);*/
 	        }
               else if( avc_packet_type == 1)
 	       {
 	              //this is AVC NALU
                     int countsize=2+3;
-                    while(countsize< data_size )
+                    while( countsize < tag_header_info.tag_data_size )
                     {
                     	bits_io::read_32_bit(temp_length, _fflv_handler );
                            temp_length = hton32( temp_length );
                     	tempbuff=(char*)malloc( temp_length );
                     	fread(tempbuff,1,temp_length, _fflv_handler );
-                    	fwrite(&H264_SPACE,1,3, _f264_handler );
-                    	fwrite(tempbuff,1,temp_length, _f264_handler );
+                    	fwrite(&H264_SPACE,1,3, f264_handler );
+                    	fwrite(tempbuff,1,temp_length, f264_handler );
                     	free(tempbuff);
                     	countsize+=(temp_length+4);
                     }
@@ -336,7 +271,11 @@ void flv_demux::demux_for_h264()
                  ;//not supported
              }
           }
-          fseek( _fflv_handler ,cur_pos+data_size+4, SEEK_SET);
+          fseek( _fflv_handler ,cur_pos+tag_header_info.tag_data_size+4, SEEK_SET);
      }
+
+     if( f264_handler != NULL )
+        fclose(f264_handler);
+     f264_handler = NULL;
 }
 

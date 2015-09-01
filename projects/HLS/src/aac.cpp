@@ -20,7 +20,7 @@ int obtain_aac_adts_header( FILE *faac_handler, ADTS_HEADER & adts_header, unsig
 {
        if( faac_handler == NULL  )
        return ARGUMENT_ERROR;
-
+       
 	size_t read_bytes = 0;
 	read_bytes = fread(adts_header_buffer,sizeof(unsigned char),ADTS_HEADER_LENGTH,faac_handler);
 	if (read_bytes == 0)
@@ -145,7 +145,7 @@ void aac_frame_2_pes( unsigned char *aac_frame, unsigned int frame_length, unsig
 		aac_pes.tsptsdts.marker_bit1 = 0;
 	}
 	// if greater than 15bit,then use more bit to save the pts
-	if( aac_pts > 0x7FFF)
+	if( aac_pts > 0x7FFF )
 	{
 		aac_pes.tsptsdts.pts_29_15 = (aac_pts >> 15) & 0x007FFF ;
 		aac_pes.tsptsdts.marker_bit2 = 0x01;

@@ -13,7 +13,7 @@
 #include <cstring>
 
 unsigned int WritePacketNum = 0;
-static const int H264_FRAME_RATE = 15;
+static const int H264_FRAME_RATE = 30;
 
 int Write_Pat(FILE *fts_handler,unsigned char * buf)
 {
