@@ -92,7 +92,7 @@ class flv_demux:public flv
         ~flv_demux();
         void demux_for_aac( const char * aac_file );
         void demux_for_h264( const char * h264_file );
-        void demux_meanwhile_mux_2_ts();
+        void demux_meanwhile_mux_2_ts( const char * ts_file );
         void get_aac_adts_frame( uint8_t *flv_aac_packet, uint8_t *aac_adts_frame, const int & data_size);
     public:
         enum{DEMUX_H264,DEMUX_AAC};

@@ -52,8 +52,10 @@ int is_the_right_nalu_prefix3( unsigned char * stream_buf );
 int is_the_right_nalu_prefix4 (unsigned char * stream_buf ); 
 int read_h264_nal_unit(FILE *,NALU_t *nalu);                //填写nal 数据和头
 int get_h264_frame_type(NALU_t * n);                    //获取帧类型
-int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu );
+int read_h264_nal_unit( uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu );
 int read_h264_frame(FILE *,unsigned char * h264_frame, unsigned int & frame_length, unsigned int & frame_type);
+int read_h264_frame(unsigned char * input_stream,unsigned int stream_size, unsigned char * h264_frame,
+                                       unsigned int & frame_length, unsigned int & frame_type);
 int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigned long h264_pts,TsPes & h264_pes);
 
 #endif

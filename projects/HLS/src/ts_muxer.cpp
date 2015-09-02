@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
-unsigned int WritePacketNum = 0;
+
 static const int H264_FRAME_RATE = 30;
 
 int Write_Pat(FILE *fts_handler,unsigned char * buf)
@@ -403,7 +403,6 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 	FILE *fh264_handler = fopen( h264_file,"r" );
        FILE *faac_handler = fopen( aac_file,"r" );
        FILE *fts_handler = fopen( ts_file,"w" );
-	ADTS_HEADER adts_header;
        //obtain the aac file's samplerate
        aac_frame_samplerate = obtain_aac_file_samplerate( aac_file);
 	unsigned int frame_length = 0;
@@ -434,6 +433,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 			if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
 			{
 				printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
+                           getchar();  
 				if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
 				{
 					//填写自适应段标志

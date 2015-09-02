@@ -5,6 +5,7 @@
 #include "h264.h"
 #include <cstdio>
 
+static unsigned int WritePacketNum = 0;
 int Write_Pat(FILE *,unsigned char * buf);
 int Write_Pmt( FILE *, unsigned char * buf);
 int Take_Out_Pes(FILE *,TsPes * tspes ,unsigned long time_pts,unsigned int frametype,unsigned int *videoframetype); //0  ”∆µ £¨1“Ù∆µ

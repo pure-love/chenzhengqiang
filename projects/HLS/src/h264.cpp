@@ -371,7 +371,7 @@ int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigne
 /*
 @desc:read a nal unit from input stream buffer 
 */
-int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu )
+int read_h264_nal_unit( uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * nalu )
 {
        if( stream_buffer == NULL || buffer_size <= 3 )
        return ARGUMENT_ERROR;
@@ -430,7 +430,7 @@ int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_
 	{
 		if ( stream_pos >= buffer_size )         
 		{
-			nalu->len = (nalu_pos-1) - nalu->startcodeprefix_len;
+			nalu->len = nalu_pos- nalu->startcodeprefix_len;
 			memcpy (nalu->buf, &nal_unit_buffer[nalu->startcodeprefix_len], nalu->len);     
 			nalu->forbidden_bit = nalu->buf[0] & 0x80;      // 1 bit--10000000
 			nalu->nal_reference_idc = nalu->buf[0] & 0x60;  // 2 bit--01100000
@@ -461,14 +461,14 @@ int read_h264_nal_unit( const uint8_t *stream_buffer, uint8_t buffer_size, NALU_
 
 
 
-int read_h264_frame( const uint8_t * input_stream,uint8_t stream_size, unsigned char * h264_frame,
+int read_h264_frame( unsigned char * input_stream,unsigned int stream_size, unsigned char * h264_frame,
                                        unsigned int & frame_length, unsigned int & frame_type)
 {
 	NALU_t * nal_unit = NULL;
 	nal_unit = allocate_nal_unit(MAX_VIDEO_TAG_BUF_SIZE); 
 
-	int ret = read_h264_nal_unit( input_stream,stream_size,nal_unit );
-	if (ret != OK )
+	int ret = read_h264_nal_unit( (uint8_t *)input_stream,stream_size,nal_unit );
+	if (ret <=0 )
 	{
 		return ret;
 	}
