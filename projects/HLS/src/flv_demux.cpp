@@ -184,7 +184,7 @@ bool flv_demux::get_flv_tag_header_info( FLV_TAG_HEADER_INFO & tag_header_info )
 }
 
 
-#define FRAME_RATE 15
+#define FRAME_RATE 30
 
 void flv_demux::demux_for_h264( const char * h264_file )
 {    
@@ -297,6 +297,7 @@ void flv_demux::demux_for_h264( const char * h264_file )
 
 void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 {
+        FILE *f264_handler = fopen("flv_demux.264","wb");
         FILE *fts_handler = fopen( ts_file, "wb");
         if( fts_handler == NULL )
             return;
@@ -324,6 +325,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
         
         while( true )
         {
+        
             FLV_TAG_HEADER_INFO tag_header_info;
             memset( &tag_header_info,0, sizeof(tag_header_info));
             if( ! get_flv_tag_header_info( tag_header_info ) )
@@ -344,8 +346,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
              
                 if( avc_packet_type == 0 )
                 {
-                   if( h264_pts > aac_pts )
-                   continue; 
+                  
 		      fseek( _fflv_handler,6,SEEK_CUR );
                    bits_io::read_16_bit(stream_length, _fflv_handler );
 		      stream_length = hton16( stream_length );
@@ -357,6 +358,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 		      fread(h264_stream+4,1,stream_length, _fflv_handler);
                    read_h264_frame( h264_stream, (unsigned int )stream_length+4, h264_frame,
                                               frame_length, h264_frame_type );
+                   fwrite(h264_frame,sizeof(unsigned char),frame_length,f264_handler);
                    h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes);
                    if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
 		     {
@@ -378,6 +380,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 			      }
 		      }
+                   
 		      free(h264_stream);
                    bits_io::read_8_bit(stream_length, _fflv_handler );//ppsn
                    bits_io::read_16_bit(stream_length, _fflv_handler );//ppssize
@@ -389,30 +392,33 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
                    return;
                    
                    memcpy(h264_stream,&H264_SPACE,4);
-		      fread(h264_stream+4,1,stream_length,  _fflv_handler );
-                   read_h264_frame( h264_stream, (unsigned int )stream_length+4, h264_frame,
-                                              frame_length, h264_frame_type );
-                   h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes);
-                   if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-		     {
-		            printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
-			     if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
-			     {
-					    //填写自适应段标志
-					    WriteAdaptive_flags_Head(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-					    //计算一帧视频所用时间
-					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
-					    h264_pts += 1000* 90/FRAME_RATE;   //90khz
-			     }
-			     else
-			     {
-					//填写自适应段标志
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
-			     }
-			}
+		      fread(h264_stream+4,1,stream_length,  _fflv_handler);
+            
+                       read_h264_frame( h264_stream, (unsigned int )stream_length+4, h264_frame,
+                                                  frame_length, h264_frame_type );
+                       fwrite(h264_frame,sizeof(unsigned char),frame_length,f264_handler);
+                       h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes);
+                       if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
+    		         {
+    		               printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
+    			        if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
+    			        {
+    					    //填写自适应段标志
+    					    WriteAdaptive_flags_Head(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+    					    //计算一帧视频所用时间
+    					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+    					    h264_pts += 1000* 90/FRAME_RATE;   //90khz
+    			        }
+    			        else
+    			        {
+    					//填写自适应段标志
+    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
+    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+    					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+    			        }
+    			  }
+                    
                     free(h264_stream);
                 }
                 else if( avc_packet_type == 1 )
@@ -429,8 +435,10 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
                            return;
                            memcpy(h264_stream,&H264_SPACE,4);
                     	fread(h264_stream+4,1,stream_length, _fflv_handler );
+                        
                            read_h264_frame( h264_stream, (unsigned int )stream_length+4, h264_frame,
                                               frame_length, h264_frame_type );
+                           fwrite(h264_frame,sizeof(unsigned char),frame_length,f264_handler);
                            h264_frame_2_pes(h264_frame,frame_length,h264_pts,h264_pes);
                            printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
                            
@@ -457,6 +465,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 				    }
 			        }
+                       
                     	free(h264_stream);
                     	countsize+=(stream_length+5);
                     }
@@ -464,14 +473,13 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
             }
             else if( tag_header_info.tag_type == flv::TAG_AAC )
             {
+                  
                   if( !_find_aac_sequence_header )
                   {
                         get_flv_aac_sequence_header();
                   }
                   else
                   {   
-                        if( aac_pts > h264_pts )
-                        continue;    
                         aac_frame_samplerate = AAC_SAMPLERATES[_aac_adts_header.SamplingIndex];
                         uint8_t *flv_aac_packet = new uint8_t[tag_header_info.tag_data_size];
                         if( flv_aac_packet == NULL  )
@@ -483,7 +491,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
                             flv_aac_packet = NULL;
                             return;
                         }
-
+                        
                         uint8_t *aac_adts_frame = new uint8_t[(tag_header_info.tag_data_size-2)+sizeof(AAC_ADTS_HEADER )];
                         if( aac_adts_frame == NULL )
                         {
@@ -509,6 +517,7 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
                         flv_aac_packet = NULL;
                         delete [] aac_adts_frame;
                         aac_adts_frame = NULL;
+                       
                 }
             }
             fseek( _fflv_handler ,cur_pos+tag_header_info.tag_data_size+4, SEEK_SET);

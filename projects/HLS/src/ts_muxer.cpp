@@ -176,6 +176,7 @@ int CreateAdaptive_Ts(Ts_Adaptation_field * ts_adaptation_field,unsigned char * 
 int PES2TS(FILE *fts_handler,TsPes * ts_pes,unsigned int Video_Audio_PID ,Ts_Adaptation_field * ts_adaptation_field_head ,Ts_Adaptation_field * ts_adaptation_field_tail,
 		   unsigned long  Videopts,unsigned long Adudiopts)
 {
+       
        (void)ts_adaptation_field_tail;
        unsigned int ts_pos = 0;
 	unsigned int FirstPacketLoadLength = 0 ;                                   //分片包的第一个包的负载长度
@@ -419,7 +420,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
               break;
            
 		/* write interleaved audio and video frames */
-		if (true)
+		if ( (h264_pts <= aac_pts) && !handle_h264_done)
 		{
                     ret = read_h264_frame(fh264_handler,h264_frame,frame_length, h264_frame_type);
                     if( ret != OK )
@@ -433,7 +434,6 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 			if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
 			{
 				printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
-                           getchar();  
 				if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
 				{
 					//填写自适应段标志
@@ -452,7 +452,7 @@ int ts_mux_for_h264_aac( const char *h264_file, const char * aac_file, const cha
 				}
 			}
 		}
-		else if( false )
+		else if( !handle_aac_done )
 		{
 			ret = read_aac_frame( faac_handler,aac_frame,frame_length );
                     if( ret != OK )

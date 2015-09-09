@@ -10,9 +10,9 @@ SUFFIX:=cpp
 vpath %.h $(INCLUDE_DIR)
 vpath %.$(SUFFIX) $(SOURCE_DIR)
 
-TARGET:=flv_demux_mux_2_ts
+TARGET:=ts_muxer
 CC:=g++
-OBJS:=test_flv_demux_mux_2_ts h264 ts_muxer aac ts crc my_bs mycrc_32 flv bits_io flv_demux 
+OBJS:=test_ts_muxer h264 ts_muxer aac ts crc my_bs mycrc_32 flv bits_io flv_demux 
 
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
 
