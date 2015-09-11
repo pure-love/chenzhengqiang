@@ -12,7 +12,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=flv_demux_2_264_aac
 CC:=g++
-OBJS:=test_flv_demux_264_aac aac flv flv_demux h264 script
+OBJS:=test_flv_demux_264_aac aac flv flv_demux h264 script ts_mux_aac ts_mux_h264 ts ts_muxer my_bs mycrc_32 crc
 
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
 

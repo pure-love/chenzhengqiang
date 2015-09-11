@@ -9,9 +9,9 @@
 #define _CZQ_H264_H_
 #include "flv.h"
 
-#define ONE_VIDEO_FRAME_SIZE  1024 * 1024
-#define MAX_SPS_FRAME_SIZE 1024
-#define MAX_PPS_FRAME_SIZE 1024
+static const int ONE_VIDEO_FRAME_SIZE = 1024 * 1024;
+static const int MAX_SPS_FRAME_SIZE = 1024;
+static const int MAX_PPS_FRAME_SIZE = 1024;
 
 typedef struct Tag_Video_AvcC
 {
@@ -24,10 +24,10 @@ typedef struct Tag_Video_AvcC
 	unsigned char reserved_2;
 	unsigned char numOfSequenceParameterSets;  //一般都是一个
 	unsigned int sequenceParameterSetLength;
-	unsigned char * sequenceParameterSetNALUnit;
+	unsigned char sequenceParameterSetNALUnit[MAX_SPS_FRAME_SIZE];
 	unsigned char numOfPictureParameterSets;   //一般都是一个
 	unsigned int  pictureParameterSetLength; 
-	unsigned char * pictureParameterSetNALUnit;
+	unsigned char pictureParameterSetNALUnit[MAX_PPS_FRAME_SIZE];
 	unsigned char reserved_3;
 	unsigned char chroma_format;
 	unsigned char reserved_4;
@@ -94,11 +94,9 @@ typedef struct Tag_Video_Tag
 	//are not strictly required)
 	//else if AVCPacketType == 2
 	//Empty
-	Video_AvcC  * video_avcc;
-	unsigned char * Data;                     
-}Video_Tag;
+	Video_AvcC  video_avcc;
+	unsigned char Data[ONE_VIDEO_FRAME_SIZE];                     
+}FLV_H264_TAG;
 
-int AllocStruct_H264_Tag(Video_Tag ** videotag);
-int FreeStruct_H264_Tag(Video_Tag * videotag);
-int ReadStruct_H264_Tag(unsigned char * Buf , unsigned int length ,Video_Tag * tag);
+int read_flv_h264_tag(unsigned char * video_tag_buffer , unsigned int length ,FLV_H264_TAG & h264_tag);
 #endif

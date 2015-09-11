@@ -84,5 +84,3 @@ static void sig_alrm( int signo )
 {
     siglongjmp( jmpbuf, 1);
 }
-
-

@@ -3,52 +3,40 @@
 @improved by:chenzhenqiang
 @start date:2015/9/9
 */
-
+#include "aac.h"
+#include "ts_muxer.h"
 #include "common.h"
 #include "flv_demux.h"
-
-File_Header * m_fileheadr  = NULL;
-Audio_Tag   * m_audio_tag  = NULL;
-Video_Tag   * m_video_tag  = NULL;
-Script_Tag  * m_script_tag = NULL;
+ 
 static const int NO = 0;
-int AllocStruct()
-{
-	//扩展下层
-	AllocStruct_File_Header(&m_fileheadr);
-	AllocStruct_Aac_Tag(&m_audio_tag);
-	AllocStruct_H264_Tag(&m_video_tag);
-	AllocStruct_Script_Tag(&m_script_tag);
-	return 1;
-}
+FILE *fts_handler = fopen("./test.ts","wb");
+static unsigned long  h264_pts = 0; 
+static unsigned long  aac_pts = 0;
 
-int FreeStruct()
-{
-	//扩展下层
-	FreeStruct_File_Header(m_fileheadr);
-	FreeStruct_Aac_Tag(m_audio_tag);
-	FreeStruct_H264_Tag(m_video_tag);
-	FreeStruct_Script_Tag(m_script_tag);
-	return 1;
-}
-
-int And_Head_H264( FILE *f264_handler,unsigned char * buf, unsigned int size,unsigned char *spsbuffer,unsigned int spslength,unsigned char * ppsbuffer,unsigned int  ppslength ,unsigned int IsVideo_I_Frame)
+int read_flv_h264_frame( FILE *f264_handler,unsigned char * buf, unsigned int size,unsigned char *sps_buffer,unsigned int sps_length,unsigned char * pps_buffer,unsigned int  pps_length ,unsigned int IsVideo_I_Frame)
 {
 	int write_size = 0;
 	unsigned char * buffer = NULL;
 	unsigned char strcode[4];                //前缀标志
 	unsigned int Sei_length_1 = 0;           //sei帧的长度
-	unsigned int Sei_length_2 = 0;
 	buffer = (unsigned char * )calloc(size + 1024,sizeof(char));
 
-	//////////////////////////////////////////////////////////////////////////
-	if (buf[4] == 0x06)  //SEI
+	unsigned int   aac_frame_samplerate = 0;   
+	unsigned int   h264_frame_type =  0; 
+	Ts_Adaptation_field  ts_adaptation_field_head ; 
+	Ts_Adaptation_field  ts_adaptation_field_tail ;
+    
+       TsPes h264_pes;
+       TsPes aac_pes;
+
+       unsigned int frame_length = 0;
+       unsigned char h264_frame[65535];
+       
+	if ( buf[4] == 0x06 ) 
 	{
-		Sei_length_1 = 
-			buf[2]  << 8  |
-			buf[3];
+		Sei_length_1 = buf[2]  << 8  | buf[3];
 		memcpy(buffer,buf,size);
-		buffer[4 + Sei_length_1] =    0x00;
+		buffer[4 + Sei_length_1]      =    0x00;
 		buffer[4 + Sei_length_1 +1] = 0x00;
 		buffer[4 + Sei_length_1 +2] = 0x00;
 		buffer[4 + Sei_length_1 +3] = 0x01;
@@ -57,35 +45,73 @@ int And_Head_H264( FILE *f264_handler,unsigned char * buf, unsigned int size,uns
 	{
 		memcpy(buffer,buf,size);
 	}
-	if (IsVideo_I_Frame == 1) //如果是关键帧
+    
+	if ( IsVideo_I_Frame == 1 ) //如果是关键帧
 	{
 		strcode[0] = 0x00;
 		strcode[1] = 0x00;
 		strcode[2] = 0x00;
 		strcode[3] = 0x01;
 		write_size = fwrite((char *)strcode,1,4,f264_handler);
-		write_size = fwrite((char *)spsbuffer,1,spslength, f264_handler );
-		write_size = fwrite( (char *)strcode,1,4,f264_handler );
-		write_size = fwrite((char *)ppsbuffer,1,ppslength, f264_handler);
+		write_size = fwrite((char *)sps_buffer,1,sps_length, f264_handler );
+             memcpy(h264_frame,strcode,4); 
+             memcpy(h264_frame+4,sps_buffer,sps_length);
+             h264_frame_2_pes(h264_frame,sps_length+4,h264_pts,h264_pes); 
+		if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
+		{
+			printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
+			write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+		       write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+					//计算一帧视频所用时间
+			pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
+			h264_pts += 1000* 90 /30;   //90khz
+		}
+		write_size = fwrite((char *)strcode,1,4,f264_handler );
+		write_size = fwrite((char *)pps_buffer,1,pps_length, f264_handler);
+              memcpy(h264_frame+4,pps_buffer,pps_length);
+              h264_frame_2_pes(h264_frame,pps_length+4,h264_pts,h264_pes); 
+		if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
+		{
+			printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
+			write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+		       write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+					//计算一帧视频所用时间
+			pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
+			h264_pts += 1000* 90 /30;   //90khz
+		}
 	}
+    
 	buffer[0] = 0x00;
 	buffer[1] = 0x00;
 	buffer[2] = 0x00;
 	buffer[3] = 0x01;
-	//////////////////////////////////////////////////////////////////////////
+	
 	write_size = fwrite((char *)buffer,1,size,f264_handler );
+       h264_frame_2_pes(buffer,size,h264_pts,h264_pes); 
+       
+	if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
+	{
+		printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
+		write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+		write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+		//计算一帧视频所用时间
+		pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
+		h264_pts += 1000* 90 /30;   //90khz
+	}
+    
 	if (buffer)
 	{
 		free(buffer);
-		buffer == NULL;
+		buffer = NULL;
 	}
 	return  write_size;
 }
 
-int And_Head_Aac( FILE *faac_handler,unsigned char * buf, unsigned int size,unsigned int IsAacFrame,unsigned char audioObjectType,unsigned char samplerate,unsigned char channelcount)
+int read_flv_aac_frame( FILE *faac_handler,unsigned char * buf, unsigned int size,bool is_aac_frame,unsigned char audioObjectType,unsigned char samplerate,unsigned char channelcount)
 {
+       (void)audioObjectType; 
 	int write_size = 0;
-	if (IsAacFrame)
+	if ( is_aac_frame )
 	{
 		//////////////////////////////////////////////////////////////////////////
 		//ADTS 头中相对有用的信息 采样率、声道数、帧长度
@@ -96,8 +122,6 @@ int And_Head_Aac( FILE *faac_handler,unsigned char * buf, unsigned int size,unsi
 		//	unsigned int id;        //1 bslbf   MPEG 标示符, 设置为1
 		//	unsigned int layer;     //2 uimsbf Indicates which layer is used. Set to ‘00’
 		//	unsigned int protection_absent;  //1 bslbf  表示是否误码校验
-
-
 		//	unsigned int profile;            //2 uimsbf  表示使用哪个级别的AAC，如01 Low Complexity(LC)--- AACLC
 		//	unsigned int sf_index;           //4 uimsbf  表示使用的采样率下标
 		//	unsigned int private_bit;        //1 bslbf 
@@ -117,7 +141,6 @@ int And_Head_Aac( FILE *faac_handler,unsigned char * buf, unsigned int size,unsi
 		//    */
 		//	unsigned int no_raw_data_blocks_in_frame;    //2 uimsfb
 		//} ADTS_HEADER;
-
 		//?0: 96000 Hz
 		//?1: 88200 Hz
 		//?2: 64000 Hz
@@ -144,8 +167,8 @@ int And_Head_Aac( FILE *faac_handler,unsigned char * buf, unsigned int size,unsi
 		//?6: 6 channels: front-center, front-left, front-right, back-left, back-right, LFE-channel
 		//?7: 8 channels: front-center, front-left, front-right, side-left, side-right, back-left, back-right, LFE-channel
 		//?8-15: Reserved
-		unsigned char  adts_headerbuf[ADTS_HEADER_LENGTH] ;
-		unsigned int  aac_frame_length = size + ADTS_HEADER_LENGTH;
+		unsigned char  adts_headerbuf[ADTS_HEADER_SIZE] ;
+		unsigned int  aac_frame_length = size + ADTS_HEADER_SIZE;
 		adts_headerbuf[0] = 0xFF;
 		adts_headerbuf[1] = 0xF1;
 		//这里要用0x01 vlc 播放器才能播放
@@ -155,140 +178,134 @@ int And_Head_Aac( FILE *faac_handler,unsigned char * buf, unsigned int size,unsi
 		adts_headerbuf[4] = (aac_frame_length & 0x7F8) >> 3;
 		adts_headerbuf[5] = (aac_frame_length & 0x7) << 5  |  0x1F;
 		adts_headerbuf[6] = 0xFC  | 0x00;
-		write_size = fwrite((char*)adts_headerbuf, sizeof(unsigned char) ,ADTS_HEADER_LENGTH, faac_handler ); 
+		write_size = fwrite((char*)adts_headerbuf, sizeof(unsigned char) ,ADTS_HEADER_SIZE, faac_handler ); 
 	}
 	write_size = fwrite((char *)buf,sizeof(unsigned char),size, faac_handler );
 	return write_size;
 }
 
-int ReadStruct( FILE * fflv_handler, FILE *f264_handler, FILE * faac_handler )
+
+
+int read_flv_tag_frame( FILE * fflv_handler, FILE *f264_handler, FILE * faac_handler )
 {
-	unsigned char * temporary_buf = NULL;
-	unsigned int    temporary_bufsize = 0;
+       #define CHECK_READ(X)\
+       if( (X) == 0 )\
+       {\
+            if(feof(fflv_handler))\
+            break;\
+            else\
+            return SYSTEM_ERROR;\
+       }
+
+       FLV_HEADER flv_header;
+       FLV_AAC_TAG aac_tag;
+       FLV_H264_TAG h264_tag;
+       FLV_SCRIPT_TAG script_tag;
+       int ret;
+       
+	unsigned char  flv_tag_frame[FLV_FRAME_SIZE];
+	unsigned int    read_bytes = 0;
 	unsigned int    tag_data_size = 0 ;           //Tag Data部分的大小     
-	unsigned char   tag_type;                     //tag类型
-	unsigned int    audiowritedatasize = 0;
-	unsigned int    videowritedatasize = 0;
-	unsigned int    scriptwritedatasize= 0;
-	unsigned int    IsAacFrame = 0;
-	unsigned char   spsbuffer[MAX_FRAME_HEAD_SIZE];
-	unsigned char   ppsbuffer[MAX_FRAME_HEAD_SIZE];
-	unsigned int    spslength = 0;
-       unsigned int    ppslength = 0;
+	unsigned char  tag_type;                     //tag类型
+	unsigned int    audio_tag_data_size = 0;
+	unsigned int    video_tag_data_size = 0;
+	
+	bool    is_aac_frame = false;
+	unsigned char  sps_buffer[MAX_FRAME_HEAD_SIZE];
+	unsigned char  pps_buffer[MAX_FRAME_HEAD_SIZE];
+	unsigned int    sps_length = 0;
+       unsigned int    pps_length = 0;
 	unsigned char   audioObjectType;              //编解码类型：AAC-LC = 0x02
 	unsigned char   samplingFrequencyIndex;       //采样率 44100 = 0x04
 	unsigned char   channelConfiguration;         //声道
-
-
-	if ((temporary_buf = (unsigned char *)calloc(ONE_FRAME_SIZE,sizeof(char))) == NULL)
-	{
-		printf ("Error: Allocate Meory To temporary_buf Buffer Failed ");
-		return getchar();
-	}
 	
-//////////////////////////////////////////////////////////////////////////
-	//读取FILEHEADER
-	temporary_bufsize = fread(temporary_buf,sizeof(unsigned char),9, fflv_handler );
-	ReadStruct_File_Header(temporary_buf , 9 ,m_fileheadr);
-	//读取各个Tag
+	read_bytes = fread(flv_tag_frame,sizeof(unsigned char),9, fflv_handler );
+       if( read_bytes == 0 )
+       {
+            if( feof(fflv_handler) )
+            return FILE_EOF;    
+            return SYSTEM_ERROR;
+       }
+       
+	ret = read_flv_header(flv_tag_frame , 9 ,flv_header);
+       if( ret != OK )
+       return ret; 
+       
        while ( feof ( fflv_handler ) == NO )                         //如果未到文件结尾
 	{
-		temporary_bufsize = fread(temporary_buf,sizeof(unsigned char),4, fflv_handler );     //PreviousTagSize
-		temporary_bufsize = fread( temporary_buf, sizeof(unsigned char),11, fflv_handler );    //Tag Header
-		if (temporary_bufsize == 0)
-		{
-			if (feof( fflv_handler ) )   //到文件结尾
-			{
-				break;
-			}
-		}
-		tag_type = temporary_buf[0];
-		tag_data_size = 
-			temporary_buf[1]  << 16 |
-			temporary_buf[2]  << 8  |
-			temporary_buf[3];
-		temporary_bufsize = fread( temporary_buf + 11,sizeof(unsigned char),tag_data_size, fflv_handler );
-		switch (tag_type)
+		read_bytes = fread(flv_tag_frame,sizeof(unsigned char),4, fflv_handler );     //PreviousTagSize
+		CHECK_READ(read_bytes);
+		read_bytes = fread( flv_tag_frame, sizeof(unsigned char),11, fflv_handler );    //Tag Header
+		CHECK_READ(read_bytes);
+		tag_type = flv_tag_frame[0];
+		tag_data_size = flv_tag_frame[1]  << 16 |flv_tag_frame[2]  << 8  | flv_tag_frame[3];
+		read_bytes = fread( flv_tag_frame + 11,sizeof(unsigned char),tag_data_size, fflv_handler );
+             CHECK_READ(read_bytes);
+		switch ( tag_type )
 		{
 		    case 0x08:     //音频（0x08）、视频（0x09）和script data（0x12），其它保留
-			printf("audio  : tag  size  include tag header : %d\n",(tag_data_size +11));
-			audiowritedatasize = ReadStruct_Aac_Tag(temporary_buf ,tag_data_size + 11 ,m_audio_tag);
-			if ( m_audio_tag->SoundFormat == 0x0A )       //如果是AAC
+			audio_tag_data_size = read_flv_aac_tag(flv_tag_frame ,tag_data_size + 11 ,aac_tag);
+			if ( aac_tag.SoundFormat == 0x0A )       //如果是AAC
 			{
-				IsAacFrame = 1;
-				if(m_audio_tag->AACPacketType != 0x00)   //如果不是AudioSpecificConfig
+				is_aac_frame = true;
+				if( aac_tag.AACPacketType != 0x00 )   //如果不是AudioSpecificConfig
 				{
-					And_Head_Aac(faac_handler,m_audio_tag->Data,audiowritedatasize,IsAacFrame,audioObjectType,samplingFrequencyIndex,channelConfiguration);
+					read_flv_aac_frame(faac_handler,aac_tag.Data,audio_tag_data_size,is_aac_frame,audioObjectType,samplingFrequencyIndex,channelConfiguration);
 				}
 				else
 				{
-					audioObjectType = m_audio_tag->audioasc->audioObjectType;
-					samplingFrequencyIndex = m_audio_tag->audioasc->samplingFrequencyIndex;
-					channelConfiguration = m_audio_tag->audioasc->channelConfiguration;
+					audioObjectType = aac_tag.audioasc.audioObjectType;
+					samplingFrequencyIndex = aac_tag.audioasc.samplingFrequencyIndex;
+					channelConfiguration = aac_tag.audioasc.channelConfiguration;
 				}
-			}
-			else                                         //Sound data—varies by format
-			{
-				IsAacFrame = 0;
-				And_Head_Aac( faac_handler, m_audio_tag->Data,audiowritedatasize,IsAacFrame,audioObjectType,samplingFrequencyIndex,channelConfiguration);
 			}
 			break;
 		    case 0x09:
-			printf("video  : tag  size  include tag header : %d\n",(tag_data_size +11));
-			videowritedatasize = ReadStruct_H264_Tag(temporary_buf ,tag_data_size + 11 ,m_video_tag);
-			if (m_video_tag->CodecID == 0x07 )  //AVCVIDEOPACKET
+			video_tag_data_size = read_flv_h264_tag(flv_tag_frame ,tag_data_size + 11 ,h264_tag);
+			if ( h264_tag.CodecID == 0x07 )  //0x07 indicates h264 tag
 			{
-				if (m_video_tag->AVCPacketType == 0x00)       //如果是AudioSpecificConfig
+				if ( h264_tag.AVCPacketType == 0x00 )     //0x00 indicates AVC sequence header
 				{
-					//获取sps ，pps ，buffer
-					spslength = m_video_tag->video_avcc->sequenceParameterSetLength;
-					ppslength = m_video_tag->video_avcc->pictureParameterSetLength;
-					memcpy(spsbuffer,m_video_tag->video_avcc->sequenceParameterSetNALUnit,spslength);
-					memcpy(ppsbuffer,m_video_tag->video_avcc->pictureParameterSetNALUnit,ppslength);
+					sps_length = h264_tag.video_avcc.sequenceParameterSetLength;
+					pps_length = h264_tag.video_avcc.pictureParameterSetLength;
+					memcpy(sps_buffer,h264_tag.video_avcc.sequenceParameterSetNALUnit,sps_length);
+					memcpy(pps_buffer,h264_tag.video_avcc.pictureParameterSetNALUnit,pps_length);
 				}
-				else if(m_video_tag->AVCPacketType != 0x02)   //如果不是empty
+				else if( h264_tag.AVCPacketType == 0x01 ) // 0x01 indicates AVC NALU
 				{
-					And_Head_H264(f264_handler,m_video_tag->Data,videowritedatasize,spsbuffer,spslength,ppsbuffer,ppslength,m_video_tag->FrameType);
+					read_flv_h264_frame(f264_handler,h264_tag.Data,video_tag_data_size,sps_buffer,sps_length,pps_buffer,pps_length,h264_tag.FrameType);
 				}
-			}
-			else
-			{
-				And_Head_H264(f264_handler,m_video_tag->Data,videowritedatasize,spsbuffer,spslength,ppsbuffer,ppslength,m_video_tag->FrameType);
 			}
 			break;
 		    case 0x12:
-			printf("script : tag  size  include tag header : %d\n",(tag_data_size +11));
-			scriptwritedatasize = ReadStruct_Script_Tag(temporary_buf ,tag_data_size + 11 ,m_script_tag);
+			read_flv_script_tag(flv_tag_frame ,tag_data_size + 11 ,script_tag);
 			break;
 		    default:
-			printf("others : tag  reserved\n");
+			;
 		}
 	}
-	printf("duration                        : %lf\n",m_script_tag->duration);
-	printf("width                           : %lf\n",m_script_tag->width);
-	printf("height                          : %lf\n",m_script_tag->height);
-	printf("ideodatarate                   : %lf\n",m_script_tag->videodatarate);
-	printf("framerate                       : %lf\n",m_script_tag->framerate);
-	printf("videocodecid                    : %lf\n",m_script_tag->videodatarate);
-	printf("audiosamplerate                 : %lf\n",m_script_tag->audiosamplerate);
-	printf("audiodatarate                   : %lf\n",m_script_tag->audiodatarate);
-	printf("audiosamplesize                 : %lf\n",m_script_tag->audiosamplesize);
-	printf("stereo                          : %d\n",m_script_tag->stereo);
-	printf("audiocodecid                    : %lf\n",m_script_tag->audiocodecid);
-	printf("filesize                        : %lf\n",m_script_tag->filesize);
-	printf("lasttimetamp                    : %lf\n",m_script_tag->lasttimetamp);
-	printf("lastkeyframetimetamp            : %lf\n",m_script_tag->lastkeyframetimetamp);
-	if (temporary_buf) 
-	{
-		free(temporary_buf);
-		temporary_buf = NULL;
-	}
+	printf("duration                        : %lf\n",script_tag.duration);
+	printf("width                           : %lf\n",script_tag.width);
+	printf("height                          : %lf\n",script_tag.height);
+	printf("ideodatarate                   : %lf\n",script_tag.videodatarate);
+	printf("framerate                       : %lf\n",script_tag.framerate);
+	printf("videocodecid                    : %lf\n",script_tag.videodatarate);
+	printf("audiosamplerate                 : %lf\n",script_tag.audiosamplerate);
+	printf("audiodatarate                   : %lf\n",script_tag.audiodatarate);
+	printf("audiosamplesize                 : %lf\n",script_tag.audiosamplesize);
+	printf("stereo                          : %d\n",script_tag.stereo);
+	printf("audiocodecid                    : %lf\n",script_tag.audiocodecid);
+	printf("filesize                        : %lf\n",script_tag.filesize);
+	printf("lasttimetamp                    : %lf\n",script_tag.lasttimetamp);
+	printf("lastkeyframetimetamp            : %lf\n",script_tag.lastkeyframetimetamp);
 	return 1;
 }
 
+
+
 void flv_demux_2_h264_aac( const char *flv_file, const char *h264_file, const char * aac_file )
 {
-    	printf("++++++++++FLV DEMUX START++++++++++\n");
+    	printf("++++++++++++++++FLV DEMUX START++++++++++++++++\n");
        FILE *fflv_handler = fopen( flv_file, "rb" );
        FILE *f264_handler = fopen( h264_file, "wb" );
        FILE *faac_handler = fopen( aac_file, "wb" );
@@ -296,15 +313,13 @@ void flv_demux_2_h264_aac( const char *flv_file, const char *h264_file, const ch
        if( fflv_handler == NULL || f264_handler == NULL || faac_handler == NULL )
        {
             printf("FILE OPEN FAILLED:%s",strerror(errno));
-            printf("++++++++++FLV DEMUX DONE++++++++++\n");
+            printf("++++++++++++++++FLV DEMUX DONE++++++++++++++++\n");
             return;
        }
-
-      AllocStruct();
-      ReadStruct( fflv_handler, f264_handler, faac_handler );
-      FreeStruct();
+       
+      read_flv_tag_frame( fflv_handler, f264_handler, faac_handler );
       fclose( fflv_handler );
       fclose( f264_handler );
       fclose( faac_handler );
-      printf("++++++++++FLV DEMUX DONE++++++++++\n");
+      printf("++++++++++++++++FLV DEMUX DONE++++++++++++++++\n");
 }

@@ -9,9 +9,10 @@
 #define _CZQ_AAC_H_
 
 #include "flv.h"
-#define ONE_AUDIO_FRAME_SIZE 1024*100
 
-typedef struct Tag_Audio_ASC
+static const int ONE_AUDIO_FRAME_SIZE  = 1024*100;
+
+typedef struct _Audio_ASC
 {
 	unsigned char audioObjectType;              //编解码类型：AAC-LC = 0x02
 	unsigned char samplingFrequencyIndex;       //采样率 44100 = 0x04
@@ -19,8 +20,7 @@ typedef struct Tag_Audio_ASC
 	unsigned char framelengthFlag;              //标志位，位于表明IMDCT窗口长度 = 0
 	unsigned char dependsOnCoreCoder;           //标志位，表明是否依赖于corecoder = 0
 	unsigned char extensionFlag;                //选择了AAC-LC = 0
-
-}Audio_ASC;
+}AUDIO_ASC;
 
 //包含tag，header和tag，data
 typedef struct Tag_Audio_Tag                           
@@ -84,11 +84,9 @@ typedef struct Tag_Audio_Tag
 	unsigned char AACPacketType;               //AAC序列头部
 	//if AACPacketType == 0        AudioSpecificConfig
 	//else if AACPacketType == 1   Raw AAC frame data
-	unsigned char * Data; 
-	Audio_ASC * audioasc;
-}Audio_Tag;
+	unsigned char Data[ONE_AUDIO_FRAME_SIZE]; 
+	AUDIO_ASC audioasc;
+}FLV_AAC_TAG;
 
-int AllocStruct_Aac_Tag(Audio_Tag ** audiotag);
-int FreeStruct_Aac_Tag(Audio_Tag * audiotag);
-int ReadStruct_Aac_Tag(unsigned char * Buf , unsigned int length ,Audio_Tag * tag);
+int read_flv_aac_tag(unsigned char * audio_tag_buffer, unsigned int length ,FLV_AAC_TAG & aac_tag);
 #endif

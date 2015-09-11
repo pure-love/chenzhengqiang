@@ -366,18 +366,18 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 		            if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
 			     {
 				     //填写自适应段标志
-			            WriteAdaptive_flags_Head(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
-			            WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+			            write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+			            write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
 					//计算一帧视频所用时间
-				      PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+				      pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 				      h264_pts += 1000* 90/FRAME_RATE;   //90khz
 			     }
 			     else
 			     {
 					//填写自适应段标志
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+					    write_adaptive_tail_fields(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
+					    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+					    pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 			      }
 		      }
                    
@@ -404,18 +404,18 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
     			        if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
     			        {
     					    //填写自适应段标志
-    					    WriteAdaptive_flags_Head(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
-    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+    					    write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+    					    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
     					    //计算一帧视频所用时间
-    					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+    					    pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
     					    h264_pts += 1000* 90/FRAME_RATE;   //90khz
     			        }
     			        else
     			        {
     					//填写自适应段标志
-    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
-    					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-    					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+    					    write_adaptive_tail_fields(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
+    					    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+    					    pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
     			        }
     			  }
                     
@@ -451,18 +451,18 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 				    if (h264_frame_type == FRAME_I || h264_frame_type == FRAME_P || h264_frame_type == FRAME_B)
 				    {
 					    //填写自适应段标志
-					    WriteAdaptive_flags_Head(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+					    write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); //填写自适应段标志帧头
+					    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
 					    //计算一帧视频所用时间
-					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+					    pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 					    h264_pts += 1000* 90/FRAME_RATE;   //90khz
 				    }
 				    else
 				    {
 					    //填写自适应段标志
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
-					    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-					    PES2TS(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
+					    write_adaptive_tail_fields(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 其它帧类型不要算pcr 所以都用帧尾代替就行
+					    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+					    pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,0);
 				    }
 			        }
                        
@@ -507,9 +507,9 @@ void flv_demux::demux_meanwhile_mux_2_ts( const char * ts_file )
 			    {
 				    printf("PES_AUDIO  :  SIZE = %d\n",aac_pes.Pes_Packet_Length_Beyond);
 				    //填写自适应段标志
-				    WriteAdaptive_flags_Tail(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 音频类型不要算pcr 所以都用帧尾代替就行
-				    WriteAdaptive_flags_Tail(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-				    PES2TS(fts_handler,&aac_pes,TS_AAC_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
+				    write_adaptive_tail_fields(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 音频类型不要算pcr 所以都用帧尾代替就行
+				    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
+				    pes_2_ts(fts_handler,&aac_pes,TS_AAC_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
 				    //计算一帧音频所用时间
 				    aac_pts += 1024*1000* 90/aac_frame_samplerate;
 			    }

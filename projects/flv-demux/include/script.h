@@ -9,8 +9,8 @@
 #define _CZQ_SCRIPT_H_
 #include "flv.h"
 
-#define  ONE_SCRIPT_FRAME_SIZE  1024 * 1024
-#define  MAX_ECMAARAY_NAME_LENGH      100
+static const int ONE_SCRIPT_FRAME_SIZE = 1024 * 1024;
+static const int MAX_ECMAARAY_NAME_LENGH = 100;
 
 //包含tag，header和tag，data
 typedef struct Tag_Script_Tag                           
@@ -54,12 +54,10 @@ typedef struct Tag_Script_Tag
 	double lastkeyframetimetamp;               //文件最后关键帧时间点 
 	double filepositions[1000];                //每一帧数据在文件中的位置
 	double times[1000];                        //时间
-	unsigned char * Data;                      //信息剩下的数据，暂时没有解析
-}Script_Tag ;
+	unsigned char Data[ONE_SCRIPT_FRAME_SIZE];                      //信息剩下的数据，暂时没有解析
+}FLV_SCRIPT_TAG ;
 
 double char2double(unsigned char * buf,unsigned int size);
 void   double2char(unsigned char * buf,double val);
-int AllocStruct_Script_Tag(Script_Tag ** scripttag);
-int FreeStruct_Script_Tag(Script_Tag * scripttag);
-int ReadStruct_Script_Tag(unsigned char * Buf , unsigned int length ,Script_Tag * tag);
+int read_flv_script_tag( unsigned char * flv_script_buffer, unsigned int length, FLV_SCRIPT_TAG & script_tag );
 #endif

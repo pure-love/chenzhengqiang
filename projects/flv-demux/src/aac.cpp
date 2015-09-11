@@ -1,94 +1,54 @@
+/*
+@author:chenzhengqaing
+@start date:2015/9/10
+@modified date:
+@desc:
+*/
+
+
+#include "common.h"
 #include "aac.h"
-
-int AllocStruct_Aac_Tag(Audio_Tag ** audiotag)
-{
-	Audio_Tag * audiotag_t = * audiotag;
-	if ((audiotag_t = (Audio_Tag *)calloc(1,sizeof(Audio_Tag))) == NULL)
-	{
-		printf ("Error: Allocate Meory To AllocStruct_Aac_Tag Buffer Failed ");
-		return getchar();
-	} 
-	if ((audiotag_t->Data = (unsigned char * )calloc(ONE_AUDIO_FRAME_SIZE,sizeof(unsigned char))) == NULL)
-	{
-		printf ("Error: Allocate Meory To audiotag_t->Data Buffer Failed ");
-		return getchar();
-	}
-	if ((audiotag_t->audioasc = (Audio_ASC *)calloc(1,sizeof(Audio_ASC))) == NULL)
-	{
-		printf ("Error: Allocate Meory To audiotag_t->audioasc  Buffer Failed ");
-		return getchar();
-	} 
-	* audiotag = audiotag_t;
-	return 1;
-}
-
-int FreeStruct_Aac_Tag(Audio_Tag * audiotag)
-{
-	if (audiotag)
-	{
-		if (audiotag->Data)
-		{
-			free(audiotag->Data);
-			audiotag->Data = NULL;
-		}
-		if (audiotag->audioasc)
-		{
-			free(audiotag->audioasc);
-			audiotag->audioasc = NULL;
-		}
-		free(audiotag);
-		audiotag = NULL;
-	}
-	return 1;
-}
-
-int ReadStruct_Aac_Tag(unsigned char * Buf , unsigned int length ,Audio_Tag * tag)
+int read_flv_aac_tag(unsigned char * audio_tag_buffer , unsigned int length ,FLV_AAC_TAG & aac_tag )
 {
 	int Aac_Tag_pos = 0;
-	tag->Type = Buf[0];
-	tag->DataSize = 
-		Buf[1]  << 16 |
-		Buf[2]  << 8  |
-		Buf[3];
-	tag->Timestamp = 
-		Buf[4]  << 16 |
-		Buf[5]  << 8  |
-		Buf[6];
-	tag->TimestampExtended = Buf[7];
-	tag->StreamID = 
-		Buf[8]  << 16 |
-		Buf[9]  << 8  |
-		Buf[10];
+	aac_tag.Type = audio_tag_buffer[0];
+	aac_tag.DataSize = 
+		audio_tag_buffer[1]  << 16 |
+		audio_tag_buffer[2]  << 8  |
+		audio_tag_buffer[3];
+	aac_tag.Timestamp = 
+		audio_tag_buffer[4]  << 16 |
+		audio_tag_buffer[5]  << 8  |
+		audio_tag_buffer[6];
+	aac_tag.TimestampExtended = audio_tag_buffer[7];
+	aac_tag.StreamID = 
+		audio_tag_buffer[8]  << 16 |
+		audio_tag_buffer[9]  << 8  |
+		audio_tag_buffer[10];
 	Aac_Tag_pos += 11;
-	tag->SoundFormat = 
-		Buf[Aac_Tag_pos] >> 4;
-	tag->SoundRate = 
-        (Buf[Aac_Tag_pos] >> 2) & 0x03;
-	tag->SoundSize = 
-		(Buf[Aac_Tag_pos] >> 1) & 0x01;
-	tag->SoundType = 
-		 Buf[Aac_Tag_pos] & 0x01;
+	aac_tag.SoundFormat = 
+		audio_tag_buffer[Aac_Tag_pos] >> 4;
+	aac_tag.SoundRate = 
+        (audio_tag_buffer[Aac_Tag_pos] >> 2) & 0x03;
+	aac_tag.SoundSize = 
+		(audio_tag_buffer[Aac_Tag_pos] >> 1) & 0x01;
+	aac_tag.SoundType = 
+		 audio_tag_buffer[Aac_Tag_pos] & 0x01;
 	Aac_Tag_pos ++;
-	if (tag->SoundFormat == 0x0A)       //AACAUDIODATA
+	if (aac_tag.SoundFormat == 0x0A )       //AACAUDIODATA
 	{
-		tag->AACPacketType = 
-			Buf[Aac_Tag_pos];
+		aac_tag.AACPacketType = audio_tag_buffer[Aac_Tag_pos];
 		Aac_Tag_pos ++;
 	}
-	if(tag->AACPacketType == 0x00)   //如果是AudioSpecificConfig
+	if(aac_tag.AACPacketType == 0x00)   //如果是AudioSpecificConfig
 	{
 		//获取编解码信息，声道，采样率等等
-		tag->audioasc->audioObjectType = (Buf[Aac_Tag_pos] >> 3);
-		////if ( samplingFrequencyIndex == 0xf ) 
-		//{
-		//	samplingFrequency; 24 uimsbf
-        //}
-		tag->audioasc->samplingFrequencyIndex = ((Buf[Aac_Tag_pos] & 0x07)  << 1)  | ((Buf[Aac_Tag_pos + 1]) >> 7 );
+		aac_tag.audioasc.audioObjectType = (audio_tag_buffer[Aac_Tag_pos] >> 3);
+		aac_tag.audioasc.samplingFrequencyIndex = ((audio_tag_buffer[Aac_Tag_pos] & 0x07)  << 1)  | ((audio_tag_buffer[Aac_Tag_pos + 1]) >> 7 );
 		Aac_Tag_pos ++;
-		tag->audioasc->channelConfiguration = (Buf[Aac_Tag_pos] >> 3)  & 0x0F;
+		aac_tag.audioasc.channelConfiguration = (audio_tag_buffer[Aac_Tag_pos] >> 3)  & 0x0F;
 		//下面的根据官方文档自己扩展，这里只需要这几种
-
 	}
-	memcpy(tag->Data,Buf + Aac_Tag_pos,length - Aac_Tag_pos );
+	memcpy(aac_tag.Data,audio_tag_buffer + Aac_Tag_pos,length - Aac_Tag_pos );
 	return length - Aac_Tag_pos;
 }
