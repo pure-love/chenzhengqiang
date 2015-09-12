@@ -88,5 +88,5 @@ typedef struct Tag_Audio_Tag
 	AUDIO_ASC audioasc;
 }FLV_AAC_TAG;
 
-int read_flv_aac_tag(unsigned char * audio_tag_buffer, unsigned int length ,FLV_AAC_TAG & aac_tag);
+int get_flv_aac_tag( unsigned char *flv_tag_header,unsigned char * flv_tag_data, unsigned int tag_data_size,FLV_AAC_TAG & aac_tag);
 #endif

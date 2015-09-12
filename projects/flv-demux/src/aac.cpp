@@ -8,47 +8,44 @@
 
 #include "common.h"
 #include "aac.h"
-int read_flv_aac_tag(unsigned char * audio_tag_buffer , unsigned int length ,FLV_AAC_TAG & aac_tag )
+
+/*
+@returns:true indicates the audio tag is aac,false otherwise
+@desc:parse the flv tag header,and save the fields related into FLV_AAC_TAG
+*/
+int get_flv_aac_tag(unsigned char *flv_tag_header_buffer,unsigned char * flv_tag_data,unsigned int tag_data_size ,FLV_AAC_TAG & aac_tag )
 {
-	int Aac_Tag_pos = 0;
-	aac_tag.Type = audio_tag_buffer[0];
-	aac_tag.DataSize = 
-		audio_tag_buffer[1]  << 16 |
-		audio_tag_buffer[2]  << 8  |
-		audio_tag_buffer[3];
-	aac_tag.Timestamp = 
-		audio_tag_buffer[4]  << 16 |
-		audio_tag_buffer[5]  << 8  |
-		audio_tag_buffer[6];
-	aac_tag.TimestampExtended = audio_tag_buffer[7];
-	aac_tag.StreamID = 
-		audio_tag_buffer[8]  << 16 |
-		audio_tag_buffer[9]  << 8  |
-		audio_tag_buffer[10];
-	Aac_Tag_pos += 11;
-	aac_tag.SoundFormat = 
-		audio_tag_buffer[Aac_Tag_pos] >> 4;
-	aac_tag.SoundRate = 
-        (audio_tag_buffer[Aac_Tag_pos] >> 2) & 0x03;
-	aac_tag.SoundSize = 
-		(audio_tag_buffer[Aac_Tag_pos] >> 1) & 0x01;
-	aac_tag.SoundType = 
-		 audio_tag_buffer[Aac_Tag_pos] & 0x01;
-	Aac_Tag_pos ++;
-	if (aac_tag.SoundFormat == 0x0A )       //AACAUDIODATA
+       //flv tag header,it always hold 11 bytes
+	aac_tag.Type = flv_tag_header_buffer[0];
+	aac_tag.DataSize = tag_data_size;
+	aac_tag.Timestamp = flv_tag_header_buffer[4]  << 16 |flv_tag_header_buffer[5]  << 8  |flv_tag_header_buffer[6];
+	aac_tag.TimestampExtended = flv_tag_header_buffer[7];
+	aac_tag.StreamID = flv_tag_header_buffer[8]  << 16 |flv_tag_header_buffer[9]  << 8  |flv_tag_header_buffer[10];
+    
+	int pos = 0;	
+       aac_tag.SoundFormat = flv_tag_data[pos] >> 4;
+	aac_tag.SoundRate = (flv_tag_data[pos] >> 2) & 0x03;
+	aac_tag.SoundSize = (flv_tag_data[pos] >> 1) & 0x01;
+	aac_tag.SoundType = flv_tag_data[pos] & 0x01;
+	pos ++;
+    
+	if (aac_tag.SoundFormat == MEDIA_TYPE_AAC ) 
 	{
-		aac_tag.AACPacketType = audio_tag_buffer[Aac_Tag_pos];
-		Aac_Tag_pos ++;
+		aac_tag.AACPacketType = flv_tag_data[pos];
+		pos ++;
 	}
-	if(aac_tag.AACPacketType == 0x00)   //如果是AudioSpecificConfig
+       else
+       {
+            return -1;
+       }
+	if(aac_tag.AACPacketType == AAC_SEQUENCE_HEADER_TYPE )
 	{
-		//获取编解码信息，声道，采样率等等
-		aac_tag.audioasc.audioObjectType = (audio_tag_buffer[Aac_Tag_pos] >> 3);
-		aac_tag.audioasc.samplingFrequencyIndex = ((audio_tag_buffer[Aac_Tag_pos] & 0x07)  << 1)  | ((audio_tag_buffer[Aac_Tag_pos + 1]) >> 7 );
-		Aac_Tag_pos ++;
-		aac_tag.audioasc.channelConfiguration = (audio_tag_buffer[Aac_Tag_pos] >> 3)  & 0x0F;
-		//下面的根据官方文档自己扩展，这里只需要这几种
+		
+		aac_tag.audioasc.audioObjectType = (flv_tag_data[pos] >> 3);
+		aac_tag.audioasc.samplingFrequencyIndex = ((flv_tag_data[pos] & 0x07)  << 1)  | ((flv_tag_data[pos + 1]) >> 7 );
+		pos ++;
+		aac_tag.audioasc.channelConfiguration = (flv_tag_data[pos] >> 3)  & 0x0F;
 	}
-	memcpy(aac_tag.Data,audio_tag_buffer + Aac_Tag_pos,length - Aac_Tag_pos );
-	return length - Aac_Tag_pos;
+	memcpy(aac_tag.Data,flv_tag_data + pos,tag_data_size- pos );
+	return tag_data_size - pos;
 }

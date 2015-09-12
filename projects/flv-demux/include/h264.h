@@ -98,5 +98,5 @@ typedef struct Tag_Video_Tag
 	unsigned char Data[ONE_VIDEO_FRAME_SIZE];                     
 }FLV_H264_TAG;
 
-int read_flv_h264_tag(unsigned char * video_tag_buffer , unsigned int length ,FLV_H264_TAG & h264_tag);
+int get_flv_h264_tag(unsigned char *flv_tag_header,unsigned char * video_tag_buffer , unsigned int length ,FLV_H264_TAG & h264_tag);
 #endif

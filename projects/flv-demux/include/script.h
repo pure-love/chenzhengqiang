@@ -59,5 +59,5 @@ typedef struct Tag_Script_Tag
 
 double char2double(unsigned char * buf,unsigned int size);
 void   double2char(unsigned char * buf,double val);
-int read_flv_script_tag( unsigned char * flv_script_buffer, unsigned int length, FLV_SCRIPT_TAG & script_tag );
+int get_flv_script_tag( unsigned char *flv_tag_header,unsigned char * flv_script_buffer, unsigned int length, FLV_SCRIPT_TAG & script_tag );
 #endif
