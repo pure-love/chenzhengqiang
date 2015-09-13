@@ -4,6 +4,7 @@
 @desc:
 */
 
+#include "m3u8.h"
 #include "flv.h"
 #include "flv_aac.h"
 #include "flv_avc.h"
@@ -12,9 +13,9 @@
 #include "ts_muxer.h"
 #include "common.h"
 #include <queue> 
+#include <time.h>
 using std::queue;
 static const int NO = 0;
-FILE *fts_handler = fopen("./test.ts","wb");
 static const int AAC_SAMPLERATES[13]={96000,88200,
 64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350};
 static const int H264_FRAME_RATE = 30;
@@ -144,8 +145,43 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
        queue<TS_PES_FRAME> aac_es_queue;
        queue<TS_PES_FRAME> avc_es_queue;
        TS_PES_FRAME es_frame;
+
+       M3U8_CONFIG m3u8_config;
+       m3u8_config.path="./";
+       m3u8_config.channel="balabala";
+       m3u8_config.timestamp=time(NULL);
+       m3u8_config.media_prev_sequence = 1;
+       m3u8_config.media_cur_sequence = 1;
+       m3u8_config.target_duration = 10;
+       time_t prev = m3u8_config.timestamp;
+       time_t now;
+
+       FILE *fm3u8_handler = create_m3u8_file(  m3u8_config );
+       write_m3u8_file_header( fm3u8_handler, m3u8_config );
+       char ts_url[99];
+       FILE *fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
+       add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
+       int times = 1;
        while ( feof ( fflv_handler ) == NO )               
 	{
+	       now=time( NULL );
+              if( now - prev == 10 )
+              {
+                    printf("now:%ld prev:%ld:%ld",now,prev);
+                    ++times;
+                    prev = now;
+                    m3u8_config.timestamp = now;
+                    fclose(fts_handler);
+                    fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
+                    add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
+              }
+
+              if( times == 3 )
+              {
+                    times = 0;
+                    m3u8_config.media_cur_sequence+=1;
+              }
+              
 	       //flv file consists of PreviousTagSize(4 bytes)+tag()
 	       //read the previous tag size first,it holds 4 bytes
 		read_bytes = fread(previous_tag_size,sizeof(unsigned char),PREVIOUS_TAG_SIZE, fflv_handler );

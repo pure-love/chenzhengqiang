@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20150912-21:56:16
+#generate date:20150913-01:27:58
 
 
 INCLUDE_DIR:=../include/
@@ -12,7 +12,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 TARGET:=flv_demux_2_ts
 CC:=g++
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR) 
-OBJS:=ts_muxer ts mycrc_32 my_bs h264 flv_script flv_demux flv flv_avc flv_aac crc aac test_flv_demux_2_ts
+OBJS:=ts_muxer ts mycrc_32 my_bs m3u8 h264 flv_script flv_demux flv flv_avc flv_aac crc aac test_flv_demux_2_ts
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
