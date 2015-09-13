@@ -1,92 +1,87 @@
 /*
-@author:internet
-@modified author:chenzhengqiang
-@start date:2015/9/9
+@author:chenzhengqiang
+@version:1.0
+@start date:2015/8/26
+@modified date:
+@desc:providing some apis for handling aac file
 */
 
 
 #ifndef _CZQ_AAC_H_
 #define _CZQ_AAC_H_
+#include "ts.h"
+#include <cstdio>
 
-#include "flv.h"
+//each adts header hold 7 bytes
+static const int ADTS_HEADER_LENGTH=7;
 
-static const int ONE_AUDIO_FRAME_SIZE  = 1024*100;
-
-typedef struct _Audio_ASC
+//the adts header structure
+typedef struct
 {
-	unsigned char audioObjectType;              //编解码类型：AAC-LC = 0x02
-	unsigned char samplingFrequencyIndex;       //采样率 44100 = 0x04
-	unsigned char channelConfiguration;         //声道 = 2
-	unsigned char framelengthFlag;              //标志位，位于表明IMDCT窗口长度 = 0
-	unsigned char dependsOnCoreCoder;           //标志位，表明是否依赖于corecoder = 0
-	unsigned char extensionFlag;                //选择了AAC-LC = 0
-}AUDIO_ASC;
+	unsigned int syncword;  //it always 0xfff for the sync's sake
+	unsigned int id;       //MPEG Version: 0 for MPEG-4, 1 for MPEG-2
+	unsigned int layer;    // always: '00'
+	unsigned int protection_absent; //the error check field
+	unsigned int profile; /* indicates the aac level
+	0:main profile
+	1:low complexity profile
+	2:scalable sampling rate profile
+	3:reserved
+	*/
+	unsigned int sf_index; /* the index of aac sample rates
+	
+    0: 96000 Hz
+    1: 88200 Hz
+    2: 64000 Hz
+    3: 48000 Hz
+    4: 44100 Hz
+    5: 32000 Hz
+    6: 24000 Hz
+    7: 22050 Hz
+    8: 16000 Hz
+    9: 12000 Hz
+    10: 11025 Hz
+    11: 8000 Hz
+    12: 7350 Hz
+    13: Reserved
+    14: Reserved
+    15: frequency is written explictly
+	*/
+	unsigned int private_bit; 
+	unsigned int channel_configuration; /*
+	indicates the channels of aac frame
+	
+    0: Defined in AOT Specifc Config
+    1: 1 channel: front-center
+    2: 2 channels: front-left, front-right
+    3: 3 channels: front-center, front-left, front-right
+    4: 4 channels: front-center, front-left, front-right, back-center
+    5: 5 channels: front-center, front-left, front-right, back-left, back-right
+    6: 6 channels: front-center, front-left, front-right, back-left, back-right, LFE-channel
+    7: 8 channels: front-center, front-left, front-right, side-left, side-right, back-left, back-right, LFE-channel
+    8-15: Reserved
+	*/
+	unsigned int original; 
+	unsigned int home;            
+	
+	unsigned int copyright_identification_bit; 
+	unsigned int copyright_identification_start;
+	unsigned int aac_frame_length;               // 13 bslbf  adts header length + aac raw stream
+	unsigned int adts_buffer_fullness;     
+    
+	/*no_raw_data_blocks_in_frame 表示ADTS帧中有number_of_raw_data_blocks_in_frame + 1个AAC原始帧.
+	所以说number_of_raw_data_blocks_in_frame == 0 
+	表示说ADTS帧中有一个AAC数据块并不是说没有。(一个AAC原始帧包含一段时间内1024个采样及相关数据)
+    */
+	unsigned int no_raw_data_blocks_in_frame;
+} ADTS_HEADER;
 
-//包含tag，header和tag，data
-typedef struct Tag_Audio_Tag                           
-{
-	unsigned char Type ;                       //音频（0x08）、视频（0x09）和script data（0x12）其它保留
-	unsigned int  DataSize;                    //不包含tagheader 的长度
-	unsigned int  Timestamp;                   //第5-7字节为UI24类型的值，表示该Tag的时间戳（单位为ms），第一个Tag的时间戳总是0。
-	unsigned char TimestampExtended;           //第8个字节为时间戳的扩展字节，当24位数值不够时，该字节作为最高位将时间戳扩展为32位值。
-	unsigned int  StreamID;                    //第9-11字节为UI24类型的值，表示stream id，总是0。
-	//0 = Linear PCM, platform endian
-	//1 = ADPCM
-	//2 = MP3
-	//3 = Linear PCM, little endian
-	//4 = Nellymoser 16-kHz mono
-	//5 = Nellymoser 8-kHz mono
-	//6 = Nellymoser
-	//7 = G.711 A-law logarithmic PCM
-	//8 = G.711 mu-law logarithmic PCM
-	//9 = reserved
-	//10 = AAC
-	//11 = Speex
-	//14 = MP3 8-Khz
-	//15 = Device-specific sound
-	//Format of SoundData
-	//Formats 7, 8, 14, and 15 are
-	//reserved for internal use
-	//AAC is supported in Flash
-	//Player 9,0,115,0 and higher.
-	//Speex is supported in Flash
-	//Player 10 and highe
-	unsigned char SoundFormat ;                //数据类型
-	//0 = 5.5-kHz
-	//1 = 11-kHz
-	//2 = 22-kHz
-	//3 = 44-kHz
-	//Sampling rate For AAC: always 3
-	unsigned char SoundRate ;                  //采样率
-	//0 = snd8Bit
-	//1 = snd16Bit
-	//Size of each sample. This
-	//parameter only pertains to
-	//uncompressed formats.
-	//Compressed formats always
-	//decode to 16 bits internally.
-	//0 = snd8Bit
-	//1 = snd16Bit
-	unsigned char SoundSize;                   //样本
-	//0 = sndMono
-	//1 = sndStereo
-	//Mono or stereo sound
-	//For Nellymoser: always 0
-	//For AAC: always 1
-	unsigned char SoundType;                   //声道
-	//SoundData UI8[size of sound data] 
-	//if SoundFormat == 10
-	//AACAUDIODATA
-	//else  Sound data—varies by format
 
-	//0: AAC sequence header
-	//1: AAC raw
-	unsigned char AACPacketType;               //AAC序列头部
-	//if AACPacketType == 0        AudioSpecificConfig
-	//else if AACPacketType == 1   Raw AAC frame data
-	unsigned char Data[ONE_AUDIO_FRAME_SIZE]; 
-	AUDIO_ASC audioasc;
-}FLV_AAC_TAG;
+//the aac supported samperate
+static const int MAX_AAC_SAMPLERATE_INDEX=12;
+static const int AAC_SAMPLERATES[MAX_AAC_SAMPLERATE_INDEX+1]={96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350};
 
-int get_flv_aac_tag( unsigned char *flv_tag_header,unsigned char * flv_tag_data, unsigned int tag_data_size,FLV_AAC_TAG & aac_tag);
+int obtain_aac_adts_header( FILE * faac_handler, ADTS_HEADER & adts_header, unsigned char * adts_header_buffer );
+int read_aac_frame( FILE *faac_handler,unsigned char * aac_frame ,unsigned int & frame_length );
+int   obtain_aac_file_samplerate( const char * aac_file );
 #endif
