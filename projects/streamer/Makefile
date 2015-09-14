@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20150914-13:45:34
+#generate date:20150913-23:36:03
 
 
 INCLUDE_DIR:=./include/
@@ -12,7 +12,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 TARGET:=streamer
 CC:=g++
 CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR) -lev -lpthread
-OBJS:=ts_muxer ts system_info streamerutility streamer state_server parson mycrc_32 my_bs m3u8 logging h264 flv flv_avc flv_aac crc aac main
+OBJS:=system_info streamerutility streamer state_server parson logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
