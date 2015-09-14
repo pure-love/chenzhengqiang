@@ -7,16 +7,16 @@
 #!/bin/bash
 
 ########global configuration#######
-TARGET="go"
+TARGET="streamer"
 OBJS="main"
-SOURCE_DIR="../src/"
-INCLUDE_DIR="../include/"
+SOURCE_DIR="./src/"
+INCLUDE_DIR="./include/"
 CONFIG_PATH=./config
 CONFIG_INSTALL_PATH=/etc/streamer
 SERVICE=./scripts/streamer
 MAKEFILE="./Makefile"
 COMPILER="g++"
-DEPS=
+DEPS="-lev -lpthread"
 INSTALL_DIR=/usr/local/bin
 AUTHOR=chenzhengqiang
 DATE=`date '+%Y%m%d-%H:%M:%S'`
