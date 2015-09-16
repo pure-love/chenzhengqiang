@@ -4,13 +4,11 @@
 @desc:
 */
 
-#include "m3u8.h"
 #include "flv.h"
 #include "flv_aac.h"
 #include "flv_avc.h"
 #include "flv_script.h"
 #include "flv_demux.h"
-#include "ts_muxer.h"
 #include "common.h"
 #include <queue> 
 #include <time.h>
@@ -19,11 +17,7 @@ static const int NO = 0;
 static const int AAC_SAMPLERATES[13]={96000,88200,
 64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350};
 static const int H264_FRAME_RATE = 30;
-struct TS_PES_FRAME
-{
-    unsigned char frame_buffer[65535*10];
-    unsigned long frame_length;
-};
+
 int read_flv_h264_frame( FILE *f264_handler,unsigned char * h264_nalu_buffer, unsigned int size,unsigned char *sps_buffer,unsigned int sps_length,unsigned char * pps_buffer,unsigned int  pps_length ,unsigned int IsVideo_I_Frame)
 {
 	int write_size = 0;
@@ -126,10 +120,6 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 	unsigned char  pps_buffer[MAX_FRAME_HEAD_SIZE];
 	unsigned int    sps_length = 0;
        unsigned int    pps_length = 0;
-
-       unsigned long h264_pts = 0;
-       unsigned long aac_pts = 0;
-	
 	read_bytes = fread(flv_header_buffer,sizeof(unsigned char),FLV_HEADER_SIZE, fflv_handler );
        if( read_bytes == 0 || read_bytes != FLV_HEADER_SIZE )
        {
@@ -141,47 +131,9 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 	ret = read_flv_header(flv_header_buffer,FLV_HEADER_SIZE,flv_header);
        if( ret != OK )
        return ret; 
-
-       queue<TS_PES_FRAME> aac_es_queue;
-       queue<TS_PES_FRAME> avc_es_queue;
-       TS_PES_FRAME es_frame;
-
-       M3U8_CONFIG m3u8_config;
-       m3u8_config.path="./";
-       m3u8_config.channel="balabala";
-       m3u8_config.timestamp=time(NULL);
-       m3u8_config.media_prev_sequence = 1;
-       m3u8_config.media_cur_sequence = 1;
-       m3u8_config.target_duration = 10;
-       time_t prev = m3u8_config.timestamp;
-       time_t now;
-
-       FILE *fm3u8_handler = create_m3u8_file(  m3u8_config );
-       write_m3u8_file_header( fm3u8_handler, m3u8_config );
-       char ts_url[99];
-       FILE *fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
-       add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
-       int times = 1;
+       
        while ( feof ( fflv_handler ) == NO )               
-	{
-	       now=time( NULL );
-              if( now - prev == 10 )
-              {
-                    printf("now:%ld prev:%ld:%ld",now,prev);
-                    ++times;
-                    prev = now;
-                    m3u8_config.timestamp = now;
-                    fclose(fts_handler);
-                    fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
-                    add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
-              }
-
-              if( times == 3 )
-              {
-                    times = 0;
-                    m3u8_config.media_cur_sequence+=1;
-              }
-              
+	{     
 	       //flv file consists of PreviousTagSize(4 bytes)+tag()
 	       //read the previous tag size first,it holds 4 bytes
 		read_bytes = fread(previous_tag_size,sizeof(unsigned char),PREVIOUS_TAG_SIZE, fflv_handler );
@@ -204,6 +156,7 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 			aac_tag_payload_size = get_flv_aac_tag(flv_tag_header,flv_tag_data,tag_data_size,aac_tag);
 			if ( aac_tag_payload_size != -1) 
 			{
+			       printf("aac tag payload size:%d\n",aac_tag_payload_size);
 				if( aac_tag.AACPacketType == FLV_AAC_RAW_TYPE )
 				{
 	                           unsigned char  adts_headerbuf[ADTS_HEADER_SIZE] ;
@@ -219,31 +172,6 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 	                           adts_headerbuf[6] = 0xFC  | 0x00;
 	                           fwrite((char*)adts_headerbuf, sizeof(unsigned char) ,ADTS_HEADER_SIZE, faac_handler ); 
 	                           fwrite((char *)aac_tag.Payload,sizeof(unsigned char),aac_tag_payload_size, faac_handler );
-
-                                  es_frame.frame_length = ADTS_HEADER_SIZE+aac_tag_payload_size;
-                                  memcpy(es_frame.frame_buffer,adts_headerbuf,ADTS_HEADER_SIZE);
-                                  memcpy(es_frame.frame_buffer+ADTS_HEADER_SIZE,(char *)aac_tag.Payload,aac_tag_payload_size);
-
-                                  aac_es_queue.push(es_frame);
-                                  if( aac_pts < h264_pts )
-                                  {
-                                        TsPes aac_pes;
-                                        es_frame = aac_es_queue.front();
-                                        aac_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,aac_pts,aac_pes);
-                                        aac_es_queue.pop();
-                                        Ts_Adaptation_field  ts_adaptation_field_head; 
-	                                 Ts_Adaptation_field  ts_adaptation_field_tail;
-			                    if (aac_pes.Pes_Packet_Length_Beyond != 0)
-			                    {
-				                    printf("PES_AUDIO  :  SIZE = %d\n",aac_pes.Pes_Packet_Length_Beyond);
-				                    //填写自适应段标志
-				                    write_adaptive_tail_fields(&ts_adaptation_field_head); //填写自适应段标志  ,这里注意 音频类型不要算pcr 所以都用帧尾代替就行
-				                    write_adaptive_tail_fields(&ts_adaptation_field_tail); //填写自适应段标志帧尾
-				                    pes_2_ts(fts_handler,&aac_pes,TS_AAC_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-				                    //计算一帧音频所用时间
-				                    aac_pts += 1024*1000* 90/AAC_SAMPLERATES[aac_tag.adts.samplingFrequencyIndex];
-			                    }
-                                }
 				}
 			}
 			break;
@@ -265,9 +193,6 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
                                  unsigned char * h264_stream_buffer = (unsigned char * )calloc(avc_tag_payload_size+ 1024,sizeof(char));
 	                           unsigned char strcode[4];             
 	                           unsigned int sei_length = 0;  
-	                           Ts_Adaptation_field  ts_adaptation_field_head ; 
-	                           Ts_Adaptation_field  ts_adaptation_field_tail ;
-                                 TsPes h264_pes;
                                  unsigned char h264_frame[65535];
                                  if ( h264_tag.Payload[4] == 0x06 ) 
 	                          {
@@ -291,47 +216,9 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 		                        strcode[3] = 0x01;
 		                        write_size = fwrite((char *)strcode,1,4,f264_handler);
 		                        write_size = fwrite((char *)sps_buffer,1,sps_length, f264_handler );
-                                      memcpy(es_frame.frame_buffer,strcode,4);
-                                      memcpy(es_frame.frame_buffer+4,sps_buffer,sps_length);
-                                      es_frame.frame_length = 4+sps_length;
-                                      avc_es_queue.push(es_frame);
-
-                                      if( h264_pts <= aac_pts )
-                                      {
-                                            es_frame = avc_es_queue.front();
-                                            h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes);
-                                            avc_es_queue.pop();
-		                               if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-		                               {
-			                            printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
-			                            write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); 
-		                                   write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-			                            pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-			                            h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-		                               }
-                                      }
 		                        write_size = fwrite((char *)strcode,1,4,f264_handler );
 		                        write_size = fwrite((char *)pps_buffer,1,pps_length, f264_handler);
-
-                                     memcpy(es_frame.frame_buffer,strcode,4);
-                                     memcpy(es_frame.frame_buffer+4,pps_buffer,pps_length);
-                                     es_frame.frame_length = 4+pps_length;
-                                     avc_es_queue.push(es_frame);
-
-                                     if( h264_pts <= aac_pts )
-                                     {
-                                            es_frame = avc_es_queue.front();
-                                            h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes);
-                                            avc_es_queue.pop();
-		                               if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-		                               {
-			                               printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
-			                               write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); 
-		                                      write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-			                               pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-			                               h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-		                               }
-                                      }
+                         
 	                          }
     
 	                          h264_stream_buffer[0] = 0x00;
@@ -339,30 +226,6 @@ int read_flv_tag_data( FILE * fflv_handler, FILE *f264_handler, FILE * faac_hand
 	                          h264_stream_buffer[2] = 0x00;
 	                          h264_stream_buffer[3] = 0x01;
 	                          write_size = fwrite((char *)h264_stream_buffer,1,avc_tag_payload_size,f264_handler );
-                                 memcpy(es_frame.frame_buffer,h264_stream_buffer,avc_tag_payload_size);
-                                 es_frame.frame_length = avc_tag_payload_size;
-                                 avc_es_queue.push(es_frame);
-
-                                if( h264_pts <= aac_pts )
-                                {
-                                        es_frame = avc_es_queue.front();
-                                        h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes); 
-                                        avc_es_queue.pop();
-                                        
-	                                 if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-	                                 {
-		                                printf("PES_VIDEO  :  SIZE = %d\n",h264_pes.Pes_Packet_Length_Beyond);
-		                                write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts);
-		                                write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-		                                pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-		                                h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-	                                }
-                                }   
-	                         if ( h264_stream_buffer )
-	                         {
-		                        free(h264_stream_buffer);
-		                        h264_stream_buffer= NULL;
-	                         }
                            }
                      }
 			break;

@@ -7,8 +7,8 @@
 #!/bin/bash
 
 ########global configuration#######
-TARGET="go"
-OBJS="main"
+TARGET="flv_demux_2_h264_aac"
+OBJS="test_flv_demux_264_aac"
 SOURCE_DIR="../src/"
 INCLUDE_DIR="../include/"
 CONFIG_PATH=./config
