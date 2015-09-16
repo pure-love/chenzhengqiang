@@ -83,6 +83,5 @@ static const int AAC_SAMPLERATES[MAX_AAC_SAMPLERATE_INDEX+1]={96000,88200,64000,
 
 int obtain_aac_adts_header( FILE * faac_handler, ADTS_HEADER & adts_header, unsigned char * adts_header_buffer );
 int read_aac_frame( FILE *faac_handler,unsigned char * aac_frame ,unsigned int & frame_length );
-void aac_frame_2_pes( unsigned char *aac_frame, unsigned int frame_length, unsigned long aac_pts,TsPes  & aac_pes );
 int   obtain_aac_file_samplerate( const char * aac_file );
 #endif

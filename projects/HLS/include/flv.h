@@ -1,50 +1,56 @@
 /*
-@file name:flv.h
-@author:chenzhengqiang
-@version:1.0
-@start date:2015/8/27
-@modified date:
-@desc:providing the basic api related to flv
+@author:internet
+@modified author:chenzhengqiang
+@start date:2015/9/9
 */
 
 #ifndef _CZQ_FLV_H_
 #define _CZQ_FLV_H_
 
-#include<cstdio>
-#include<stdint.h>
+#include "common.h"
 
 
-struct AAC_SEQUENCE_HEADER
-{
-     unsigned char sample_index1:3;
-     unsigned char object_type:5;
-     unsigned char other:3;//reserved
-     unsigned char channel:4;
-     unsigned char sample_index2:1;
+
+enum{	
+PREVIOUS_TAG_SIZE=4,
+TAG_HEADER_SIZE=11,
+TAG_AUDIO=8,
+TAG_VIDEO=9,
+TAG_SCRIPT=18,
+MEDIA_TYPE_AAC=0x0A,
+MEDIA_TYPE_AVC=0x07,
+AAC_SEQUENCE_HEADER_TYPE=0,
+AVC_SEQUENCE_HEADER_TYPE=0,
+FLV_KEY_FRAME=1,
+FLV_AAC_RAW_TYPE=1,
+FLV_AVC_NALU_TYPE=1,
+FLV_HEADER_SIZE=9,
 };
 
-
-//the basic class flv,providing the basic operatios of flv
-class flv
+typedef struct _FLV_HEADER
 {
-    public:
-        flv();
-        ~flv();
-        bool verify_format_ok( const char *flv_file );
-        bool verify_format_ok( uint8_t * stream );
-        void print_flv_header()const;
-    public:        
-        enum{TAG_AAC = 8,TAG_H264 = 9};
-    protected:
-        int _flv_signature;
-        int _version;
-        int _type_flags;
-        int _flv_header_length;
-        bool _audio_are_present;
-        bool _video_are_present;
-    private:
-        bool _format_invalid;    
-    private:
-        bool do_flv_verify( FILE * fflv_handler );
-};
+	unsigned char Signature_1;            
+	unsigned char Signature_2;           
+	unsigned char Signature_3;            
+	unsigned char version  ;                  
+	unsigned char TypeFlagsReserved_1;        
+	unsigned char TypeFlagsAudio;             
+	unsigned char TypeFlagsReserved_2;       
+	unsigned char TypeFlagsVideo; 
+	unsigned int   DataOffset;                  
+	
+}FLV_HEADER;
+
+
+typedef struct _FLV_TAG                    
+{
+    unsigned char Type ;                     
+    unsigned int  DataSize;             
+    unsigned int  Timestamp;               
+    unsigned char TimestampExtended;      
+    unsigned int  StreamID;                
+    unsigned char * Data;                  
+}FLV_TAG;
+
+int read_flv_header(unsigned char * flv_stream, unsigned int stream_length ,FLV_HEADER & flv_header );
 #endif

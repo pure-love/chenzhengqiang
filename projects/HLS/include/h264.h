@@ -1,5 +1,13 @@
-#ifndef _CZQ_VIDEO_H_
-#define _CZQ_VIDEO_H_
+/*
+@file name:h264.h
+@author:chenzhengqiang
+@start date:2015/9/13
+@modified date:
+@desc:providing the api for parsing h264 file
+*/
+
+#ifndef _CZQ_H264_H_
+#define _CZQ_H264_H_
 
 #include "ts.h"
 #include "my_bs.h"
@@ -56,6 +64,4 @@ int read_h264_nal_unit( uint8_t *stream_buffer, uint8_t buffer_size, NALU_t * na
 int read_h264_frame(FILE *,unsigned char * h264_frame, unsigned int & frame_length, unsigned int & frame_type);
 int read_h264_frame(unsigned char * input_stream,unsigned int stream_size, unsigned char * h264_frame,
                                        unsigned int & frame_length, unsigned int & frame_type);
-int h264_frame_2_pes(unsigned char *h264_frame,unsigned int frame_length,unsigned long h264_pts,TsPes & h264_pes);
-
 #endif

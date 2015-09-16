@@ -155,7 +155,7 @@ typedef struct Tag_TsPes
 
 extern Continuity_Counter continuity_counter;     //包类型计数器
 
-int WriteStruct_Packetheader(unsigned char * Buf , unsigned int PID,unsigned char play_init,unsigned char ada_field_C);
-int WriteStruct_Pat(unsigned char * Buf);
-int WriteStruct_Pmt(unsigned char * Buf);
+int write_ts_packet_header(unsigned char * Buf , unsigned int PID,unsigned char play_init,unsigned char ada_field_C);
+int write_ts_pat(unsigned char * Buf);
+int write_ts_pmt(unsigned char * Buf);
 #endif

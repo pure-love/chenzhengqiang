@@ -11,7 +11,7 @@
 #include<cstring>
 Continuity_Counter continuity_counter;     //包类型计数器
 
-int WriteStruct_Packetheader(unsigned char * Buf , unsigned int PID,unsigned char play_init,unsigned char ada_field_C)
+int write_ts_packet_header(unsigned char * Buf , unsigned int PID,unsigned char play_init,unsigned char ada_field_C)
 {
 	TsPacketHeader tspacketheader;
 
@@ -55,7 +55,7 @@ int WriteStruct_Packetheader(unsigned char * Buf , unsigned int PID,unsigned cha
 	return 4;
 }
 
-int WriteStruct_Pat(unsigned char * Buf)
+int write_ts_pat( unsigned char * Buf )
 {
 	unsigned int pat_pos = 0;  
 	TsPat tspat;
@@ -79,7 +79,7 @@ int WriteStruct_Pat(unsigned char * Buf)
 	tspat.program_map_PID = TS_PMT_PID;                                    //PMT的PID
 	tspat.CRC_32 = PAT_CRC;                                                //传输过程中检测的一种算法值 先设定一个填充值
 
-	pat_pos += WriteStruct_Packetheader(Buf,TS_PAT_PID,0x01,0x01);  //PID = 0x00,有效荷载单元起始指示符_play_init = 0x01, ada_field_C,0x01,仅有有效负载 ；
+	pat_pos += write_ts_packet_header(Buf,TS_PAT_PID,0x01,0x01);  //PID = 0x00,有效荷载单元起始指示符_play_init = 0x01, ada_field_C,0x01,仅有有效负载 ；
 	Buf[4] = 0;                                                     //自适应段的长度为0
 	pat_pos ++;
 
@@ -104,7 +104,7 @@ int WriteStruct_Pat(unsigned char * Buf)
 	return 188;
 }
 
-int WriteStruct_Pmt(unsigned char * Buf)
+int write_ts_pmt(unsigned char * Buf)
 {
 	unsigned int pmt_pos = 0;  
 	TsPmt tspmt;
@@ -140,7 +140,7 @@ int WriteStruct_Pmt(unsigned char * Buf)
 	tspmt.ES_info_length_audio = 0x00;                                     //音频无跟随的相关信息
 	tspmt.CRC_32 = PMT_CRC; 
 
-	pmt_pos += WriteStruct_Packetheader(Buf,TS_PMT_PID,0x01,0x01);           //PID = TS_PMT_PID,有效荷载单元起始指示符_play_init = 0x01, ada_field_C,0x01,仅有有效负载；
+	pmt_pos += write_ts_packet_header(Buf,TS_PMT_PID,0x01,0x01);           //PID = TS_PMT_PID,有效荷载单元起始指示符_play_init = 0x01, ada_field_C,0x01,仅有有效负载；
 
 	Buf[4] = 0;                                                      //自适应段的长度为0
 	pmt_pos ++;
