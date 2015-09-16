@@ -673,7 +673,7 @@ int  read_http_header(int fd, void *buffer, size_t buffer_size )
 */
 int read_specify_size( int fd, void *buffer, size_t total_bytes)
 {
-    log_module( LOG_DEBUG,"READ_SPECIFY_SIZE","+++++START+++++");	
+    //log_module( LOG_DEBUG,"READ_SPECIFY_SIZE","+++++START+++++");	
     size_t  left_bytes;
     int received_bytes;
     uint8_t *buffer_forward;
@@ -693,21 +693,21 @@ int read_specify_size( int fd, void *buffer, size_t total_bytes)
                 {
 		    if( (total_bytes-left_bytes) <= 0 )
 		    continue;		
-		    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","+++++DONE+++++");
-                    return (total_bytes-left_bytes);
+		    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","+++++DONE+++++");
+                  return (total_bytes-left_bytes);
                 }
                 else
 		{
-	 	    log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ ERROR %s",strerror(errno));
-		    log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
+	 	    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ ERROR %s",strerror(errno));
+		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
                     return 0;
 		}
             }
             else
 	    {
-		log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ 0 BYTE FROM CLIENT:%s",strerror(errno));
-		log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");
-                return 0; // it indicates the camera has  stoped to push stream or unknown error occurred
+		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ 0 BYTE FROM CLIENT:%s",strerror(errno));
+		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");
+                 return 0; // it indicates the camera has  stoped to push stream or unknown error occurred
 	    }
         }
         left_bytes -= received_bytes;
@@ -715,7 +715,7 @@ int read_specify_size( int fd, void *buffer, size_t total_bytes)
             break;
         buffer_forward   += received_bytes;
     }
-    log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
+    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
     return (total_bytes-left_bytes);
 }
 
@@ -768,14 +768,13 @@ ssize_t   write_specify_size(int fd, const void *buffer, size_t total_bytes)
         {
             if ( sent_bytes < 0 )
             {
-                if( errno == EINTR )
-                {
-                    sent_bytes = 0;
-                }
-                else if( errno == EAGAIN || errno == EWOULDBLOCK )
+                if( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK )
                 {
                     if( (total_bytes - left_bytes) == 0)
-                    continue;    
+                    {
+                        sent_bytes = 0;
+                        continue;
+                    }
                     return total_bytes-left_bytes;
                 }
                 else
@@ -790,10 +789,9 @@ ssize_t   write_specify_size(int fd, const void *buffer, size_t total_bytes)
         left_bytes -= sent_bytes;
         if( left_bytes == 0 )
             break;
-        buffer_forward   += sent_bytes;
+        buffer_forward  += sent_bytes;
     }
     return(total_bytes);
-    return 0;
 }
 
 
@@ -829,7 +827,7 @@ ssize_t   write_specify_size2(int fd, const void *buffer, size_t total_bytes)
         left_bytes -= sent_bytes;
         if( left_bytes == 0 )
             break;
-        buffer_forward   += sent_bytes;
+        buffer_forward += sent_bytes;
     }
     return(total_bytes);
 }

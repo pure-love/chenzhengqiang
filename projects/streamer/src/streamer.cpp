@@ -10,11 +10,7 @@
  **********************************************************/
 
 #include "common.h"
-#include "m3u8.h"
 #include "flv.h"
-#include "flv_aac.h"
-#include "flv_avc.h"
-#include "ts_muxer.h"
 #include "streamer.h"
 #include "state_server.h"
 #include "streamerutility.h"
@@ -26,23 +22,11 @@ using std::cout;
 using std::endl;
 using std::queue;
 
-//HLS related
-static const int NO = 0;
-static const int AAC_SAMPLERATES[13]={96000,88200,
-64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350};
-static const int H264_FRAME_RATE = 30;
-struct TS_PES_FRAME
-{
-    unsigned char frame_buffer[65535*10];
-    unsigned long frame_length;
-};
+
 static const int  ADTS_HEADER_SIZE = 7;
 static const int  MAX_FRAME_HEAD_SIZE = 1024;
 
 
-
-//specify the ts file and m3u8 file's path
-static const char *TS_M3U8_PATH="/var/www/html/";
 //specify the max open files
 static const size_t MAX_OPEN_FDS=65535;
 //specify the buffer size of client's request
@@ -97,8 +81,8 @@ typedef struct
     bool not_sent_flv_header_done;
     bool not_sent_http_response_done;
     bool not_sent_script_tag_done;
-    bool not_sent_aac_tag_done;
-    bool not_sent_avc_tag_done;
+    bool not_sent_aac_sequence_header_done;
+    bool not_sent_avc_sequence_header_done;
     struct ev_io * viewer_watcher;
     VIEWER_QUEUE viewer_queue;
 }VIEWER_INFO,*VIEWER_INFO_PTR;
@@ -119,7 +103,7 @@ typedef struct _CAMERAS
     struct ev_io *camera_watcher;
     struct ev_io *reply_watcher;
     // the flv header hold 9 bytes,and the first PreviousTagSize0 hold 4 bytes but always 0
-    // so 9+4
+    // so it's specified 9+4 bytes
     uint8_t   flv_header[FLV_HEADER_SIZE+PREVIOUS_TAG_SIZE];
     bool not_received_flv_header_done;
     size_t flv_header_sent_bytes;
@@ -140,14 +124,14 @@ typedef struct _CAMERAS
     size_t  script_tag_sent_bytes;
 
     //for flv's aac sequence header tag
-    uint8_t  *flv_aac_tag;
-    size_t  aac_tag_total_bytes;
-    size_t  aac_tag_sent_bytes;
+    uint8_t  *aac_sequence_header;
+    size_t  aac_sequence_header_total_bytes;
+    size_t  aac_sequence_header_sent_bytes;
 
     //for flv's avc sequence header tag
-    uint8_t  *flv_avc_tag;
-    size_t  avc_tag_total_bytes;
-    size_t  avc_tag_sent_bytes;
+    uint8_t  *avc_sequence_header;
+    size_t  avc_sequence_header_total_bytes;
+    size_t  avc_sequence_header_sent_bytes;
     std::map<CLIENT_ID, VIEWER_INFO_PTR> viewer_info_pool;
 
 }CAMERAS,*CAMERAS_PTR;
@@ -290,6 +274,7 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
             log_module(LOG_INFO,"NEW_VIEWERS","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
             return NULL;
         }
+        
         //CAMERAS_PTR INITIALIZATION START
         char *IP = (char *)receive_request_watcher->data;
         memcpy(camera_ptr->IP,IP,INET_ADDRSTRLEN);
@@ -339,13 +324,13 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         camera_ptr->flv_header_sent_bytes = 0;
         camera_ptr->tag_header_received_bytes = 0;
         camera_ptr->tag_data_received_bytes = 0;
-        camera_ptr->avc_tag_total_bytes = 0;
-        camera_ptr->aac_tag_total_bytes = 0;
-        camera_ptr->avc_tag_sent_bytes = 0;
-        camera_ptr->aac_tag_sent_bytes = 0;
+        camera_ptr->avc_sequence_header_total_bytes = 0;
+        camera_ptr->aac_sequence_header_total_bytes = 0;
+        camera_ptr->avc_sequence_header_sent_bytes = 0;
+        camera_ptr->aac_sequence_header_sent_bytes = 0;
         camera_ptr->flv_script_tag = NULL;
-        camera_ptr->flv_aac_tag = NULL;
-        camera_ptr->flv_avc_tag = NULL;
+        camera_ptr->aac_sequence_header = NULL;
+        camera_ptr->avc_sequence_header = NULL;
         camera_ptr->tag_data = NULL;
         return camera_ptr;
 }
@@ -388,8 +373,8 @@ VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher,HTTP_REQ
        sdk_set_sndbuf(receive_request_watcher->fd, 65535);
        viewer_info_ptr->not_sent_http_response_done = true;
        viewer_info_ptr->not_sent_flv_header_done = true;
-       viewer_info_ptr->not_sent_avc_tag_done = true;
-       viewer_info_ptr->not_sent_aac_tag_done = true;
+       viewer_info_ptr->not_sent_avc_sequence_header_done = true;
+       viewer_info_ptr->not_sent_aac_sequence_header_done = true;
        viewer_info_ptr->not_sent_script_tag_done = true;
        viewer_info_ptr->viewer_queue.empty = true;
        viewer_info_ptr->viewer_queue.front = CACHED_TAGS_LIMIT;
@@ -824,8 +809,9 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
     //directly pop item from viewer's queue
     if( viewer_queue_empty(viewer_queue))
     return;
-    
-    int pointer = viewer_queue.front;
+
+    viewer_queue_pop(viewer_queue);
+    /*int pointer = viewer_queue.front;
     do
     {
         //now go to find the none key frame from viewer's queue
@@ -840,7 +826,7 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
     if( pointer == (int) viewer_queue.rear )
     {
         viewer_queue_pop(viewer_queue);
-    }
+    }*/
    
 }
 
@@ -887,22 +873,18 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         if( ci_iter->second->flv_script_tag != NULL )\
         delete [] ci_iter->second->flv_script_tag;\
         ci_iter->second->flv_script_tag = NULL;\
-        if( ci_iter->second->flv_avc_tag != NULL )\
-        delete [] ci_iter->second->flv_avc_tag;\
-        ci_iter->second->flv_avc_tag = NULL;\
-        if( ci_iter->second->flv_aac_tag != NULL )\
-        delete [] ci_iter->second->flv_aac_tag;\
-        ci_iter->second->flv_aac_tag = NULL;\
+        if( ci_iter->second->avc_sequence_header != NULL )\
+        delete [] ci_iter->second->avc_sequence_header;\
+        ci_iter->second->avc_sequence_header = NULL;\
+        if( ci_iter->second->aac_sequence_header != NULL )\
+        delete [] ci_iter->second->aac_sequence_header;\
+        ci_iter->second->aac_sequence_header = NULL;\
         delete ci_iter->second;\
         ci_iter->second = NULL;\
         wi_iter->camera_info_pool.erase(ci_iter);\
         ev_io_stop(workthread_loop,camera_watcher);\
         delete camera_watcher;\
         camera_watcher = NULL;\
-        if( fm3u8_handler )\
-        fclose(fm3u8_handler);\
-        if( fts_handler )\
-        fclose( fts_handler );\
         return;\
     }
 
@@ -916,13 +898,12 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         return;
     }
 
-    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","thread_id:%u",pthread_self());
     workthread_info_iter wi_iter;
     camera_info_iter ci_iter;
     //just initialize once for the capability's sake
     wi_iter = get_workthread_info_item(pthread_self());
     char * cstr_channel =(char *)camera_watcher->data;
-    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW RECEIVE THE STREAM FROM CAMERA RELATED TO CHANNEL %s",cstr_channel);
+    
     string channel(cstr_channel);
     ci_iter = get_channel_info_item(wi_iter,channel);
     if( ci_iter == wi_iter->camera_info_pool.end())
@@ -932,66 +913,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     size_t total_bytes = 0;
     if(ci_iter->second == NULL )
     return;    
-
-    
-    //HLS related
-    static bool the_first = true;
-    static M3U8_CONFIG m3u8_config;
-    static time_t prev,now;
-    static FLV_AAC_TAG aac_tag;
-    static FLV_H264_TAG h264_tag;
-    static unsigned long h264_pts;
-    static unsigned long aac_pts;
-    static queue<TS_PES_FRAME> aac_es_queue;
-    static queue<TS_PES_FRAME> avc_es_queue;
-    TS_PES_FRAME es_frame;
-    static FILE *fm3u8_handler=NULL;
-    static FILE *fts_handler = NULL;
-    char ts_url[99];
-    static int times = 0;
-    int    aac_tag_payload_size = 0;
-    int    avc_tag_payload_size = 0;
-    static unsigned char  sps_buffer[MAX_FRAME_HEAD_SIZE];
-    static unsigned char  pps_buffer[MAX_FRAME_HEAD_SIZE];
-    static unsigned int    sps_length = 0;
-    static unsigned int    pps_length = 0;
         
-    if( the_first )
-    {
-        the_first = false;
-        m3u8_config.path=TS_M3U8_PATH;
-        m3u8_config.channel=channel;
-        m3u8_config.media_prev_sequence = 1;
-        m3u8_config.media_cur_sequence = 1;
-        m3u8_config.target_duration = 10;
-        m3u8_config.timestamp = time(NULL);
-        prev = m3u8_config.timestamp;
-        h264_pts = 0;
-        aac_pts = 0;
-        fm3u8_handler = create_m3u8_file(m3u8_config);
-        write_m3u8_file_header( fm3u8_handler, m3u8_config );
-        fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
-        add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
-        times = 1;
-    }
-
-    now=time( NULL );
-    if( now - prev == 10 )
-    {
-          ++times;
-          prev = now;
-          m3u8_config.timestamp = now;
-          fclose(fts_handler);
-          fts_handler = create_ts_file(ts_url,sizeof(ts_url),m3u8_config);
-          add_ts_url_2_m3u8_file(&fm3u8_handler, ts_url, m3u8_config );
-    }
-
-    if( times == 3 )
-    {
-           times = 0;
-           m3u8_config.media_cur_sequence+=1;
-    }
-    
     if( ci_iter->second->receive_first )
     {
         //now parse the flv header and the first previous tag
@@ -1010,20 +932,20 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
             ci_iter->second->not_received_flv_header_done = false;
         }
 
-        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","signature:%c%c%c version %d",
+        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SIGNATURE:%c%c%c VERSION:%d",
                 ci_iter->second->flv_header[0],ci_iter->second->flv_header[1],
                 ci_iter->second->flv_header[2],ci_iter->second->flv_header[3]);
 
         if(( ci_iter->second->flv_header[4] & 0x04 ) == 4 )
         {
-            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","VIDEO are present");
+            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","VIDEO ARE PRESENT");
         }
         if(( ci_iter->second->flv_header[4] & 0x01 ) == 1 )
         {
-            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","AUDIO are present");
+            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","AUDIO ARE PRESENT");
         }
         ci_iter->second->receive_first = false;
-        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","now always receive the stream pushed from the camera unless stoped");
+        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW ALWAYS RECEIVE THE STREAM PUSHED FROM THE CAMERA UNLESS STOPPED");
     }
 
 
@@ -1035,14 +957,19 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                 ci_iter->second->tag_header+ci_iter->second->tag_header_received_bytes , total_bytes);
         ci_iter->second->tag_header_received_bytes += received_bytes;
         DELETE_CAMERA_IF(received_bytes,0);
-	
 	if( received_bytes != total_bytes )
 	return;
        
 	ci_iter->second->not_received_tag_header_done = false;
        ci_iter->second->tag_header_received_bytes = 0;
+
+       //compute the data size
        ci_iter->second->tag_data_size = ci_iter->second->tag_header[1] * 65536+ci_iter->second->tag_header[2]*256
-            +ci_iter->second->tag_header[3]+PREVIOUS_TAG_SIZE;//compute the data size
+            +ci_iter->second->tag_header[3]+PREVIOUS_TAG_SIZE;
+       //detailed information about kinds of field of flv media file,see the document pulished in adobe
+        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","PARSE THE FLV TAG HEADER OK--THE TOTAL TAG  SIZE IS %d BYTES",
+        ci_iter->second->tag_data_size+TAG_HEADER_SIZE-PREVIOUS_TAG_SIZE);
+       
         ci_iter->second->tag_data = new uint8_t[ci_iter->second->tag_data_size];
         if(  ci_iter->second->tag_data == NULL  )
         {
@@ -1052,16 +979,13 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         
     }
 
-    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","PARSE THE FLV TAG HEADER OK--READ THE TAG_HEADER %d BYTES",TAG_HEADER_SIZE);
-    //detailed information about kinds of field of flv media file,see the document pulished in adobe
-    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","PARSE THE FLV TAG HEADER OK--THE TAG DATA SIZE IS %d BYTES",ci_iter->second->tag_data_size);
+    
     if( ci_iter->second->not_received_tag_data_done )
     {
         log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV TAG DATA");
         total_bytes = ci_iter->second->tag_data_size-ci_iter->second->tag_data_received_bytes;
         received_bytes = read_specify_size(camera_watcher->fd,
-                ci_iter->second->tag_data+ci_iter->second->tag_data_received_bytes,
-                total_bytes);
+                ci_iter->second->tag_data+ci_iter->second->tag_data_received_bytes,total_bytes);
 
         DELETE_CAMERA_IF(received_bytes,0);
         ci_iter->second->tag_data_received_bytes += received_bytes;
@@ -1077,6 +1001,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     
     size_t packet_size = TAG_HEADER_SIZE  + ci_iter->second->tag_data_size;
     uint8_t *packet = new uint8_t[packet_size];
+    memset(packet,0,packet_size);
     //std::vector<uint8_t> packet(packet_size);
     if( packet == NULL )
     {
@@ -1088,53 +1013,13 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     memcpy(packet+TAG_HEADER_SIZE, ci_iter->second->tag_data, ci_iter->second->tag_data_size);
 
     tag_type =  ci_iter->second->tag_header[0] & 0x1F;
-    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV TAG :VIDEO TAG--AUDIO TAG--SCRIPT TAG--");
+    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV TAG :VIDEO TAG--AUDIO TAG--SCRIPT TAG--");
 
     switch(  tag_type )
     {
         case AUDIO_TAG:
             //now parse the flv audio tag
-            //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","now handle  the flv audio tag");
-            aac_tag_payload_size = get_flv_aac_tag(ci_iter->second->tag_header,
-                   ci_iter->second->tag_data,ci_iter->second->tag_data_size,aac_tag);
-	      if ( aac_tag_payload_size != -1 ) 
-		{
-			if( aac_tag.AACPacketType == FLV_AAC_RAW_TYPE )
-			{
-	                   unsigned char  adts_headerbuf[ADTS_HEADER_SIZE];
-	                   unsigned int  aac_frame_length = aac_tag_payload_size + ADTS_HEADER_SIZE;
-	                   adts_headerbuf[0] = 0xFF;
-	                   adts_headerbuf[1] = 0xF1;
-	                   //adts_headerbuf[2] = (audioObjectType << 6) /*如01 Low Complexity(LC)--- AACLC*/ | (samplerate << 2)  /* 采样率 44100，下标 */ | (channelcount >> 7) /*声道 = 2*/;
-	                   adts_headerbuf[2] = (0x01 << 6) /*如01 Low Complexity(LC)--- AACLC*/ | (aac_tag.adts.samplingFrequencyIndex<< 2)  /* 采样率 44100，下标 */ | (aac_tag.adts.channelConfiguration >> 7) /*声道 = 2*/;
-	                   adts_headerbuf[3] = (aac_tag.adts.channelConfiguration << 6) |  0x00 | 0x00 | 0x00 |0x00 | ((aac_frame_length &  0x1800) >> 11);
-	                   adts_headerbuf[4] = (aac_frame_length & 0x7F8) >> 3;
-	                   adts_headerbuf[5] = (aac_frame_length & 0x7) << 5  |  0x1F;
-	                   adts_headerbuf[6] = 0xFC  | 0x00;
-                          es_frame.frame_length = ADTS_HEADER_SIZE+aac_tag_payload_size;
-                          memcpy(es_frame.frame_buffer,adts_headerbuf,ADTS_HEADER_SIZE);
-                          memcpy(es_frame.frame_buffer+ADTS_HEADER_SIZE,(char *)aac_tag.Payload,aac_tag_payload_size);
-                          aac_es_queue.push(es_frame);
-                          if( aac_pts < h264_pts )
-                          {
-                                TsPes aac_pes;
-                                es_frame = aac_es_queue.front();
-                                aac_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,aac_pts,aac_pes);
-                                aac_es_queue.pop();
-                                Ts_Adaptation_field  ts_adaptation_field_head; 
-	                         Ts_Adaptation_field  ts_adaptation_field_tail;
-			            if (aac_pes.Pes_Packet_Length_Beyond != 0)
-			            {
-				            write_adaptive_tail_fields(&ts_adaptation_field_head); 
-				            write_adaptive_tail_fields(&ts_adaptation_field_tail);
-				            pes_2_ts(fts_handler,&aac_pes,TS_AAC_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-				            //calculate the aac frame's pts with the samplerate
-				            aac_pts += 1024*1000* 90/AAC_SAMPLERATES[aac_tag.adts.samplingFrequencyIndex];
-			            }
-                          }
-		     }
-	     }
-          
+            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV AUDIO TAG");
             if( ( ci_iter->second->tag_data[0] & 0xF0 ) >> 4 == 10 )
             {
                 //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","this is the AAC data");
@@ -1143,20 +1028,20 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                 {
                     log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FIND THE FLV AAC SEQUENCE HEADER");
                     tag_is_sequence_header = true;
-                    ci_iter->second->flv_aac_tag = new uint8_t[packet_size];
-                    if( ci_iter->second->flv_aac_tag == NULL )
+                    ci_iter->second->aac_sequence_header = new uint8_t[packet_size];
+                    if( ci_iter->second->aac_sequence_header == NULL )
                     {
                          log_module(LOG_INFO,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
                          DELETE_CAMERA_IF(0,0);
                     }
-                    memcpy(ci_iter->second->flv_aac_tag,packet,packet_size);
-                    ci_iter->second->aac_tag_total_bytes = packet_size;
-                    ci_iter->second->aac_tag_sent_bytes = 0;
+                    memcpy(ci_iter->second->aac_sequence_header,packet,packet_size);
+                    ci_iter->second->aac_sequence_header_total_bytes = packet_size;
+                    ci_iter->second->aac_sequence_header_sent_bytes = 0;
                     log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SAVE THE FLV AAC SEQUENCE HEADER INTO CHANNEL POOL OK");
                 }
                 else if(  aac_packet_type == 1 )
                 {
-                    log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FIND THE FLV AAC AUDIO PAYLOAD");
+                    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FIND THE FLV AAC AUDIO PAYLOAD");
                 }
             }
             else
@@ -1166,115 +1051,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
             break;
         case VIDEO_TAG:
             //handle the h264 first
-            avc_tag_payload_size = get_flv_h264_tag( ci_iter->second->tag_header,
-                ci_iter->second->tag_data,ci_iter->second->tag_data_size,h264_tag);
-            
-	     if ( avc_tag_payload_size != -1 ) 
-	     {
-	           if ( h264_tag.AVCPacketType == AVC_SEQUENCE_HEADER_TYPE )
-		    {
-		        sps_length = h264_tag.adcr.sequenceParameterSetLength;
-		        pps_length = h264_tag.adcr.pictureParameterSetLength;
-		        memcpy(sps_buffer,h264_tag.adcr.sequenceParameterSetNALUnit,sps_length);
-		        memcpy(pps_buffer,h264_tag.adcr.pictureParameterSetNALUnit,pps_length);
-		    }
-		    else if( h264_tag.AVCPacketType == FLV_AVC_NALU_TYPE ) 
-		    {
-			    //read_flv_h264_frame(f264_handler,h264_tag.Payload,avc_tag_payload_size,sps_buffer,sps_length,pps_buffer,pps_length,h264_tag.FrameType);
-                        unsigned char * h264_stream_buffer = (unsigned char * )calloc(avc_tag_payload_size+ 1024,sizeof(char));
-	                 unsigned char strcode[4];             
-	                 unsigned int sei_length = 0;  
-	                 Ts_Adaptation_field  ts_adaptation_field_head ; 
-	                 Ts_Adaptation_field  ts_adaptation_field_tail ;
-                        TsPes h264_pes;
-                        unsigned char h264_frame[65535];
-                        if ( h264_tag.Payload[4] == 0x06 ) 
-	                 {
-		                sei_length = h264_tag.Payload[2]  << 8  | h264_tag.Payload[3];
-                              memcpy(h264_frame,h264_tag.Payload,avc_tag_payload_size);
-		                h264_stream_buffer[4 + sei_length]      =    0x00;
-		                h264_stream_buffer[4 + sei_length +1] = 0x00;
-		                h264_stream_buffer[4 + sei_length +2] = 0x00;
-		                h264_stream_buffer[4 + sei_length +3] = 0x01;
-	                 }
-	                 else
-	                 {
-		                memcpy(h264_stream_buffer,h264_tag.Payload,avc_tag_payload_size);
-	                 }
-                     
-                        if ( h264_tag.FrameType == FLV_KEY_FRAME )
-	                 {
-		                strcode[0] = 0x00;
-		                strcode[1] = 0x00;
-		                strcode[2] = 0x00;
-		                strcode[3] = 0x01;
-                             memcpy(es_frame.frame_buffer,strcode,4);
-                             memcpy(es_frame.frame_buffer+4,sps_buffer,sps_length);
-                             es_frame.frame_length = 4+sps_length;
-                             avc_es_queue.push(es_frame);
-                             if( h264_pts <= aac_pts )
-                             {
-                                   es_frame = avc_es_queue.front();
-                                   h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes);
-                                   avc_es_queue.pop();
-		                      if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-		                      {     
-			                      write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); 
-		                             write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-			                      pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-			                      h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-		                      }
-                             }
-                              
-                             memcpy(es_frame.frame_buffer,strcode,4);
-                             memcpy(es_frame.frame_buffer+4,pps_buffer,pps_length);
-                             es_frame.frame_length = 4+pps_length;
-                             avc_es_queue.push(es_frame);
-                             
-                             if( h264_pts <= aac_pts )
-                             {
-                                   es_frame = avc_es_queue.front();
-                                   h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes);
-                                   avc_es_queue.pop();
-		                      if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-		                      {
-			                     write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts); 
-		                            write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-			                     pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-			                     h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-		                      }
-                             }
-	                }
-                       h264_stream_buffer[0] = 0x00;
-	                h264_stream_buffer[1] = 0x00;
-	                h264_stream_buffer[2] = 0x00;
-	                h264_stream_buffer[3] = 0x01;
-                       memcpy(es_frame.frame_buffer,h264_stream_buffer,avc_tag_payload_size);
-                       es_frame.frame_length = avc_tag_payload_size;
-                       avc_es_queue.push(es_frame);
-                       if( h264_pts <= aac_pts )
-                       {
-                              es_frame = avc_es_queue.front();
-                              h264_frame_2_pes(es_frame.frame_buffer,es_frame.frame_length,h264_pts,h264_pes); 
-                              avc_es_queue.pop();          
-	                       if ( h264_pes.Pes_Packet_Length_Beyond != 0 )
-                              {   
-		                       write_adaptive_head_fields(&ts_adaptation_field_head,h264_pts);
-		                       write_adaptive_tail_fields(&ts_adaptation_field_tail); 
-		                       pes_2_ts(fts_handler,&h264_pes,TS_H264_PID ,&ts_adaptation_field_head ,&ts_adaptation_field_tail,h264_pts,aac_pts);
-		                       h264_pts += 1000* 90 /H264_FRAME_RATE;   //90khz
-	                       }
-                       }   
-	                 if ( h264_stream_buffer )
-	                 {
-		                free(h264_stream_buffer);
-		                h264_stream_buffer= NULL;
-	                 }
-                  }
-             }
-         
-            //now parse the flv video tag
-            //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","now handle  the flv video tag");
+            log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV VIDEO TAG");
             if ( (ci_iter->second->tag_data[0] & 0xF0) >> 4 == 1 )
             {
                 is_key_frame = true;
@@ -1287,21 +1064,21 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
 
             if( ( ci_iter->second->tag_data[0]  & 0x0F ) == 7 )
             {
-                //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","this is the AVC data");
+                log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FIND THE AVC TAG");
                 uint8_t avc_packet_type = ci_iter->second->tag_data[1];
                 if( avc_packet_type == 0 )
                 {
                     log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FIND THE AVC SEQUENCE HEADER");
                     tag_is_sequence_header = true;
-                    ci_iter->second->avc_tag_total_bytes = packet_size;
-                    ci_iter->second->avc_tag_sent_bytes = 0;
-                    ci_iter->second->flv_avc_tag = new uint8_t[packet_size];
-                    if(  ci_iter->second->flv_avc_tag == NULL )
+                    ci_iter->second->avc_sequence_header_total_bytes = packet_size;
+                    ci_iter->second->avc_sequence_header_sent_bytes = 0;
+                    ci_iter->second->avc_sequence_header = new uint8_t[packet_size];
+                    if(  ci_iter->second->avc_sequence_header == NULL )
                     {
                          log_module(LOG_INFO,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
                          DELETE_CAMERA_IF(0,0);
                     }
-                    memcpy(ci_iter->second->flv_avc_tag,packet,packet_size);
+                    memcpy(ci_iter->second->avc_sequence_header,packet,packet_size);
                     log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SAVE THE AVC SEQUENCE HEADER INTO CHANNEL POOL OK");
                 }
                 else if( avc_packet_type == 1 )
@@ -1341,15 +1118,14 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
 
     if( ! tag_is_sequence_header )
     {
-
         //if the flv tag is none of aac sequence header tag, svc sequence header tag or script tag
         //then merely push them into the viewer's queue
-        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW BEGIN TO PUSH THE TAG FRAME INTO VIEWER QUEUE");
+        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW BEGIN TO PUSH THE TAG FRAME INTO ALL VIEWERS' VIEWER QUEUE");
         FLV_TAG_FRAME flv_tag;
         flv_tag.TAG = packet;
         flv_tag.data_size = packet_size;
         flv_tag.sent_bytes = 0;
-        flv_tag.is_key_frame = is_key_frame ? true:false;
+        flv_tag.is_key_frame = is_key_frame;
 
         //now parse tags ok and send the tags to all viewers
         if( !( ci_iter->second->viewer_info_pool.empty() ) )
@@ -1360,11 +1136,16 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                   if( viewer_queue_full(vi_iter->second->viewer_queue) )
                  {
                       //network congestion might happened,now drop the none-key frame first
-                      log_module(LOG_INFO,"RECEIVE_STREAM_CB","THE VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED FROM VIEWER:%s",vi_iter->second->IP);
+                      log_module(LOG_INFO,"RECEIVE_STREAM_CB","THE %s:%d'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
+                                                       vi_iter->second->IP,vi_iter->second->client_fd);
                       drop_frame(vi_iter->second->viewer_queue);
-		         log_module(LOG_INFO,"RECEIVE_STREAM_CB","FLV FRAME DROPPED FROM VIEWER QUEUE RELATED TO CHANNEL %s",cstr_channel);
+		         log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FRAME DROPPED FROM %s:%d'S VIEWER QUEUE RELATED TO CHANNEL %s",
+                                                       vi_iter->second->IP,vi_iter->second->client_fd,cstr_channel);
                  }
-                 viewer_queue_push(vi_iter->second->viewer_queue,flv_tag); 
+                 viewer_queue_push(vi_iter->second->viewer_queue,flv_tag);
+                 log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s:%d'S VIEWER QUEUE",
+                                                      vi_iter->second->IP,vi_iter->second->client_fd);
+                 
                  if( vi_iter->second->register_viewer_callback_first )
                  {
                       vi_iter->second->register_viewer_callback_first = false;
@@ -1421,12 +1202,11 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
     }
 
     size_t total_bytes = 0;
-    static size_t total_sent_bytes = 0;
     int sent_bytes = -1;
     workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
     if( wi_iter == workthread_info_pool.end())
     {
-        log_module(LOG_DEBUG,"SEND_TAGS_CB","workthread_info_pool.end() unknown error occurred");
+        log_module(LOG_DEBUG,"SEND_TAGS_CB","REACH THE END OF WORKTHREAD_INFO_POOL UNKNOWN ERROR OCCURRED");
         return;
     }
 
@@ -1500,47 +1280,47 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
             vi_iter->second->not_sent_script_tag_done = false;
         }
 
-        //avc_tag_total_bytes is not equal to 0,
+        //avc_sequence_header_total_bytes is not equal to 0,
         //it indiates that there is avc sequence header tag in flv file
-        if( ci_iter->second->avc_tag_total_bytes != 0 )
+        if( ci_iter->second->avc_sequence_header_total_bytes != 0 )
         {
-            if( vi_iter->second->not_sent_avc_tag_done )
+            if( vi_iter->second->not_sent_avc_sequence_header_done )
             {
-                log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW SEND THE FLV AVC TAG DATA");
-                total_bytes = ci_iter->second->avc_tag_total_bytes-ci_iter->second->avc_tag_sent_bytes;
+                log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW SEND THE FLV AVC SEQUENCE HEADER");
+                total_bytes = ci_iter->second->avc_sequence_header_total_bytes-ci_iter->second->avc_sequence_header_sent_bytes;
                 sent_bytes = write_specify_size(viewer_watcher->fd,
-                        ci_iter->second->flv_avc_tag+ci_iter->second->avc_tag_sent_bytes,
+                        ci_iter->second->avc_sequence_header+ci_iter->second->avc_sequence_header_sent_bytes,
                         total_bytes);
                 DELETE_VIEWER_IF(sent_bytes,-1);
                 if( (size_t)sent_bytes != total_bytes )
                 {
-                    ci_iter->second->avc_tag_sent_bytes += sent_bytes;
+                    ci_iter->second->avc_sequence_header_sent_bytes += sent_bytes;
                     return;
                 }
-                vi_iter->second->not_sent_avc_tag_done = false;
-                log_module(LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV AVC TAG DATA DONE");
+                vi_iter->second->not_sent_avc_sequence_header_done = false;
+                log_module(LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV AVC SEQUENCE HEADER  DONE");
             }
         }
 
-        //aac_tag_total_bytes is not equal to 0,
+        //aac_sequence_header_total_bytes is not equal to 0,
         //it indiates that there is aac sequence header tag in flv file
-        if( ci_iter->second->aac_tag_total_bytes != 0 )
+        if( ci_iter->second->aac_sequence_header_total_bytes != 0 )
         {
-            if( vi_iter->second->not_sent_aac_tag_done )
+            if( vi_iter->second->not_sent_aac_sequence_header_done )
             {
-                log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW SEND THE FLV AAC TAG DATA");
-                total_bytes = ci_iter->second->aac_tag_total_bytes-ci_iter->second->aac_tag_sent_bytes;
+                log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW SEND THE FLV AAC SEQUENCE HEADER");
+                total_bytes = ci_iter->second->aac_sequence_header_total_bytes-ci_iter->second->aac_sequence_header_sent_bytes;
                 sent_bytes = write_specify_size(viewer_watcher->fd,
-                        ci_iter->second->flv_aac_tag+ci_iter->second->aac_tag_sent_bytes,
+                        ci_iter->second->aac_sequence_header+ci_iter->second->aac_sequence_header_sent_bytes,
                         total_bytes);
                 DELETE_VIEWER_IF(sent_bytes,-1);
                 if( (size_t)sent_bytes != total_bytes )
                 {
-                    ci_iter->second->aac_tag_sent_bytes += sent_bytes;
+                    ci_iter->second->aac_sequence_header_sent_bytes += sent_bytes;
                     return;
                 }
-                log_module(LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV AAC TAG DATA DONE");
-                vi_iter->second->not_sent_aac_tag_done = false;
+                log_module(LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV AAC SEQUENCE HEADER DONE");
+                vi_iter->second->not_sent_aac_sequence_header_done = false;
             }
         }
         vi_iter->second->send_first = false;
@@ -1559,7 +1339,7 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
     else
     {
         
-        viewer_queue_top(vi_iter->second->viewer_queue, flv_tag);
+        viewer_queue_top( vi_iter->second->viewer_queue, flv_tag );
         //you must send the key frame to viewer the first time
         if( vi_iter->second->send_key_frame_first && !flv_tag->is_key_frame )
         {
@@ -1569,42 +1349,27 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
         }
         else
         {
-            if( flv_tag->data_size != flv_tag->sent_bytes )
+            log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW JUST SEND THE FLV TAG FROM THE VIEWER QUEUE");
+            //write_specify_size2(viewer_watcher->fd,flv_tag->TAG,flv_tag->data_size);
+            if( ( flv_tag->TAG != NULL ) && ( flv_tag->data_size != flv_tag->sent_bytes ) )
             {
                 total_bytes = flv_tag->data_size  - flv_tag->sent_bytes;
-                //if the total bytes is larger than FRAGMENT_SIZE then just sent FRAGMENT_SIZE's BYTES
-                //for low-latency's sake
-                if( total_bytes >= FRAGMENT_SIZE )
+                sent_bytes = write_specify_size(viewer_watcher->fd,flv_tag->TAG+flv_tag->sent_bytes,total_bytes);
+                DELETE_VIEWER_IF(sent_bytes,-1);
+                if( (size_t)sent_bytes != total_bytes )
                 {
-                    if( total_sent_bytes < FRAGMENT_SIZE )
-                    {
-		           sent_bytes = write_specify_size(viewer_watcher->fd,flv_tag->TAG+flv_tag->sent_bytes,FRAGMENT_SIZE);
-                        DELETE_VIEWER_IF(sent_bytes,-1);
-                        total_sent_bytes+=sent_bytes;
-                        flv_tag->sent_bytes+=sent_bytes;
-                        return;
-                    }
-                                        	
-		  }
-                
-		total_sent_bytes = 0;
-              if( total_bytes > 0 )
-              {
-                   sent_bytes = write_specify_size(viewer_watcher->fd,flv_tag->TAG+flv_tag->sent_bytes,total_bytes);
-                   DELETE_VIEWER_IF(sent_bytes,-1);
-                   if( (size_t) sent_bytes != total_bytes )
-                   {
-                       flv_tag->sent_bytes += sent_bytes;
-                       return;
-                   }
-                } 
+                    flv_tag->sent_bytes += sent_bytes;
+                    return;
+                }
             }
+            
             flv_tag->sent_bytes = 0;
             flv_tag->data_size = 0;
             viewer_queue_pop(vi_iter->second->viewer_queue);
         }
         vi_iter->second->send_key_frame_first= false;
     }
+    
     ev_io_stop(workthread_loop, viewer_watcher);
 }
 
@@ -2333,11 +2098,14 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
                 break;
             ++wi_iter;
         }
-  
+
+        //wi_ter != workthread_info_pool.end() indicates that the channel requested exists
         if( wi_iter != workthread_info_pool.end() )
         {
+            //firstly check the limit of viewers
             if(ci_iter->second->viewer_info_pool.size() > VIEWERS_LIMIT )
             {
+                log_module(LOG_INFO,"DO_VIEWER_REQUEST","OVERTOP THE VIEWERS' LIMIT,SEND 503 TO VIEWER");
                 const char *http_503_overload="HTTP/1.1 503 Service Unavailable\r\n\r\n";
                 write_specify_size(receive_request_watcher->fd, http_503_overload,strlen(http_503_overload));
                 close(receive_request_watcher->fd);
@@ -2353,6 +2121,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
                     log_module(LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION);
                     return false;
                 }
+                
                 log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START",receive_request_watcher->fd);
                 ci_iter->second->viewer_info_pool.insert(std::make_pair(receive_request_watcher->fd,viewer_info_ptr));
                 log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd);
@@ -2367,16 +2136,18 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             }
 
         }
-        else if(req_info.src.empty())  //if there is no channel requested in streaming server,
-                                                 //either "src" is empty then simply reply http 404 not found
+        else if(req_info.src.empty())  
+        //if there is no channel requested in streaming server,
+        //either "src" is empty then simply reply http 400 bad request
         {
                 log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL FAILED, EITHER SRC IS EMPTY,JUST SEND 404 TO CLIENT");
-                const char * http_404_notfound="HTTP/1.1   404   Not Found\r\n\r\n";
-                write_specify_size(receive_request_watcher->fd,http_404_notfound,strlen(http_404_notfound));
+                const char * http_400_badrequest="HTTP/1.1   400   Bad Request\r\n\r\n";
+                write_specify_size(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
                 close(receive_request_watcher->fd);
                 return false;
         }
-        else //imitate the behaviour of viwer,sending the backing-source request
+        else 
+        //imitate the behaviour of viwer,sending the backing-source request
         {
             //if the src is not empty then do the backing-source request
             //it means imitate the request of client
@@ -2384,7 +2155,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             //also check if the channels' amount overtop the limit
             if( get_channel_list().size() > CHANNELS_LIMIT )
             {
-                  log_module(LOG_INFO,"RECEIVE_REQUEST_CB","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO CAMERA");
+                  log_module(LOG_INFO,"RECEIVE_REQUEST_CB","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER");
                   const char * http_503_service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n\r\n";
                   write_specify_size(receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable));
                   close(receive_request_watcher->fd);

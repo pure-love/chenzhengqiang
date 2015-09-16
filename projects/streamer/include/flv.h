@@ -9,8 +9,6 @@
 
 #include "common.h"
 
-
-
 enum{	
 PREVIOUS_TAG_SIZE=4,
 TAG_HEADER_SIZE=11,
