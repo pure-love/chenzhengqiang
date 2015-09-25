@@ -43,4 +43,5 @@
 #include<sys/select.h>
 extern int errno;
 using std::queue;
+using std::vector;
 #endif

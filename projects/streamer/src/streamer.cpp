@@ -682,12 +682,14 @@ struct WORKTHREAD_LOOP_INFO
     struct ev_async  *async_watcher;
     size_t type;
 };
+
+
 void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
 {
-    LOG_START("INIT_WORKTHREAD_INFO_POOL");
+    LOG_START( "INIT_WORKTHREAD_INFO_POOL" );
     ssize_t ret;
     //create our work threads in a loop
-    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","CAMERA STREAM RELATED--START");
+    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","CAMERA STREAM RELATED--START" );
     pthread_attr_t thread_attr;
     pthread_t thread_id;
     WORKTHREAD_LOOP_INFO * workthread_loop_info = NULL;
@@ -702,6 +704,7 @@ void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         {
             log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","MALLOC EV_LOOP_INFO FAILED");
         }
+        
         workthread_loop_info->workthread_loop = ev_loop_new(EVBACKEND_EPOLL | EVFLAG_NOENV);
         if( workthread_loop_info->workthread_loop == NULL )
         {
@@ -810,8 +813,8 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
     if( viewer_queue_empty(viewer_queue))
     return;
 
-    viewer_queue_pop(viewer_queue);
-    /*int pointer = viewer_queue.front;
+    //viewer_queue_pop(viewer_queue);
+    int pointer = viewer_queue.front;
     do
     {
         //now go to find the none key frame from viewer's queue
@@ -826,10 +829,9 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
     if( pointer == (int) viewer_queue.rear )
     {
         viewer_queue_pop(viewer_queue);
-    }*/
+    }
    
 }
-
 
 
 
@@ -845,7 +847,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     {\
         char MSG[199];\
         snprintf(MSG,199,"CAMERA %s OFF LINE--READ BYTES:%d",ci_iter->second->IP,int(X));\
-        log_module(LOG_INFO,"RECEIVE_STREAM_CB",MSG);\
+        log_module( LOG_INFO,"RECEIVE_STREAM_CB",MSG );\
         if( !ci_iter->second->viewer_info_pool.empty() )\
         {\
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.begin();\
@@ -932,7 +934,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
             ci_iter->second->not_received_flv_header_done = false;
         }
 
-        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SIGNATURE:%c%c%c VERSION:%d",
+        log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","SIGNATURE:%c%c%c VERSION:%d",
                 ci_iter->second->flv_header[0],ci_iter->second->flv_header[1],
                 ci_iter->second->flv_header[2],ci_iter->second->flv_header[3]);
 
@@ -1128,12 +1130,25 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         flv_tag.is_key_frame = is_key_frame;
 
         //now parse tags ok and send the tags to all viewers
+        bool need_start_viewer_callback = false;
         if( !( ci_iter->second->viewer_info_pool.empty() ) )
         {
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.begin();
             while(vi_iter != ci_iter->second->viewer_info_pool.end())
             {
-                  if( viewer_queue_full(vi_iter->second->viewer_queue) )
+                 if( vi_iter->second->register_viewer_callback_first )
+                 {
+                      vi_iter->second->register_viewer_callback_first = false;
+                      ev_io_init(vi_iter->second->viewer_watcher,send_tags_cb,
+                      vi_iter->second->client_fd,EV_WRITE);
+                 }
+                 
+                 if( viewer_queue_empty( vi_iter->second->viewer_queue ))
+                 {
+                      need_start_viewer_callback = true;
+                 }
+                 
+                 if( viewer_queue_full(vi_iter->second->viewer_queue) )
                  {
                       //network congestion might happened,now drop the none-key frame first
                       log_module(LOG_INFO,"RECEIVE_STREAM_CB","THE %s:%d'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
@@ -1142,18 +1157,17 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
 		         log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FRAME DROPPED FROM %s:%d'S VIEWER QUEUE RELATED TO CHANNEL %s",
                                                        vi_iter->second->IP,vi_iter->second->client_fd,cstr_channel);
                  }
-                 viewer_queue_push(vi_iter->second->viewer_queue,flv_tag);
+                 
+                 viewer_queue_push( vi_iter->second->viewer_queue,flv_tag );
+                 if( need_start_viewer_callback )
+                 {
+                      need_start_viewer_callback = false;
+                      ev_io_start( workthread_loop, vi_iter->second->viewer_watcher );
+                 }
+
                  log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s:%d'S VIEWER QUEUE",
                                                       vi_iter->second->IP,vi_iter->second->client_fd);
-                 
-                 if( vi_iter->second->register_viewer_callback_first )
-                 {
-                      vi_iter->second->register_viewer_callback_first = false;
-                      ev_io_init(vi_iter->second->viewer_watcher,send_tags_cb,
-                      vi_iter->second->client_fd,EV_WRITE);
-                 }
-                 ev_io_start(workthread_loop,vi_iter->second->viewer_watcher);
-                ++vi_iter;
+                 ++vi_iter;
             }
         }
         else
@@ -1201,8 +1215,8 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
         return;
     }
 
-    size_t total_bytes = 0;
     int sent_bytes = -1;
+    size_t total_bytes = -1;
     workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
     if( wi_iter == workthread_info_pool.end())
     {
@@ -1222,10 +1236,10 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
             static const char *http_response="HTTP/1.1 200 OK\r\nContent-type:video/x-flv\r\n\r\n";
             static int sent_http_response_bytes = 0;
             total_bytes = strlen(http_response)-sent_http_response_bytes;
-            sent_bytes = write_specify_size(viewer_watcher->fd,http_response+sent_http_response_bytes,
+            sent_bytes = write_specify_size2(viewer_watcher->fd,http_response+sent_http_response_bytes,
                     total_bytes);
             DELETE_VIEWER_IF(sent_bytes,-1);
-            if( (size_t)sent_bytes != total_bytes )
+            if( (size_t) sent_bytes != total_bytes )
             {
                 sent_http_response_bytes += sent_bytes;
                 return;
@@ -1330,7 +1344,7 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
 
     //now always send the tags to viewer
     FLV_TAG_FRAME *flv_tag=NULL;
-    if(viewer_queue_empty(vi_iter->second->viewer_queue))
+    if( viewer_queue_empty( vi_iter->second->viewer_queue ) )
     {
         log_module(LOG_DEBUG,"SEND_TAGS_CB","THE VIEWER QUEUE IS EMPTY,JUST STOP THE LIBEV IO EVENT FOR VIEWER");
         ev_io_stop(workthread_loop,viewer_watcher);
@@ -1353,14 +1367,27 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
             //write_specify_size2(viewer_watcher->fd,flv_tag->TAG,flv_tag->data_size);
             if( ( flv_tag->TAG != NULL ) && ( flv_tag->data_size != flv_tag->sent_bytes ) )
             {
-                total_bytes = flv_tag->data_size  - flv_tag->sent_bytes;
-                sent_bytes = write_specify_size(viewer_watcher->fd,flv_tag->TAG+flv_tag->sent_bytes,total_bytes);
-                DELETE_VIEWER_IF(sent_bytes,-1);
-                if( (size_t)sent_bytes != total_bytes )
+                /*if( (flv_tag->data_size-flv_tag->sent_bytes) >= FRAGMENT_SIZE )
                 {
-                    flv_tag->sent_bytes += sent_bytes;
+                    sent_bytes = write_specify_size2( viewer_watcher->fd,
+                                                               flv_tag->TAG+flv_tag->sent_bytes,
+                                                               FRAGMENT_SIZE);
+                    DELETE_VIEWER_IF(sent_bytes,-1);
+                    flv_tag->sent_bytes+=sent_bytes;
                     return;
-                }
+                }*/
+                /*else*/ if( (flv_tag->data_size-flv_tag->sent_bytes) > 0 )
+                {
+                    sent_bytes = write_specify_size( viewer_watcher->fd, 
+                                                                   flv_tag->TAG+flv_tag->sent_bytes,
+                                                                   flv_tag->data_size-flv_tag->sent_bytes);
+                    DELETE_VIEWER_IF(sent_bytes,-1);
+                    if( (size_t)sent_bytes != (flv_tag->data_size-flv_tag->sent_bytes) )
+                    {
+                        flv_tag->sent_bytes += sent_bytes;
+                        return;
+                    }
+               }
             }
             
             flv_tag->sent_bytes = 0;
@@ -1369,8 +1396,6 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
         }
         vi_iter->second->send_key_frame_first= false;
     }
-    
-    ev_io_stop(workthread_loop, viewer_watcher);
 }
 
 
@@ -1746,6 +1771,7 @@ void * notify_server_entry( void * args )
          int conn_fd;
          while( it != notify_servers.end() )
          {
+              log_module(LOG_DEBUG,"NOTIFY_SERVER_ENTRY","NOTIFY SERVER:%s PORT:%d",it->first.c_str(),it->second);
               conn_fd= tcp_connect(it->first.c_str(),it->second);
               if( conn_fd == -1 )
               {
@@ -1765,7 +1791,7 @@ void * notify_server_entry( void * args )
               notify_servers_info_pool.push_back( notify_server_info );
               ++it;
          }
-
+         
          std::vector<NOTIFY_SERVER_INFO >::iterator notify_server_iter = notify_servers_info_pool.begin();
          while( notify_server_iter != notify_servers_info_pool.end() )
          {
@@ -1962,6 +1988,10 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
         }
         else
         {
+             NOTIFY_DATA notify_data;
+             strcpy(notify_data.channel,req_info.channel.c_str());
+             notify_data.flag = 0;
+             write_specify_size2(NOTIFY_PIPE[1],&notify_data,sizeof(notify_data));
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE CAMERA'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
              bool OK = do_camera_request(main_event_loop,receive_request_watcher,req_info);
              if( !OK )
@@ -1975,10 +2005,7 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
             {
                   log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST SUCCEEDED");
             }
-            NOTIFY_DATA notify_data;
-            strcpy(notify_data.channel,req_info.channel.c_str());
-            notify_data.flag = 0;
-            write_specify_size2(NOTIFY_PIPE[1],&notify_data,sizeof(notify_data));
+            
         }    
     }
     else if( req_info.method == "GET" && (!req_info.channel.empty()) )
@@ -2216,8 +2243,7 @@ void do_notify( NOTIFY_SERVER_INFO & notify_server_info, NOTIFY_DATA & notify_da
          if(FD_ISSET(notify_server_info.conn_fd, &write_fd))
          {
               std::ostringstream notify_message;
-              notify_message<<"POST /daemon/channel_stat.do?channel="<<notify_data.channel<<"&src="<<notify_server_info.IP
-              <<":"<<notify_server_info.PORT;
+              notify_message<<"POST /daemon/channel_stat.do?channel="<<notify_data.channel;
               if ( notify_data.flag == 0 )
               {
                   notify_message<<"&status=0 HTTP/1.1\r\n\r\n";
