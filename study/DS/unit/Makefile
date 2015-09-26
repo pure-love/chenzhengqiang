@@ -1,18 +1,18 @@
 #author:chenzhengqiang
 #start date:2015/8/2
 
-PROG_SUFFIX:=c
+PROG_SUFFIX:=cpp
 INCLUDE_DIR:=../include/
 SOURCE_DIR:=../src/
 
-CC:=gcc
+CC:=g++
 CFLAGS:=-W -Wall -g -I$(INCLUDE_DIR)
 
 vpath %.h $(INCLUDE_DIR)
 vpath %.$(PROG_SUFFIX) $(SOURCE_DIR)
 
 TARGET=go
-OBJS:=test_selection_problem selection_problem
+OBJS:=test_sorts
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 $(TARGET):$(OBJS)
@@ -23,4 +23,4 @@ $(OBJS):%.o:%.$(PROG_SUFFIX)
 install:
 	-mv $(TARGET) $(INSTALL_DIR)
 clean:
-	del *.o *~
+	-rm -rf *.o $(TARGET) *.tmp *.cppe *.gz *.bz

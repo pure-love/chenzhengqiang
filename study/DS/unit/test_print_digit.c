@@ -13,14 +13,19 @@ int main( int argc, char ** argv )
 	int number;
 	printf( "Please Enter A Number:" );
 	scanf( "%d",&number );
+	print_digit( number );
+	printf("\n");
 	return 0;
 }
 
+
 void print_digit( int number )
 {
-	if( number < 10 || number > -10 )
-		printf( "%d",number );
-	number %= 10;
-	print_digit( number );
-	number /=10;
+	if( number > 10 || number < -10 )
+	print_digit( number / 10 );
+
+	if( number >=10 || number < -10 )
+	printf( "%d ", number % 10 );
+	else
+	printf( "%d ", number );
 }
