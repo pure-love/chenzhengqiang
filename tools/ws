@@ -1,0 +1,73 @@
+#!/bin/bash
+#author:chenzhengqiang
+#start date:2015/9/26
+#modified date:
+#desc:create the include file,either write the head
+
+function print_usage(){
+	echo "usage:wi <include filename> or wi <directory> <include filename>"
+}
+
+DIR="."
+FILE_NAME=""
+if [ $# -lt 1 ];then
+	echo "you must specify the include file name"
+	exit 1
+elif [ $# -eq 1 ];then
+	FILE_NAME="$1"
+elif [ $# -eq 2 ];then
+	DIR="$1"
+	if [ ! -d "$DIR" ];then
+		echo "error:$DIR is not a directory"
+		print_usage;
+		exit 1
+	fi
+	FILE_NAME="$2"
+elif [ $# -gt 2 ];then
+	echo "too many arguments"
+	print_usage;
+	exit 1	
+fi
+
+##############################GLOBAL CONFIG########################################
+AUTHOR="chenzhengqiang"
+IFNDEFKEY="CZQ"
+DATE=`date +"%Y/%m/%d %H:%M:%S"`
+FILE_NAME=`echo $FILE_NAME | tr '[A-Z]' '[a-z]'`
+POS=${#FILE_NAME}-2
+SUFFIX="cpp"
+##############################CONFIG END #########################################
+FILE_SUFFIX=""
+
+if [ "${FILE_NAME:$POS:1}" == "." ];then
+	FILE_SUFFIX=${FILE_NAME##*.}
+	if [ "$FILE_SUFFIX" != "$SUFFIX" ];then
+		echo "wrong file suffix"
+		print_usage;
+		exit 1
+	fi
+else
+	FILE_NAME="$FILE_NAME.$SUFFIX"
+fi
+
+FULL_FILE_NAME="$DIR/$FILE_NAME"
+if [ -e "$FULL_FILE_NAME" ];then
+	#vim $FILE_NAME
+	exit 0
+fi
+
+`touch $FULL_FILE_NAME`
+`chmod a+w $FULL_FILE_NAME`
+`echo "/*" >> $FULL_FILE_NAME`
+`echo "*@filename:$FILE_NAME" >> $FULL_FILE_NAME`
+`echo "*@author:$AUTHOR" >> $FULL_FILE_NAME`
+`echo "*@start date:$DATE" >> $FULL_FILE_NAME`
+`echo "*@modified date:" >> $FULL_FILE_NAME`
+`echo "*@desc: " >> $FULL_FILE_NAME`
+`echo "*/" >> $FULL_FILE_NAME`
+`echo >> $FULL_FILE_NAME`
+`echo >> $FULL_FILE_NAME`
+`echo >> $FULL_FILE_NAME`
+`echo "#include \"${FILE_NAME%%.*}.h\"" >> $FULL_FILE_NAME`
+
+
