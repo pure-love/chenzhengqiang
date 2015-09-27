@@ -18,10 +18,19 @@ int main( int argc, char ** argv )
 	cout<<endl<<"unsorted numbers:";
 	print_array( data );
 	cout<<endl<<"sorted numbers using bubble sort by desc:";
-	sorts<int>::bubble(data,6,false);
+	sorts<int>::bubble( data,6,false );
 	print_array( data );
 	cout<<endl<<"sorted numbers using quick sort by asc:";
-	sorts<int>::quick(data,0,5);
+	sorts<int>::quick( data,0,5 );
+	print_array( data );
+	cout<<endl<<"sorted numbers using insert sort by desc:";
+	sorts<int>::insert( data,6,false );
+	print_array( data );
+	cout<<endl<<"sorted numbers using shell sort by asc:";
+	sorts<int>::shell( data,6 );
+	print_array( data );
+	cout<<endl<<"sorted numbers using select  sort by desc:";
+	sorts<int>::select( data,6,false);
 	print_array( data );
 
 	cout<<endl<<endl<<endl<<"unsorted strings:";

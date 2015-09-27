@@ -18,12 +18,19 @@ class sorts
 {
 	public:
 		static void bubble( T *buffer, int buffer_size, bool asc = true );
-		static int obtain_middle_key_pos( T * buffer, int begin , int end, bool asc );
+		static int  obtain_middle_key_pos( T * buffer, int begin , int end, bool asc );
 		static void quick( T *buffer, int begin, int end, bool asc = true );
 		static void insert( T *buffer, int buffer_size, bool asc = true );
 		static void shell( T *buffer, int buffer_size, bool asc = true );
-		static void selection( T *buffer, int buffer_size, bool asc = true );
+		static void select( T *buffer, int buffer_size, bool asc = true );
 		static void heap( T *buffer, int buffer_size, bool asc = true );
+	private:
+		//it's not necessary to initialize a sorts object
+		//it's enough to  use the static method
+		sorts(){}
+		sorts( const sorts<T> &){}
+		sorts<T> & operator=( const sorts<T> &){}
+		~sorts(){}
 };
 
 //particular type for const char *

@@ -6,8 +6,8 @@
 *@desc: 
 */
 
+#include "sorts.h"
 #include <cstring>
-
 //the bubble sort,there is nothing to tell,it's so easy
 template<typename T>
 void	sorts<T>::bubble( T * buffer, int buffer_size , bool asc )
@@ -100,8 +100,11 @@ int sorts<T>::obtain_middle_key_pos( T * buffer, int begin , int end, bool asc )
     {
         if( asc )
         {
+            //compare the value of end in this data buffer to the middle key
+            //till it's less than the middle key
             while( buffer[end] > the_middle_key && ( begin < end ))
             --end;
+	      //now place the value that less than the middle key to the left side(sort by asc)		
             buffer[begin] = buffer[end];
             while( buffer[begin] < the_middle_key && ( begin < end ))
             ++begin;
@@ -124,7 +127,7 @@ int sorts<T>::obtain_middle_key_pos( T * buffer, int begin , int end, bool asc )
 }
 
 
-//the quick sort
+//the quick sort,optimized base on the bubble sort
 template<typename T>
 void	sorts<T>::quick( T * buffer, int begin , int end, bool asc )
 {
@@ -139,10 +142,104 @@ void	sorts<T>::quick( T * buffer, int begin , int end, bool asc )
 }
 
 
-//the quick sort
+//the insert sort
 template<typename T>
 void	sorts<T>::insert( T * buffer, int buffer_size, bool asc )
 {
-	for( int index=)
+	for( int index=1; index < buffer_size; ++index )
+	{
+		int prev_pos = index-1;
+		T cur_val = buffer[index];
+		if( asc )
+		{
+			while(  prev_pos >= 0 && buffer[prev_pos] > cur_val )
+			{
+				buffer[prev_pos+1]=buffer[prev_pos];
+				--prev_pos;
+			}
+		}
+		else
+		{
+			while( prev_pos>=0 && buffer[prev_pos] < cur_val )
+			{
+				buffer[prev_pos+1]=buffer[prev_pos];
+				--prev_pos;
+			}
+			
+		}
+		buffer[prev_pos+1]=cur_val;
+	}
 }
+
+
+//the shell sort,optimized base on insert sort
+template<typename T>
+void	sorts<T>::shell(T * buffer, int buffer_size, bool asc )
+{
+	int delta = buffer_size /2;
+	while( delta > 0 )
+	{
+		for( int unsorted_index=delta; unsorted_index < buffer_size; ++unsorted_index )
+		{
+			int sorted_last_index = unsorted_index-delta;
+			T cur_unsorted_value = buffer[unsorted_index];
+			if( asc )
+			{
+				while(  sorted_last_index >= 0 && buffer[sorted_last_index] > cur_unsorted_value )
+				{
+					buffer[sorted_last_index+delta]=buffer[sorted_last_index];
+					sorted_last_index-=delta;
+				}
+			}
+			else
+			{
+				while(  sorted_last_index >= 0 && buffer[sorted_last_index] < cur_unsorted_value )
+				{
+					buffer[sorted_last_index+delta]=buffer[sorted_last_index];
+					sorted_last_index-=delta;
+				}
+			
+			}
+			buffer[sorted_last_index+delta]= cur_unsorted_value;
+		}
+		delta/=2;
+	}
+}
+
+
+
+//the selection sort
+template<typename T>
+void	sorts<T>::select(T * buffer, int buffer_size, bool asc )
+{
+	T tmp;
+	for( int o_index=0; o_index <buffer_size-1; ++o_index )
+	{
+		int min_max_index = o_index;
+		for( int i_index = o_index+1; i_index < buffer_size; ++i_index )
+		{
+			if( asc )
+			{
+				if( buffer[i_index] < buffer[min_max_index] )
+				min_max_index = i_index;
+			}
+			else
+			{
+				if( buffer[i_index] > buffer[min_max_index] )
+				min_max_index = i_index;
+			}
+		}
+		if( min_max_index == o_index )
+		continue;
+		tmp = buffer[o_index];
+		buffer[o_index] = buffer[min_max_index];
+		buffer[min_max_index]=tmp;
+	}
+}
+
+
+
+
+
+
 
