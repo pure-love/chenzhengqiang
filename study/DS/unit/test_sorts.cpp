@@ -29,8 +29,14 @@ int main( int argc, char ** argv )
 	cout<<endl<<"sorted numbers using shell sort by asc:";
 	sorts<int>::shell( data,6 );
 	print_array( data );
-	cout<<endl<<"sorted numbers using select  sort by desc:";
+	cout<<endl<<"sorted numbers using select sort by desc:";
 	sorts<int>::select( data,6,false);
+	print_array( data );
+	cout<<endl<<"sorted numbers using heap sort by asc:";
+	sorts<int>::heap( data, 6);
+	print_array( data );
+	cout<<endl<<"sorted numbers using heap sort by desc:";
+	sorts<int>::heap( data, 6, false);
 	print_array( data );
 
 	cout<<endl<<endl<<endl<<"unsorted strings:";

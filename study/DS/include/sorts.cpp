@@ -239,7 +239,68 @@ void	sorts<T>::select(T * buffer, int buffer_size, bool asc )
 
 
 
+//the heap sort
+template<typename T>
+void	sorts<T>::create_heap(T * buffer, int root_index, int end, bool asc )
+{
+    T root = buffer[root_index];
+    int min_max_index = -1;
+    for( int left_child_index = 2*root_index+ 1; left_child_index <=end; )
+    {
+        min_max_index = left_child_index;
+        if( asc )
+        {
+            
+            if( (left_child_index+1 <= end ) && ( buffer[left_child_index] < buffer[left_child_index+1] ) )
+            {
+                min_max_index = left_child_index+1;
+            }
+
+            if( root >= buffer[min_max_index])
+            {
+              break;
+            }
+            
+        }
+        else
+        {
+            if( (left_child_index+1 <= end ) && ( buffer[left_child_index] > buffer[left_child_index+1] ) )
+            {
+                min_max_index = left_child_index+1;
+            }
+
+            if( root <= buffer[min_max_index])
+            {
+                break;
+            }
+        }
+            
+        buffer[root_index] = buffer[min_max_index];
+        root_index = min_max_index;
+        left_child_index =2*root_index+1;
+   }
+   buffer[root_index]= root;
+}
 
 
+
+template<typename T>
+void	sorts<T>::heap( T * buffer, int buffer_size, bool asc )
+{
+    for( int end=buffer_size/2; end>=0; --end )
+    {
+        create_heap( buffer, end, buffer_size-1, asc );
+    }
+   
+    for(int end=buffer_size-1; end>0; --end )
+    {
+        
+        T temp=buffer[end];
+        buffer[end] = buffer[0];
+        buffer[0] = temp;
+        create_heap( buffer,0,end-1, asc );
+    }
+
+}
 
 

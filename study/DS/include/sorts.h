@@ -23,7 +23,9 @@ class sorts
 		static void insert( T *buffer, int buffer_size, bool asc = true );
 		static void shell( T *buffer, int buffer_size, bool asc = true );
 		static void select( T *buffer, int buffer_size, bool asc = true );
+             static void create_heap( T *buffer, int start, int end, bool asc = true );
 		static void heap( T *buffer, int buffer_size, bool asc = true );
+             static void merge();
 	private:
 		//it's not necessary to initialize a sorts object
 		//it's enough to  use the static method
