@@ -13,7 +13,7 @@ int main( int argc, char ** argv )
 {
 	(void)argc;
 	(void)argv;
-	int data[6]={2,1,3,4,5,6};
+	int data[6]={2,1,3,4,5,6};	
 	const char *strs[3]={"hello","what","hehe"};
 	cout<<endl<<"unsorted numbers:";
 	print_array( data );
@@ -37,6 +37,12 @@ int main( int argc, char ** argv )
 	print_array( data );
 	cout<<endl<<"sorted numbers using heap sort by desc:";
 	sorts<int>::heap( data, 6, false);
+	print_array( data );
+	cout<<endl<<"sorted numbers using merge sort by asc:";
+	sorts<int>::merge( data, 6);
+	print_array( data );
+	cout<<endl<<"sorted numbers using merge sort by desc:";
+	sorts<int>::merge( data, 6,false);
 	print_array( data );
 
 	cout<<endl<<endl<<endl<<"unsorted strings:";
