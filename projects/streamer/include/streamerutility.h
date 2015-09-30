@@ -73,6 +73,7 @@ ssize_t   write_specify_size2(int fd, const void *buffer, size_t total_bytes);
 int sdk_set_tcpnodelay(int sd);
 int sdk_set_nonblocking(int sd);
 int sdk_set_sndbuf(int sd, int size);
+int sdk_set_rcvlowat(int sd, int size);
 int sdk_set_rcvbuf(int sd, int size);
 int sdk_get_sndbuf(int sd);
 int sdk_get_rcvbuf(int sd);

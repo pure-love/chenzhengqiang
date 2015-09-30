@@ -1063,3 +1063,9 @@ int sdk_get_rcvbuf(int sd)
     }
     return size;
 }
+
+int sdk_set_rcvlowat(int sd, int recvlow)
+{
+    return setsockopt(sd, SOL_SOCKET, SO_RCVLOWAT,&recvlow, sizeof(recvlow));
+}
+

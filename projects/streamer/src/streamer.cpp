@@ -39,15 +39,21 @@ static const size_t WORKTHREADS_SIZE=8;
 static const size_t FRAGMENT_SIZE = 1024;
 //specify the size of cached flv tag in queue
 static const size_t CACHED_TAGS_LIMIT = 30;
-//used to send camera's status message to notify work thread
-static int NOTIFY_PIPE[2];
+//notify workthread entry related
+static struct ev_loop *NOTIFY_SERVER_LOOP=NULL;
+static struct ev_async *NOTIFY_ASYNC_WATCHER=NULL;
+static char NOTIFY_SERVER_CONFIG_FILE[50];
 /*****************************WORKTHREAD  INFO  RELATED*******************************/
 static const size_t AUDIO_TAG = 8;
 static const size_t VIDEO_TAG = 9;
 static const size_t SCRIPT_TAG = 18;
-static const size_t TAG_DATA_SIZE=65535;
+static const size_t TAG_DATA_SIZE=1024;
 static const size_t VIEWERS_LIMIT = 2000;
 static const size_t CHANNELS_LIMIT = 100;
+static const size_t MAX_CHANNEL_SIZE=64;
+static const int ONLINE = 0;
+static const int OFFLINE = 1;
+static const int RECVLOWAT = 9+4+11;
 
 //the flv tag item
 struct FLV_TAG_FRAME
@@ -186,7 +192,7 @@ struct EV_ASYNC_DATA
     ssize_t client_fd;
     ssize_t request_fd;
     char *data;
-    char channel[99];
+    char channel[MAX_CHANNEL_SIZE];
 };
 
 
@@ -271,17 +277,24 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         CAMERAS_PTR  camera_ptr = new CAMERAS;
         if( camera_ptr == NULL )
         {
-            log_module(LOG_INFO,"NEW_VIEWERS","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+            log_module( LOG_ERROR,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CAMERAS" );
+            return NULL;
+        }
+
+        if( receive_request_watcher->data == NULL )
+        {
+            log_module( LOG_ERROR,"NEW_CAMERAS","RECEIVE_REQUEST_WATCHER->DATA == NULL" );
+            delete camera_ptr;
+            camera_ptr = NULL;
             return NULL;
         }
         
         //CAMERAS_PTR INITIALIZATION START
-        char *IP = (char *)receive_request_watcher->data;
-        memcpy(camera_ptr->IP,IP,INET_ADDRSTRLEN);
+        memcpy( camera_ptr->IP,static_cast<char *>(receive_request_watcher->data),INET_ADDRSTRLEN );
         camera_ptr->camera_watcher = new struct ev_io;
         if( camera_ptr->camera_watcher == NULL )
         {
-             log_module(LOG_INFO,"NEW_VIEWERS","ALLOCATE MEMORY FAILED:CAMERA_WATCHER=NULL");
+             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
              delete camera_ptr;
              camera_ptr = NULL;
              return NULL;
@@ -290,7 +303,7 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         camera_ptr->reply_watcher = new struct ev_io;
         if( camera_ptr->reply_watcher == NULL )
         {
-             log_module(LOG_INFO,"NEW_VIEWERS","ALLOCATE MEMORY FAILED:REPLY_WATCHER=NULL");
+             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED:REPLY_WATCHER=NULL");
              delete camera_ptr->camera_watcher;
              camera_ptr->camera_watcher = NULL;
              delete camera_ptr;
@@ -301,7 +314,7 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         char *cstr_channel = new char[channel.length()+1];
         if( cstr_channel == NULL )
         {
-             log_module(LOG_INFO,"NEW_VIEWERS","ALLOCATE MEMORY FAILED:cstr_channel=new char[...]");
+             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[...]");
              delete camera_ptr->camera_watcher;
              camera_ptr->camera_watcher = NULL;
              delete camera_ptr->reply_watcher;
@@ -311,6 +324,8 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
              return NULL;
         }
 
+        //you can not use the memset to initialize this struct
+        //it will cause the segment default in run time
         camera_ptr->camera_watcher->data = (void *)cstr_channel;
         camera_ptr->camera_watcher->fd = receive_request_watcher->fd;
         strcpy(cstr_channel,channel.c_str());
@@ -684,7 +699,7 @@ struct WORKTHREAD_LOOP_INFO
 };
 
 
-void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
+bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
 {
     LOG_START( "INIT_WORKTHREAD_INFO_POOL" );
     ssize_t ret;
@@ -695,24 +710,30 @@ void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
     WORKTHREAD_LOOP_INFO * workthread_loop_info = NULL;
     for( size_t index=0; index < workthreads_size; ++index )
     {
-        
+
+        //make the workthread detached to main thread
         pthread_attr_init(&thread_attr);
         pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
+        
         WORKTHREAD_INFO workthread_info;
         workthread_loop_info = new WORKTHREAD_LOOP_INFO;
         if( workthread_loop_info == NULL )
         {
             log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","MALLOC EV_LOOP_INFO FAILED");
+            return false;
         }
-        
-        workthread_loop_info->workthread_loop = ev_loop_new(EVBACKEND_EPOLL | EVFLAG_NOENV);
+
+        //init the workthread's event loop
+        workthread_loop_info->workthread_loop = ev_loop_new( EVBACKEND_EPOLL | EVFLAG_NOENV );
         if( workthread_loop_info->workthread_loop == NULL )
         {
             delete workthread_loop_info;
             workthread_loop_info = NULL;
-            log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","MALLOC WORKTHREAD LOOP FAILED");   
+            log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","EV_LOOP_NEW FAILD");
+            return false;
         }
-        
+
+        //init the workthread's async watcher
         workthread_loop_info->async_watcher = new ev_async;
         if(  workthread_loop_info->async_watcher == NULL )
         {
@@ -720,7 +741,8 @@ void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
              workthread_loop_info->workthread_loop = NULL;
              delete workthread_loop_info;
              workthread_loop_info = NULL;
-             log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","MALLOC WORKTHREAD LOOP FAILED");   
+             log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","INIT THE SPECIFIED WORKTHREAD'S ASYNC WATCHER FAILED");
+             return false;
         }
         
         workthread_info.workthread_loop = workthread_loop_info->workthread_loop;
@@ -729,26 +751,30 @@ void init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         ret = pthread_create(&thread_id,&thread_attr,workthread_entry,(void *)workthread_loop_info);
         if(  ret != 0 )
         {
-            log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",LOG_LOCATION);
+            log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",strerror(errno));
+            return false;
         }
         workthread_info.thread_id = thread_id;
         workthread_info_pool.push_back(workthread_info);
     }
-    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","CAMERA STREAM RELATED--DONE");
-
-    //now startup the work thread for notifying camera's status to those servers of GSLB 
-    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","CAMERA STATUS RELATED--START");
-    pthread_attr_init(&thread_attr);
-    pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
     
+    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","WORKTHREADS RELATED TO CAMERA AND VIEWER CREATED DONE");
+    //now startup the work thread for notifying camera's status to those servers of GSLB 
+    
+    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","INIT THE STREAMER'S NOTIFY SERVER ENTRY--START");
+    pthread_attr_init( &thread_attr );
+    pthread_attr_setdetachstate( &thread_attr, PTHREAD_CREATE_DETACHED );
+
     ret = pthread_create(&thread_id,&thread_attr,notify_server_entry,(void *)config.notify_server_file.c_str());
     if(  ret != 0 )
     {
           log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",LOG_LOCATION);
+          return false;
     }
-    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","CAMERA STATUS RELATED--DONE");
     
+    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","INIT THE STREAMER'S NOTIFY SERVER ENTRY--DONE");
     LOG_DONE("INIT_WORKTHREAD_INFO_POOL");
+    return true;
 }
 
 
@@ -867,10 +893,18 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                 ++vi_iter;\
             }\
         }\
-        NOTIFY_DATA notify_data;\
-        strcpy(notify_data.channel,cstr_channel);\
-        notify_data.flag = 98;\
-        write_specify_size2(NOTIFY_PIPE[1],&notify_data,sizeof(notify_data));\
+        NOTIFY_DATA * notify_data = new NOTIFY_DATA;\
+        if( notify_data == NULL )\
+        {\
+            log_module( LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW NOTIFY_DATA");\
+        }\
+        else\
+        {\
+            strcpy( notify_data->channel,cstr_channel );\
+            notify_data->flag = OFFLINE;\
+            NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;\
+            ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );\
+        }\
         close(camera_watcher->fd);\
         if( ci_iter->second->flv_script_tag != NULL )\
         delete [] ci_iter->second->flv_script_tag;\
@@ -1433,15 +1467,17 @@ void async_read_cb(struct ev_loop *workthread_loop, struct ev_async *async_watch
         channel.assign(async_data->channel);
         workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
         camera_info_iter ci_iter = get_channel_info_item(wi_iter,channel);
-        sdk_set_nonblocking(async_data->client_fd);
-        sdk_set_keepalive(async_data->client_fd);
-        sdk_set_tcpnodelay(async_data->client_fd);
-        sdk_set_rcvbuf(async_data->client_fd, 65535);
-        sdk_set_sndbuf(async_data->client_fd,65535);
-        ev_io_init(ci_iter->second->reply_watcher,reply_200OK_cb,async_data->client_fd, EV_WRITE);
-        ev_io_init(ci_iter->second->camera_watcher,receive_stream_cb,async_data->client_fd, EV_READ);
-        ev_io_start(workthread_loop, ci_iter->second->reply_watcher);
-        ev_io_start(workthread_loop, ci_iter->second->camera_watcher);
+        
+        sdk_set_nonblocking( async_data->client_fd );
+        sdk_set_keepalive( async_data->client_fd );
+        sdk_set_tcpnodelay( async_data->client_fd );
+        sdk_set_rcvbuf( async_data->client_fd, 65535 );
+        sdk_set_rcvlowat( async_data->client_fd, RECVLOWAT );
+        
+        ev_io_init( ci_iter->second->reply_watcher,reply_200OK_cb,async_data->client_fd, EV_WRITE );
+        ev_io_init( ci_iter->second->camera_watcher,receive_stream_cb,async_data->client_fd, EV_READ );
+        ev_io_start( workthread_loop, ci_iter->second->reply_watcher );
+        ev_io_start( workthread_loop, ci_iter->second->camera_watcher );
     }
     else if( async_data->client_type == BACKER )
     {
@@ -1499,33 +1535,33 @@ void async_read_cb(struct ev_loop *workthread_loop, struct ev_async *async_watch
              async_watcher->data = NULL;
              return;
         }
+        
         strcpy(imitated_request, (static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
         delete [] ((static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
         
         send_backing_resource_watcher->data =(void *)imitated_request;
         pull_stream_watcher->data = (void *)push_stream_watcher;
-        sdk_set_nonblocking(async_data->client_fd);
-        sdk_set_keepalive(async_data->client_fd);
-        sdk_set_tcpnodelay(async_data->client_fd);
-        sdk_set_sndbuf(async_data->client_fd,65535);
-        sdk_set_rcvbuf(async_data->client_fd,65535);
+        sdk_set_nonblocking( async_data->client_fd );
+        sdk_set_keepalive( async_data->client_fd );
+        sdk_set_tcpnodelay( async_data->client_fd );
+        sdk_set_rcvbuf( async_data->client_fd, 65535 );
+        sdk_set_rcvlowat( async_data->client_fd, RECVLOWAT );
 
-        sdk_set_nonblocking(async_data->request_fd);
-        sdk_set_keepalive(async_data->request_fd);
-        sdk_set_tcpnodelay(async_data->request_fd);
-        sdk_set_sndbuf(async_data->request_fd,65535);
-        sdk_set_rcvbuf(async_data->request_fd,65535);
+        sdk_set_nonblocking( async_data->request_fd );
+        sdk_set_keepalive( async_data->request_fd );
+        sdk_set_tcpnodelay( async_data->request_fd );
         
-        ev_io_init(send_backing_resource_watcher,send_backing_resource_cb,async_data->client_fd,EV_WRITE);
-        ev_io_init(pull_stream_watcher,pull_stream_cb,async_data->client_fd,EV_READ);
-        ev_io_init(push_stream_watcher,push_stream_cb,async_data->request_fd,EV_WRITE);
-        ev_io_start(workthread_loop, send_backing_resource_watcher);
-        ev_io_start(workthread_loop, pull_stream_watcher);
+        
+        ev_io_init( send_backing_resource_watcher,send_backing_resource_cb,async_data->client_fd,EV_WRITE );
+        ev_io_init( pull_stream_watcher,pull_stream_cb,async_data->client_fd,EV_READ );
+        ev_io_init( push_stream_watcher,push_stream_cb,async_data->request_fd,EV_WRITE );
+        ev_io_start( workthread_loop, send_backing_resource_watcher );
+        ev_io_start( workthread_loop, pull_stream_watcher );
             
     }
     delete static_cast<EV_ASYNC_DATA*>(async_watcher->data);
     async_watcher->data = NULL;
-    LOG_DONE("ASYNC_READ_CB");
+    LOG_DONE( "ASYNC_READ_CB" );
 }
 
 
@@ -1618,16 +1654,16 @@ void pull_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *pull_stream
     STREAM_DATA * stream_data = new STREAM_DATA;
     if( stream_data == NULL )
     {
-         workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
-         backing_resource_iter br_iter = get_backing_resource_item(wi_iter,pull_stream_watcher->fd);
+         workthread_info_iter wi_iter = get_workthread_info_item( pthread_self() );
+         backing_resource_iter br_iter = get_backing_resource_item( wi_iter,pull_stream_watcher->fd );
          log_module(LOG_INFO,"PULL_STREAM_CB","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
-         DELETE_RESOURCE(wi_iter,br_iter);
+         DELETE_RESOURCE( wi_iter,br_iter );
     }
-    stream_data->received_bytes=read_specify_size(pull_stream_watcher->fd, stream_data->stream, sizeof(stream_data->stream));
+    stream_data->received_bytes=read_specify_size( pull_stream_watcher->fd, stream_data->stream, sizeof(stream_data->stream));
     if( stream_data->received_bytes == 0 )
     {
-         workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
-         backing_resource_iter br_iter = get_backing_resource_item(wi_iter,pull_stream_watcher->fd);
+         workthread_info_iter wi_iter = get_workthread_info_item( pthread_self() );
+         backing_resource_iter br_iter = get_backing_resource_item( wi_iter,pull_stream_watcher->fd );
          char MSG[99];
          snprintf(MSG,99,"RESOURCE %s HAS STOPED TO PUSH STREAM",br_iter->second.IP.c_str());
          log_module(LOG_INFO,"PULL_STREAM_CB",MSG);
@@ -1636,7 +1672,7 @@ void pull_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *pull_stream
          DELETE_RESOURCE(wi_iter,br_iter);
     }
     push_stream_watcher->data = (void *)stream_data;
-    ev_io_start(workthread_loop,push_stream_watcher);
+    ev_io_start( workthread_loop,push_stream_watcher );
 }
 
 
@@ -1731,6 +1767,60 @@ void send_backing_resource_cb(struct ev_loop * workthread_loop, struct  ev_io *s
 }
 
 
+void read_channel_status_cb( struct ev_loop *workthread_loop, struct ev_async *async_watcher, int revents )
+{
+    (void) workthread_loop;
+    if( EV_ERROR & revents )
+    {
+        log_module( LOG_ERROR,"READ_CHANNEL_STATUS_CB","EV_ERROR %s",LOG_LOCATION);
+        return;
+    }
+
+    std::map<std::string, int> notify_servers;
+    //obtain the servers' address wrtten in config file
+    
+    read_config2( NOTIFY_SERVER_CONFIG_FILE,notify_servers );
+    std::map<std::string, int>::iterator it = notify_servers.begin();
+    int conn_fd;
+
+    NOTIFY_DATA * notify_data =  static_cast<NOTIFY_DATA *>( async_watcher->data );
+    if( notify_data == NULL )
+    {
+         log_module( LOG_ERROR, "READ_CHANNEL_STATUS_CB","ERROR:NOTIFY_DATA IS NULL");
+    }
+    else
+    {
+            while( it != notify_servers.end() )
+            {
+                log_module( LOG_DEBUG,"READ_CHANNEL_STATUS_CB","NOTIFY TO SERVER:%s PORT:%d START",it->first.c_str(),it->second );
+                conn_fd= tcp_connect( it->first.c_str(),it->second );
+                if( conn_fd == -1 )
+                {
+                    log_module( LOG_ERROR,"READ_CHANNEL_STATUS_CB","TCP_CONNECT FAILED RELATED TO SERVER %s:%d TRY ANOTHER SERVER",
+                                                        it->first.c_str(),it->second);
+                    ++it;
+                    continue;
+                }
+                
+                sdk_set_tcpnodelay( conn_fd );
+                sdk_set_sndbuf( conn_fd, 65535 );
+                NOTIFY_DATA *notify_data_dump = new NOTIFY_DATA;
+                memcpy( notify_data_dump, notify_data, sizeof( NOTIFY_DATA ) );
+                struct ev_io *notify_watcher = new ev_io;
+                notify_watcher->data =(void *)notify_data_dump;
+                notify_watcher->fd = conn_fd;
+                ev_io_init( notify_watcher , do_notify_cb, conn_fd, EV_WRITE );
+                ev_io_start( workthread_loop, notify_watcher );
+                log_module( LOG_DEBUG,"READ_CHANNEL_STATUS_CB","NOTIFY TO SERVER:%s PORT:%d DONE",it->first.c_str(),it->second );
+                ++it;
+            }
+     }
+
+     if( notify_data )
+     delete static_cast<NOTIFY_DATA *>( async_watcher->data );
+     async_watcher->data = NULL;
+}
+
 
 /*
 *@args:
@@ -1739,67 +1829,19 @@ void send_backing_resource_cb(struct ev_loop * workthread_loop, struct  ev_io *s
 */
 void * notify_server_entry( void * args )
 {
-     std::string notify_server_file(static_cast<char*>(args));
-     if( pipe2(NOTIFY_PIPE,O_NONBLOCK) != 0 )
+     
+     NOTIFY_SERVER_LOOP = ev_loop_new( EVBACKEND_SELECT | EVFLAG_NOENV );
+     NOTIFY_ASYNC_WATCHER = new ev_async;
+
+     if( NOTIFY_SERVER_LOOP == NULL || NOTIFY_ASYNC_WATCHER == NULL )
      {
-         log_module(LOG_ERROR,"NOTIFY_SERVER_ENTRY","PIPE2 FAILED:%s",strerror(errno));
-         exit(EXIT_FAILURE);
+        log_module( LOG_ERROR,"NOTIFY_SERVER_ENTRY", "ALLOCATE MEMORY FAILED WHEN EXECUTE EV_LOOP_NEW OR NEW EV_ASYNC");
+        abort();
      }
-     std::vector<NOTIFY_SERVER_INFO> notify_servers_info_pool;
-     fd_set read_fds;
-     while( true )
-     {
-         FD_ZERO(&read_fds);
-         FD_SET(NOTIFY_PIPE[0],&read_fds);
-         int max_fds = NOTIFY_PIPE[0]+1;
-         if( -1 == select(max_fds,&read_fds,NULL,NULL,NULL) )
-         {
-              log_module(LOG_INFO,"NOTIFY_SERVER_ENTRY","SELECT ERROR:%s",strerror(errno));
-              pthread_exit(NULL);
-         }
-         NOTIFY_DATA notify_data;
-         int received_bytes = read_specify_size2(NOTIFY_PIPE[0],&notify_data, sizeof(notify_data));
-         if( received_bytes == 0 )     
-         {
-              continue;
-         }
-         FD_ZERO( &read_fds );
-         max_fds = -1;
-         std::map<std::string, int> notify_servers;
-         read_config2(notify_server_file.c_str(),notify_servers);
-         std::map<std::string, int>::iterator it = notify_servers.begin();
-         int conn_fd;
-         while( it != notify_servers.end() )
-         {
-              log_module(LOG_DEBUG,"NOTIFY_SERVER_ENTRY","NOTIFY SERVER:%s PORT:%d",it->first.c_str(),it->second);
-              conn_fd= tcp_connect(it->first.c_str(),it->second);
-              if( conn_fd == -1 )
-              {
-                    log_module(LOG_INFO,"NOTIFY_SERVER_ENTRY","TCP_CONNECT FAILED,TRY AGAIN:%s",LOG_LOCATION);
-                    ++it;
-                    continue;
-              }
-              sdk_set_sndbuf(conn_fd,65535);
-              sdk_set_rcvbuf(conn_fd,65535);
-              sdk_set_nonblocking(conn_fd);
-              sdk_set_tcpnodelay(conn_fd);
-              sdk_set_keepalive(conn_fd);
-              NOTIFY_SERVER_INFO notify_server_info;
-              notify_server_info.conn_fd = conn_fd;
-              notify_server_info.IP = it->first;
-              notify_server_info.PORT = it->second;
-              notify_servers_info_pool.push_back( notify_server_info );
-              ++it;
-         }
-         
-         std::vector<NOTIFY_SERVER_INFO >::iterator notify_server_iter = notify_servers_info_pool.begin();
-         while( notify_server_iter != notify_servers_info_pool.end() )
-         {
-              do_notify(*notify_server_iter,notify_data);
-              ++notify_server_iter;
-         }
-         notify_servers_info_pool.clear();
-     }
+
+     ev_async_init( NOTIFY_ASYNC_WATCHER , read_channel_status_cb );
+     ev_async_start( NOTIFY_SERVER_LOOP , NOTIFY_ASYNC_WATCHER );
+     ev_run( NOTIFY_SERVER_LOOP, 0 );
      return args;
 }
 
@@ -1823,8 +1865,8 @@ void * workthread_entry ( void * args )
 
     //register the libev async callback
     //used to receive signal from the main event loop
-    ev_async_init(workthread_loop_info->async_watcher, async_read_cb);
-    ev_async_start(workthread_loop_info->workthread_loop,workthread_loop_info->async_watcher);
+    ev_async_init( workthread_loop_info->async_watcher, async_read_cb );
+    ev_async_start( workthread_loop_info->workthread_loop,workthread_loop_info->async_watcher );
     ev_run(workthread_loop_info->workthread_loop,0);
     free(workthread_loop_info->workthread_loop);
     workthread_loop_info->workthread_loop = NULL;
@@ -1847,25 +1889,26 @@ void * workthread_entry ( void * args )
 void accept_cb(struct ev_loop * main_event_loop, struct ev_io * listen_watcher, int revents )
 {
     LOG_START("ACCEPT_CB");
-    ssize_t client_fd;
-    struct sockaddr_in client_addr;
-    socklen_t len = sizeof(struct sockaddr_in);
     if( EV_ERROR & revents )
     {
         log_module(LOG_INFO,"ACCEPT_CB","LIBEV ERROR FOR EV_ERROR:%d--%s",EV_ERROR,LOG_LOCATION);
         return;
     }
-    client_fd = accept(listen_watcher->fd, (struct sockaddr *)&client_addr, &len );
+
+    ssize_t client_fd;
+    struct sockaddr_in client_addr;
+    socklen_t len = sizeof(struct sockaddr_in);
+    client_fd = accept( listen_watcher->fd, (struct sockaddr *)&client_addr, &len );
     if( client_fd < 0 )
     {
-        log_module(LOG_INFO,"ACCEPT_CB","ACCEPT ERROR:%d-->%s--%s",errno,strerror(errno),LOG_LOCATION);   
+        log_module(LOG_INFO,"ACCEPT_CB","ACCEPT ERROR:%s",strerror(errno));   
         return;
     }
     
     char *client_ip = new char [INET_ADDRSTRLEN];
     if( client_ip == NULL )
     {
-         log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+         log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[INET_ADDRSTRLEN]");
          close(client_fd);
          return;
     }
@@ -1873,24 +1916,27 @@ void accept_cb(struct ev_loop * main_event_loop, struct ev_io * listen_watcher, 
     struct ev_io * receive_request_watcher = new struct ev_io;
     if( receive_request_watcher == NULL )
     {
-        log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED:%s--%s",strerror(errno),LOG_LOCATION);
+        log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
         delete [] client_ip;
         client_ip = NULL;
         close(client_fd);
         return;
     }
-    receive_request_watcher->data = ( void *)client_ip;
+    
+    
     inet_ntop(AF_INET,&client_addr.sin_addr,client_ip,INET_ADDRSTRLEN);
-    log_module(LOG_DEBUG,"ACCEPT_CB","CLIENT %s CONNECTED",client_ip);
-    sdk_set_nonblocking(client_fd);
-    sdk_set_rcvbuf(client_fd, 65535);
-    sdk_set_tcpnodelay(client_fd);
-    sdk_set_keepalive(client_fd);
+    receive_request_watcher->data = ( void *)client_ip;
+    log_module( LOG_DEBUG,"ACCEPT_CB","CLIENT %s:%d CONNECTED",client_ip,ntohs(client_addr.sin_port) );
+
+    sdk_set_nonblocking( client_fd );
+    sdk_set_rcvbuf( client_fd, 65535 );
+    sdk_set_tcpnodelay( client_fd );
+    sdk_set_keepalive( client_fd );
 
     //register the socket io callback for reading client's request    
-    ev_io_init(receive_request_watcher,receive_request_cb,client_fd, EV_READ);
-    ev_io_start(main_event_loop,receive_request_watcher);
-    LOG_DONE("ACCEPT_CB");
+    ev_io_init( receive_request_watcher,receive_request_cb,client_fd, EV_READ );
+    ev_io_start( main_event_loop,receive_request_watcher );
+    LOG_DONE( "ACCEPT_CB");
 }
 
 
@@ -1927,17 +1973,22 @@ workthread_info_iter get_workthread_through_round_robin()
 */
 void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receive_request_watcher, int revents )
 {
+    #define DO_RECEIVE_REQUEST_CB_CLEAN() \
+    ev_io_stop( main_event_loop,receive_request_watcher );\
+    delete [] static_cast<char *>( receive_request_watcher->data );\
+    receive_request_watcher->data = NULL;\
+    delete receive_request_watcher;\
+    receive_request_watcher = NULL;\
+    return;
+        
     LOG_START("RECEIVE_REQUEST_CB");
     if( EV_ERROR & revents )
     {
-        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","ERROR FOR EV_ERROR:%s",LOG_LOCATION);
-        ev_io_stop(main_event_loop,receive_request_watcher);
-        close(receive_request_watcher->fd);
-        delete [] static_cast<char *>(receive_request_watcher->data);
-        receive_request_watcher->data = NULL;
-        delete receive_request_watcher;
-        receive_request_watcher = NULL;
-        return;
+        log_module ( LOG_ERROR,"RECEIVE_REQUEST_CB","ERROR FOR EV_ERROR,JUST STOP THIS IO WATCHER" );
+        const char *http_500_internal_server_error="HTTP/1.1 500 Internal Server Error\r\n\r\n";
+        write_specify_size2( receive_request_watcher->fd,http_500_internal_server_error, strlen(http_500_internal_server_error));
+        close( receive_request_watcher->fd );
+        DO_RECEIVE_REQUEST_CB_CLEAN();
     }
 
     int received_bytes;
@@ -1957,17 +2008,28 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
           {
               log_module(LOG_INFO,"RECEIVE_REQUEST_CB","READ_HTTP_HEADER:BUFFER SIZE IS TOO SMALL");
           }
-          ev_io_stop(main_event_loop,receive_request_watcher);
-          close(receive_request_watcher->fd);
-          delete [] static_cast<char *>(receive_request_watcher->data);
-          receive_request_watcher->data = NULL;
-          delete receive_request_watcher;
-          receive_request_watcher = NULL;
-          return;
+          close( receive_request_watcher->fd );
+          DO_RECEIVE_REQUEST_CB_CLEAN();
     }
+    
     request[received_bytes]='\0';
     log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","HTTP REQUEST HEADER:%s",request);
     parse_http_request(request, req_info);
+
+    //varify the channel and the http method
+    if( req_info.channel.empty() || req_info.channel.length() > MAX_CHANNEL_SIZE 
+        || ( req_info.method != "POST" && req_info.method != "GET" ) 
+      )
+      
+    {
+        log_module( LOG_INFO,"RECEIVE_REQUEST_CB","");
+        const char * http_400_badrequest = "HTTP/1.1  400  Bad Request\r\n\r\n";
+        write_specify_size2(receive_request_watcher->fd,http_400_badrequest, strlen(http_400_badrequest));
+        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE BAD HTTP REQUEST FROM %s",static_cast<char *>( receive_request_watcher->data ));
+        close( receive_request_watcher->fd );
+        DO_RECEIVE_REQUEST_CB_CLEAN();
+    }
+    
     if( req_info.method == "POST" )
     {
          //http "POST" method indicates camera's request
@@ -1979,36 +2041,45 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
              write_specify_size2(receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable));
              close(receive_request_watcher->fd);
         }
-        else if( req_info.channel.empty() )
-        {
-             const char * http_400_badrequest = "HTTP/1.1  400  Bad Request\r\n\r\n";
-             write_specify_size2(receive_request_watcher->fd,http_400_badrequest, strlen(http_400_badrequest));
-             log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED:SPECIFY THE EMPTY CHANNEL");
-             close(receive_request_watcher->fd);
-        }
         else
         {
-             NOTIFY_DATA notify_data;
-             strcpy(notify_data.channel,req_info.channel.c_str());
-             notify_data.flag = 0;
-             write_specify_size2(NOTIFY_PIPE[1],&notify_data,sizeof(notify_data));
+             
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE CAMERA'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
-             bool OK = do_camera_request(main_event_loop,receive_request_watcher,req_info);
+             bool OK = do_camera_request( main_event_loop,receive_request_watcher,req_info );
              if( !OK )
             {
                   const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                  write_specify_size2(receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror));
-                  close(receive_request_watcher->fd);
+                  write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+                  close( receive_request_watcher->fd );
                   log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED");
             }
             else
             {
-                  log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST SUCCEEDED");
+                  log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST SUCCEEDED");
+                  log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "+++++SEND THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s START+++++",
+                                                        req_info.channel.c_str() );
+                  
+                  if( ev_async_pending( NOTIFY_ASYNC_WATCHER ) == 0 )
+                  {
+                        NOTIFY_DATA * notify_data = new NOTIFY_DATA;
+                        strcpy( notify_data->channel,req_info.channel.c_str() );
+                        notify_data->flag = ONLINE;
+                        NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;
+                        ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );
+                        log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s DONE+++++",
+                                                        req_info.channel.c_str() );
+                  }
+                  else
+                  {
+                        log_module( LOG_ERROR, "RECEIVE_REQUEST_CB", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s FAILED+++++",
+                                                        req_info.channel.c_str() );
+                  }
+                  
             }
             
         }    
     }
-    else if( req_info.method == "GET" && (!req_info.channel.empty()) )
+    else if( req_info.method == "GET" )
     {
         //http "GET" method indicates viewer's request
         log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE VIEWER'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
@@ -2016,27 +2087,14 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
         if( !OK )
         {
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST FAILED");
+             close( receive_request_watcher->fd );
         }
         else
         {
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST SUCCEEDED");
         }
     }
-    else 
-    {
-        //bad request otherwise
-        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE CLIENT'S BAD REQUEST REQUEST METHOD ERROR OR CHANNEL IS EMPTY");
-        const char * http_400_badrequest="HTTP/1.1 400 Bad Request\r\n\r\n";
-        write_specify_size2(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
-        close(receive_request_watcher->fd);
-    }
-
-    ev_io_stop(main_event_loop,receive_request_watcher);
-    delete [] static_cast<char *>(receive_request_watcher->data);
-    receive_request_watcher->data = NULL;
-    delete receive_request_watcher;
-    receive_request_watcher = NULL;
-    LOG_DONE("RECEIVE_REQUEST_CB");
+    DO_RECEIVE_REQUEST_CB_CLEAN();
 }
 
 
@@ -2054,7 +2112,7 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
             //if the "channel" exists then just reply http 400,otherwise ok
             log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","CAMERA BAD REQUEST:CHANNEL %s ALREADY EXIST",req_info.channel.c_str());
             const char * http_400_badrequest="HTTP/1.1 400 Bad Request\r\n\r\n";
-            write_specify_size(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
+            write_specify_size2(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
             close(receive_request_watcher->fd);
             return false;
         }
@@ -2062,44 +2120,35 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
         //now choose a work thread through round robin
         workthread_info_iter wi_iter = get_workthread_through_round_robin();
         log_module(LOG_DEBUG,"DO_CAMERA_REQUEST","GET_WORKTHREAD_THROUGH_ROUND_ROBIN--OK--ID:%u",wi_iter->thread_id);
-        if( ev_async_pending(wi_iter->async_watcher) == 0 )
+        if( ev_async_pending( wi_iter->async_watcher) == 0 )
         {
              //now allocate EV_ASYNC_DATA for async_read_cb's sake
              EV_ASYNC_DATA *async_data = new EV_ASYNC_DATA;
              if( async_data == NULL )
              {
-                    log_module(LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE EV_ASYNC_DATA FAILED:%s",LOG_LOCATION);
+                    log_module( LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE EV_ASYNC_DATA FAILED:%s",LOG_LOCATION );
                     return false;
              }
+             
              async_data->client_type = CAMERA;
              async_data->client_fd = receive_request_watcher->fd;
-                  /*async_data->channel = new char[req_info.channel.length()+1];
-           if( async_data->channel == NULL )
-           {
-             delete async_data;
-             async_data = NULL;
-             log_module(LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE CHANNEL FAILED:%s",LOG_LOCATION);
-             return false;
-           }
-          */ 
              strcpy(async_data->channel,req_info.channel.c_str());
 
-                //now allocate memory for camera_ptr
-             CAMERAS_PTR camera_ptr = new_cameras( receive_request_watcher,req_info.channel);
+             CAMERAS_PTR camera_ptr = new_cameras( receive_request_watcher,req_info.channel );
              if( camera_ptr == NULL )
              {
-                   log_module(LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE MEMORY FAILED:CAMERAS_PTR:%s",LOG_LOCATION);
-                   //delete async_data;
-                   //async_data = NULL;
+                   log_module( LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE MEMORY FAILED:CAMERAS_PTR:%s",LOG_LOCATION );
+                   delete async_data;
+                   async_data = NULL;
                    return false;
              }
-             wi_iter->camera_info_pool.insert(std::make_pair(req_info.channel,camera_ptr));
+             wi_iter->camera_info_pool.insert( std::make_pair(req_info.channel,camera_ptr) );
              wi_iter->async_watcher->data=(void *)async_data;
-             ev_async_send(wi_iter->workthread_loop,wi_iter->async_watcher);
+             ev_async_send( wi_iter->workthread_loop,wi_iter->async_watcher );
         }     
         else
         {
-            log_module(LOG_DEBUG,"DO_CAMERA_REQUEST","EV_ASYNC_PENDING ERROR CAMERA MIGHT HAVE TO WAIT FOR A SECOND");
+            log_module( LOG_DEBUG,"DO_CAMERA_REQUEST","EV_ASYNC_PENDING ERROR CAMERA MIGHT HAVE TO WAIT FOR A SECOND" );
             return false;
         }
         return true;
@@ -2132,45 +2181,45 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             //firstly check the limit of viewers
             if(ci_iter->second->viewer_info_pool.size() > VIEWERS_LIMIT )
             {
-                log_module(LOG_INFO,"DO_VIEWER_REQUEST","OVERTOP THE VIEWERS' LIMIT,SEND 503 TO VIEWER");
+                log_module( LOG_INFO,"DO_VIEWER_REQUEST","OVERTOP THE VIEWERS' LIMIT,SEND 503 TO VIEWER" );
                 const char *http_503_overload="HTTP/1.1 503 Service Unavailable\r\n\r\n";
-                write_specify_size(receive_request_watcher->fd, http_503_overload,strlen(http_503_overload));
-                close(receive_request_watcher->fd);
+                write_specify_size2( receive_request_watcher->fd, http_503_overload,strlen(http_503_overload) );
+                close( receive_request_watcher->fd );
                 return false;
             }
-            log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL:%s--ID:%u",ci_iter->first.c_str(),wi_iter->thread_id );
+            log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL:%s--ID:%u",ci_iter->first.c_str(),wi_iter->thread_id );
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find(receive_request_watcher->fd);
             if( vi_iter == ci_iter->second->viewer_info_pool.end() )
             {
                 VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info(receive_request_watcher,req_info);
                 if( viewer_info_ptr == NULL )
                 {
-                    log_module(LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION);
+                    log_module( LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION );
                     return false;
                 }
                 
-                log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START",receive_request_watcher->fd);
-                ci_iter->second->viewer_info_pool.insert(std::make_pair(receive_request_watcher->fd,viewer_info_ptr));
-                log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd);
+                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START",receive_request_watcher->fd );
+                ci_iter->second->viewer_info_pool.insert(std::make_pair(receive_request_watcher->fd,viewer_info_ptr) );
+                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd );
             }
             else
             {
                  log_module(LOG_INFO,"DO_VIEWER_REQUEST","SYSTEM ERROR:SYSTEM GENERATE ThE SOCKET FD TAHT WAS ALREADY IN USE");
                  const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                 write_specify_size(receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror));
-                 close(receive_request_watcher->fd);
+                 write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+                 close( receive_request_watcher->fd );
                  return false;
             }
 
         }
-        else if(req_info.src.empty())  
+        else if( req_info.src.empty() )  
         //if there is no channel requested in streaming server,
         //either "src" is empty then simply reply http 400 bad request
         {
-                log_module(LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL FAILED, EITHER SRC IS EMPTY,JUST SEND 404 TO CLIENT");
+                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL FAILED, EITHER SRC IS EMPTY,JUST SEND 404 TO CLIENT" );
                 const char * http_400_badrequest="HTTP/1.1   400   Bad Request\r\n\r\n";
-                write_specify_size(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
-                close(receive_request_watcher->fd);
+                write_specify_size2( receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest) );
+                close( receive_request_watcher->fd );
                 return false;
         }
         else 
@@ -2182,27 +2231,27 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             //also check if the channels' amount overtop the limit
             if( get_channel_list().size() > CHANNELS_LIMIT )
             {
-                  log_module(LOG_INFO,"RECEIVE_REQUEST_CB","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER");
+                  log_module( LOG_INFO,"RECEIVE_REQUEST_CB","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER" );
                   const char * http_503_service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n\r\n";
-                  write_specify_size(receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable));
-                  close(receive_request_watcher->fd);
+                  write_specify_size2( receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable) );
+                  close( receive_request_watcher->fd );
                   return false;
             }
             
-            log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SRC=%s",req_info.src.c_str());
+            log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SRC=%s",req_info.src.c_str() );
             //now do the backing resource request
-            bool OK = do_the_backing_source_request(main_event_loop,receive_request_watcher->fd,req_info);
+            bool OK = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd,req_info );
             if( !OK )
             {
-                 log_module(LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE FAILED:%s",LOG_LOCATION);
+                 log_module( LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE FAILED:%s",LOG_LOCATION );
                  const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                 write_specify_size(receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror));
-                 close(receive_request_watcher->fd);
-                 log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:FAILED");
+                 write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+                 close( receive_request_watcher->fd );
+                 log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:FAILED" );
             }
             else
             {
-                  log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED");
+                  log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED" );
             }
             return OK;
         }
@@ -2214,51 +2263,42 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
 /*
 *@srgs:conn_fd[IN],notify_data[IN]
 *@returns:void
-*@desc:just send the camera's status to GSLB or those servers 
+*@desc:just send the camera's status to those servers configured in notify_servers.conf 
 */
-void do_notify( NOTIFY_SERVER_INFO & notify_server_info, NOTIFY_DATA & notify_data)
+void do_notify_cb( struct ev_loop *workthread_loop, struct ev_io *notify_watcher, int revents )
 {
-     
-    fd_set read_fd,write_fd;
-    FD_SET(notify_server_info.conn_fd, &read_fd);
-    FD_SET(notify_server_info.conn_fd, &write_fd);
-    int max_fds = notify_server_info.conn_fd +1;
-    while( true )
+
+     char notify_message[99];
+     NOTIFY_DATA *notify_data = static_cast<NOTIFY_DATA *>( notify_watcher->data );
+     if( notify_data == NULL )
+     {
+        log_module( LOG_ERROR, "DO_NOTIFY_CB","ERROR:NOTIFY_DATA IS NULL");
+        goto EXIT;
+     }
+    
+     if( EV_ERROR & revents )
     {
-         if( ! FD_ISSET(notify_server_info.conn_fd,&read_fd) && !FD_ISSET(notify_server_info.conn_fd,&write_fd) )
-         break;   
-         if( -1 == select( max_fds,&read_fd, &write_fd,NULL,NULL) )
-         {
-               log_module(LOG_INFO,"DO_NOTIFY","UNEXPECTED ERROR OCCURRED:%s",strerror(errno));
-               return;
-         }
-         
-         if(FD_ISSET(notify_server_info.conn_fd, &read_fd))
-         {
-               char reply[1024];
-               read_specify_size(notify_server_info.conn_fd,reply,sizeof(reply));
-               FD_CLR( notify_server_info.conn_fd, &read_fd);
-         }
-         
-         if(FD_ISSET(notify_server_info.conn_fd, &write_fd))
-         {
-              std::ostringstream notify_message;
-              notify_message<<"POST /daemon/channel_stat.do?channel="<<notify_data.channel;
-              if ( notify_data.flag == 0 )
-              {
-                  notify_message<<"&status=0 HTTP/1.1\r\n\r\n";
-              }
-              else
-              {
-                  notify_message<<"&status=1 HTTP/1.1\r\n\r\n";
-              }
-              write_specify_size2(notify_server_info.conn_fd,notify_message.str().c_str(),
-                                          notify_message.str().length());
-              FD_CLR(notify_server_info.conn_fd, &write_fd);
-         }
-         
+        log_module( LOG_ERROR, "DO_NOTIFY_CB", "ERROR FOR LIBEV ERROR");
+        goto EXIT;
     }
-    close(notify_server_info.conn_fd);
+
+    
+    if ( notify_data->flag != ONLINE && notify_data->flag != OFFLINE )
+    {
+        log_module( LOG_ERROR,"DO_NOTIFY_CB","ERROR:NOTIFY_DATA.FLAG IS %d",notify_data->flag );
+        goto EXIT;
+    }
+   
+    snprintf( notify_message,sizeof(notify_message),"POST /daemon/channel_stat.do?channel=%s"\
+                                                                         "&status=%d HTTP/1.1\r\n\r\n",notify_data->channel,
+                                                                         notify_data->flag);
+    log_module( LOG_DEBUG, "DO_NOTIFY_CB", "NOTIFY MESSAGE:%s BYTES:%d", notify_message, strlen(notify_message) );
+    write_specify_size2( notify_watcher->fd, notify_message,strlen(notify_message));
+    EXIT:
+    close( notify_watcher->fd );
+    delete static_cast<NOTIFY_DATA *>( notify_watcher->data );
+    ev_io_stop( workthread_loop, notify_watcher );
+    delete notify_watcher;
 }
 
 
@@ -2383,17 +2423,16 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
     (void)main_event_loop;
     string IP;
     int port = 80;
-    get_src_info(req_info.src,IP,port);
+    get_src_info( req_info.src,IP,port );
     log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","IP:%s--PORT:%d",IP.c_str(),port);
-    int local_fd = tcp_connect(IP.c_str(),port);
+    int local_fd = tcp_connect( IP.c_str(),port );
     if( local_fd == -1 )
     {
         log_module(LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","TCP_CONNECT FAILED:%s",LOG_LOCATION);
         return false;
     }
+    
     //now choose a work thread through round robin
-
-    //log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","GET_WORKTHREAD_THROUGH_ROUND_ROBIN--OK--ID:%u",wi_iter->thread_id);
     EV_ASYNC_DATA *async_data = new EV_ASYNC_DATA;
     if(  async_data == NULL )
     {
@@ -2406,11 +2445,12 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
                            <<"channel="<<req_info.channel
                            <<"&type="<<req_info.type
                            <<"&token="<<req_info.token<<" HTTP/1.1\r\n\r\n";
+    
     string str_imitated_request = OSS_imitated_request.str();
-    async_data->data = new char[str_imitated_request.length()];
+    async_data->data = new char[str_imitated_request.length()+1];
     if( async_data->data == NULL )
     {
-         log_module(LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+         log_module(LOG_ERROR,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
          return false;
     }
     
@@ -2425,27 +2465,28 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
          {
               wi_iter = get_workthread_through_round_robin();
          }
+         
          RESOURCE_INFO resource_info;
          resource_info.IP=IP;
-         resource_info.socketfd_pool.insert(request_fd);
-         resource_info.socketfd_pool.insert(local_fd);
-         wi_iter->resource_info_pool.insert(make_pair(req_info.channel,resource_info));
+         resource_info.socketfd_pool.insert( request_fd );
+         resource_info.socketfd_pool.insert( local_fd );
+         wi_iter->resource_info_pool.insert( std::make_pair(req_info.channel,resource_info) );
     }
     else
     {
          log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","RESOURCE CHANNEL:%s EXIST",req_info.channel.c_str());
-         backing_resource_iter br_iter = wi_iter->resource_info_pool.find(req_info.channel);
-         br_iter->second.socketfd_pool.insert(request_fd);
-         br_iter->second.socketfd_pool.insert(local_fd);
+         backing_resource_iter br_iter = wi_iter->resource_info_pool.find( req_info.channel );
+         br_iter->second.socketfd_pool.insert( request_fd );
+         br_iter->second.socketfd_pool.insert( local_fd );
     }
 
     async_data->client_fd = local_fd;
     async_data->request_fd = request_fd;
     async_data->client_type = BACKER;
     wi_iter->async_watcher->data = (void *) async_data;
-    log_module(LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND START");
-    ev_async_send(wi_iter->workthread_loop,wi_iter->async_watcher);
-    log_module(LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND DONE");
+    log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND START" );
+    ev_async_send( wi_iter->workthread_loop,wi_iter->async_watcher );
+    log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND DONE" );
     return true;
 }
 
@@ -2465,15 +2506,18 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
         daemon(0,0);
     }
 
-    //first set the max open files limit
+    struct ev_loop *main_event_loop = EV_DEFAULT;
+    struct ev_io *listen_watcher = NULL;
+    //firstly set the max open files limit
     struct rlimit rt;
     rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
     if ( setrlimit(RLIMIT_NOFILE, &rt) == -1 ) 
     {
         log_module(LOG_ERROR,"SERVE_FOREVER","SETRLIMIT FAILED:%s",strerror(errno));
     }
-    //initialize the logger
-    logging_init(config.log_file.c_str(),config.log_level);
+    
+    //initialize the logger for logging
+    logging_init( config.log_file.c_str(),config.log_level );
     LOG_START("SERVE_FOREVER");
     
     //you have to ignore the PIPE's signal when client close the socket
@@ -2482,36 +2526,34 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
     sa.sa_flags = 0;
     if( sigemptyset(&sa.sa_mask) == -1 ||sigaction(SIGPIPE, &sa, 0) == -1 )
     { 
-        close(streamer_listen_fd);
-        close(state_server_fd);
-        logging_deinit();  
-        log_module(LOG_ERROR,"SERVE_FOREVER","Failed To Ignore SIGPIPE Signal");
+        log_module(LOG_ERROR,"SERVE_FOREVER","FAILED TO IGNORE SIGPIPE SIGNAL");
+        goto STREAMER_EXIT;
     }
 
     //initialization on main event-loop
-    struct ev_loop *main_event_loop = EV_DEFAULT;
-    struct ev_io *listen_watcher= new ev_io;
-    if( main_event_loop == NULL || listen_watcher == NULL )
+    listen_watcher= new ev_io;
+    if( listen_watcher == NULL )
     {
-        close( streamer_listen_fd );
-        close( state_server_fd );
-        logging_deinit();
-        if( main_event_loop != NULL )
-        {
-            free(main_event_loop);
-            main_event_loop = NULL;
-        }
-        if( listen_watcher != NULL )
-        {
-            delete listen_watcher;
-            listen_watcher = NULL;
-        }
-        log_module(LOG_ERROR,"SERVE_FOREVER","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+        log_module(LOG_ERROR,"SERVE_FOREVER","ALLOCATE MEMORY FAILED:%s WHEN EXECUTE NEW EV_IO",LOG_LOCATION);
+        goto STREAMER_EXIT;
     }
     else
     {
-           //and now initialize the workthread pool,pool size specified with global "WORKTHREADS_SIZE"   
-        init_workthread_info_pool(config,WORKTHREADS_SIZE);
+        if( config.notify_server_file.empty() || config.notify_server_file.length() > 50 )
+        {
+            log_module( LOG_ERROR, "SERVE_FOREVER","NOTIFY SERVER CONFIG FILE IS EMPTY OR THE NAME IS TOO LONG" );
+            goto STREAMER_EXIT;
+        }
+        
+        strncpy(NOTIFY_SERVER_CONFIG_FILE,config.notify_server_file.c_str(),sizeof(NOTIFY_SERVER_CONFIG_FILE));
+        //and now initialize the workthread pool.pool size is specified with global "WORKTHREADS_SIZE"
+        if( ! init_workthread_info_pool( config,WORKTHREADS_SIZE) )
+        {
+            log_module( LOG_ERROR,"SERVE_FOREVER","INIT_WORKTHREAD_INFO_POOL FAILED");
+            goto STREAMER_EXIT;
+        }
+
+        
         sdk_set_tcpnodelay( streamer_listen_fd );
         sdk_set_nonblocking( streamer_listen_fd );
         sdk_set_keepalive( streamer_listen_fd );
@@ -2537,15 +2579,25 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
              log_module( LOG_INFO,"SERVE_FOREVER","STARTUP_STATE_SERVER:FAILED" );
         }
     }
+
+    STREAMER_EXIT:
     close( streamer_listen_fd );
     close( state_server_fd );
     logging_deinit();
-    ev_io_stop( main_event_loop, listen_watcher );
-    delete listen_watcher;
-    listen_watcher = NULL;
-    free(main_event_loop);
-    main_event_loop = NULL;
+    if( main_event_loop && listen_watcher )
+    {
+        ev_io_stop( main_event_loop, listen_watcher );
+    }
+    else if( main_event_loop )
+    {
+        free(main_event_loop);
+        main_event_loop = NULL;
+    }
+    else if( listen_watcher )
+    {
+        delete listen_watcher;
+        listen_watcher = NULL;
+    }
     free_workthread_info_pool();
-    unlink(config.lock_file.c_str());
     LOG_DONE( "SERVE_FOREVER" );
 }
