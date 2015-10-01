@@ -11,7 +11,8 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=streamer
 CC:=g++
-CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR) -lev -lpthread
+CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
+LDFLAGS:=-lev -lpthread
 OBJS:=system_info streamerutility streamer state_server parson logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
@@ -26,7 +27,7 @@ TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 .PHONEY=tar
 all:$(TARGET)
 $(TARGET):$(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 

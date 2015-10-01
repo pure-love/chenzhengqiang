@@ -27,7 +27,7 @@ TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 all:$(TARGET)
 $(TARGET):$(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
-$(OBJS):%.o:%.$(SUFFIX)
+%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 
 clean:

@@ -27,5 +27,3 @@ POSITION bst_find( element_t element, SEARCH_TREE search_tree)
     else
 	    return search_tree;
 }	
-
-
