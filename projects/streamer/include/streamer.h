@@ -26,19 +26,13 @@ struct CHANNEL_POOL
 
 struct NOTIFY_DATA
 {
-    char channel[50];
+    char channel[64];
     int flag;//0 stands for start,stop otherwise
 };
 
-struct NOTIFY_SERVER_INFO
-{
-	  int conn_fd;
-	  std::string IP;
-	  int PORT;
-};
-void do_notify(NOTIFY_SERVER_INFO &,NOTIFY_DATA & notify_data);
+void do_notify( const int & sock_fd, const NOTIFY_DATA & notify_data );
 int   register_streamer_server(const char *host,const char *service);
-void init_workthread_info_pool( CONFIG & config, size_t workthreads_size );
+bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size );
 void serve_forever(ssize_t streamer_server_fd, ssize_t state_server_fd ,CONFIG & config);
 void * workthread_entry( void * args );
 void * notify_server_entry( void * args );
@@ -62,4 +56,5 @@ void parse_flv_stream( const uint8_t* flv_stream, uint32_t received_bytes );
 size_t get_all_online_viewers();
 size_t  get_channel_viewers( const std::string & channel );
 std::vector<CHANNEL_POOL> get_channel_list();
+void do_notify_cb( struct ev_loop *workthread_loop, struct ev_io *notify_watcher, int revents );
 #endif

@@ -239,7 +239,143 @@ void	sorts<T>::select(T * buffer, int buffer_size, bool asc )
 
 
 
+//the heap sort
+template<typename T>
+void	sorts<T>::create_heap(T * buffer, int root_index, int end, bool asc )
+{
+    T root = buffer[root_index];
+    int min_max_index = -1;
+    for( int left_child_index = 2*root_index+ 1; left_child_index <=end; )
+    {
+        min_max_index = left_child_index;
+        if( asc )
+        {
+            
+            if( (left_child_index+1 <= end ) && ( buffer[left_child_index] < buffer[left_child_index+1] ) )
+            {
+                min_max_index = left_child_index+1;
+            }
+
+            if( root >= buffer[min_max_index])
+            {
+              break;
+            }
+            
+        }
+        else
+        {
+            if( (left_child_index+1 <= end ) && ( buffer[left_child_index] > buffer[left_child_index+1] ) )
+            {
+                min_max_index = left_child_index+1;
+            }
+
+            if( root <= buffer[min_max_index])
+            {
+                break;
+            }
+        }
+            
+        buffer[root_index] = buffer[min_max_index];
+        root_index = min_max_index;
+        left_child_index =2*root_index+1;
+   }
+   buffer[root_index]= root;
+}
 
 
 
+template<typename T>
+void	sorts<T>::heap( T * buffer, int buffer_size, bool asc )
+{
+    for( int end=buffer_size/2; end>=0; --end )
+    {
+        create_heap( buffer, end, buffer_size-1, asc );
+    }
+   
+    for(int end=buffer_size-1; end>0; --end )
+    {
+        
+        T temp=buffer[end];
+        buffer[end] = buffer[0];
+        buffer[0] = temp;
+        create_heap( buffer,0,end-1, asc );
+    }
 
+}
+
+
+template<typename T>
+void sorts<T>::merge_array( T * buffer, int begin, int mid, int end, T *tmp,bool asc )
+{
+    int left = begin;
+    int right = mid+1;
+    int tmp_index = 0;
+    while( left <= mid && right <=end )
+    {
+        if( asc )
+        {
+            if( buffer[left] < buffer[right])
+            {
+                tmp[tmp_index++] = buffer[left];
+                ++left;
+            }
+            else
+            {
+                tmp[tmp_index++] = buffer[right];
+                ++right;
+            }
+        }
+        else
+        {
+            
+            if( buffer[left] > buffer[right])
+            {
+                tmp[tmp_index++] = buffer[left];
+                ++left;
+            }
+            else
+            {
+                tmp[tmp_index++] = buffer[right];
+                ++right;
+            }
+        }
+    }
+
+    while( left <= mid )
+    {
+        tmp[tmp_index++]=buffer[left++];
+    }
+    while( right <= end )
+    {
+        tmp[tmp_index++]=buffer[right++];
+    }
+
+    tmp_index = 0;
+    while( begin <= end )
+    {
+        buffer[begin++]=tmp[tmp_index++];
+    }
+}
+
+
+template<typename T>
+void sorts<T>::merge_sort( T *buffer, int begin, int end, T *tmp,bool asc  )
+{
+    if( begin < end )
+    {
+        int mid = (begin+end) /2;
+        merge_sort( buffer,begin,mid,tmp,asc );
+        merge_sort( buffer,mid+1,end,tmp,asc );
+        merge_array( buffer,begin,mid,end,tmp,asc );
+    }
+}
+
+template<typename T>
+void sorts<T>::merge( T *buffer, int buffer_size, bool asc  )
+{
+    if( buffer == NULL || buffer_size <=0 )
+    return;    
+    T * tmp = new T[buffer_size];
+    merge_sort( buffer,0,buffer_size-1,tmp,asc );
+    delete [] tmp;
+}
