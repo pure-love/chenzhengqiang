@@ -1,0 +1,1068 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Threadtypes]]></item>
+	<item id="Version"><![CDATA[X3.2]]></item>
+	<item id="Time"><![CDATA[2015-04-17 16:41]]></item>
+	<item id="From"><![CDATA[艺佰设计 (http://2048.h-elab.com/zmt/city3/)]]></item>
+	<item id="Data">
+		<item id="0">
+			<item id="optionid"><![CDATA[59]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[1]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家logo]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shoplogo]]></item>
+			<item id="type"><![CDATA[image]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[上传200*130尺寸图片为最佳，否则会变形]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxwidth"><![CDATA[200]]></item>
+				<item id="maxheight"><![CDATA[130]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="1">
+			<item id="optionid"><![CDATA[60]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[2]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家名称]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopname]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="2">
+			<item id="optionid"><![CDATA[61]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[3]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家类别]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopcategory]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 餐饮美食
+1.1 = 快餐
+1.2 = 火锅
+1.3 = 海鲜
+1.4 = 川菜
+1.5 = 京菜
+1.6 = 粤菜
+1.7 = 湘菜
+1.8 = 地方菜系
+1.9 = 西餐
+1.10 = 主题餐厅
+1.11 = 日韩料理
+1.12 = 烧烤
+1.13 = 甜点饮品
+2 = 休闲娱乐
+2.1 = 电影票
+2.2 = KTV
+2.3 = 温泉洗浴
+2.4 = 养生按摩
+2.5 = 运动健身
+2.6 = 真人CS
+2.7 = 美容
+2.8 = 手工DIY
+2.9 = 电玩
+2.10 = 演出
+3 = 生活便利
+3.1 = 家政保洁
+3.2 = 搬家
+3.3 = 丽人
+3.4 = 快递
+3.5 = 婚纱影楼
+3.6 = 快照冲印
+3.7 = 汽车服务
+3.8 = 培训课程
+3.9 = 洗衣店
+4 = 旅游出行
+4.1 = 酒店宾馆 
+4.2 = 景点
+4.3 = 度假村
+4.4 = 小时房
+4.5 = 门票
+5 = 购物天地
+5.1 = 数码家电
+5.2 = 商场
+5.3 = 超市
+5.4 = 食品饮料
+5.5 = 孕婴儿童
+5.6 = 家居用品
+5.7 = 文体户外
+5.8 = 珠宝首饰
+6 = 装饰装修
+6.1 = 装饰装修
+6.2 = 设计装潢
+6.3 = 家具市场
+6.4 = 建材市场
+6.5 = 门窗市场
+7 = 汽车
+7.1 = 二手汽车
+7.2 = 租车
+7.3 = 驾校陪练
+7.4 = 汽车维修
+7.5 = 汽车美容
+7.6 = 汽车配件
+8 = 其他行业]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="3">
+			<item id="optionid"><![CDATA[62]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[5]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家简介]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopbrief]]></item>
+			<item id="type"><![CDATA[textarea]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="colsize"><![CDATA[]]></item>
+				<item id="rowsize"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="4">
+			<item id="optionid"><![CDATA[63]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[10]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家地址]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopadd]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="5">
+			<item id="optionid"><![CDATA[64]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[6]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[商家电话]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shoptel]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="6">
+			<item id="optionid"><![CDATA[65]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[9]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[产品特色]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopfeature]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入小于40个字符]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[60]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="7">
+			<item id="optionid"><![CDATA[66]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[8]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[优惠折扣]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shoprebate]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[折]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入提供给本站会员折扣 如：5]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="8">
+			<item id="optionid"><![CDATA[67]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[7]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[营业时间]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopdate]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入时间，如：9:00-21:00]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="9">
+			<item id="optionid"><![CDATA[68]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[12]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[最新优惠]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopact]]></item>
+			<item id="type"><![CDATA[textarea]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[最新的活动信息]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="colsize"><![CDATA[]]></item>
+				<item id="rowsize"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="10">
+			<item id="optionid"><![CDATA[69]]></item>
+			<item id="classid"><![CDATA[1]]></item>
+			<item id="displayorder"><![CDATA[4]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[人均消费]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[shopmoney]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[元]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[5]]></item>
+			<item id="name"><![CDATA[商家点评]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style >
+.yb_flul3{background:#f9f9f9;}
+.yb_flul3 .text3{width:485px;}
+.yb_flul3 .img3{margin-left:15px;}
+</style>
+<ul class="yb_flul3">
+
+  <li>
+    <div class="img3"><a ><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a >{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="#">参与点评</a></div>
+  </li>
+</ul>
+
+<div class="ybzf_xx">
+  <div class="ybzf_title"><span>{shopbrief}</span></div>
+  <div class="ybzf_font">	{shopbrief_value}</div>
+  <div class="ybzf_title"><span>{shopact}</span></div>
+  <div class="ybzf_font">	{shopact_value}</div>
+<div class="ybzf_title"><span>其他信息</span></div>
+
+</div>
+
+]]></item>
+			<item id="stemplate"><![CDATA[<ul class="yb_flul3">
+[loop]
+  <li>
+    <div class="img3"><a href="{subject_url}"><img src="{shoplogo_value}" width="200px" height="130px"/></a></div>
+    <div class="text3">
+      <h3><a href="	{subject_url}">{shopname_value}</a> <em class="ye">{shoprebate_value}{shoprebate_unit}</em> </h3>
+      <h5>{shopdate}: {shopdate_value}<i>|</i>{shopmoney}: <span>￥<b>{shopmoney_value}</b></span></h5>
+      <p><img src="template/yibai_fenlei/style/zf_icon1.png" />{shopadd_value}</p>
+      <p><img src="template/yibai_fenlei/style/zf_icon2.png" />所属类别：{shopcategory_value}<span><i>|</i> {shoptel}：	{shoptel_value}</span></p>
+	<p>本店特色：<span class="tese">	{shopfeature_value}</span></p>
+   </div>
+   <div class="other3"><a class="go" href="{subject_url}">进入店铺</a><a class="cmt" href="{subject_url}">网友评论({replies})</a></div>
+  </li>
+[/loop]
+</ul>
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[  <div class="yb_tuij_l">品牌商机推荐</div>
+  <div class="yb_tuij_r">
+[loop]  
+ <a href="{subject_url}"><img src="{shoplogo_value}" width="125px" height="81px" /></a>
+[/loop]
+</div>]]></item>
+			<item id="sortid"><![CDATA[5]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+	</item>
+</root>

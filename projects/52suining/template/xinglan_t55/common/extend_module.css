@@ -1,0 +1,17 @@
+
+/** home::space,home::follow **/
+#space #hd h2 a{ background:none; width:auto; height:auto; margin-top:0px;}
+#space #nv{ background:none !important; border-bottom:none; width:930px;}
+#space #nv li {background:none !important; padding:0 ; height:40px;}
+#space #nv li a{padding:0 10px; font-size:16px; height:40px; line-height:40px; border-left:none;}
+#space  #nv li.a a,#space  #nv li.a a:hover ,#space  #nv li a:hover,#space  #nv li.hover a,#space  #nv li.hover a:hover{color:#333 !important; background:none !important;}
+#space  #nv li:hover{background:none !important;}
+#space #toptb{ height:29px; line-height:29px;}
+#space #toptb a{ color:#333333; font-weight:normal; font-size:12px;}
+#space #diy-tg{ margin-top:2px;}
+#space #toptb #myprompt.new{padding-left: 25px !important; background: url({IMGDIR}/notice.gif) no-repeat 10px 7px;}
+#space #toptb #pm_ntc.new {padding-left: 30px !important;background: url({IMGDIR}/new_pm.gif) no-repeat 7px 8px; }
+
+#nv_home .pbg {height: 25px;}
+#nv_home .bm.bw0 h3{width:430px;}
+/** end **/

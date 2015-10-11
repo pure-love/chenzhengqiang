@@ -1,0 +1,842 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Threadtypes]]></item>
+	<item id="Version"><![CDATA[X3.2]]></item>
+	<item id="Time"><![CDATA[2015-04-17 16:41]]></item>
+	<item id="From"><![CDATA[艺佰设计 (http://2048.h-elab.com/zmt/city3/)]]></item>
+	<item id="Data">
+		<item id="0">
+			<item id="optionid"><![CDATA[7]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[1]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="protect"><![CDATA[]]></item>
+			<item id="title"><![CDATA[照片]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybcarimga]]></item>
+			<item id="type"><![CDATA[image]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="rules"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+		</item>
+		<item id="1">
+			<item id="optionid"><![CDATA[8]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[2]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[车辆类型]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybcartype]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 微型车
+2 = 小型车
+3 = 紧凑车型
+4 = 中型车
+5 = 大型车
+6 = 豪华车
+7 = SUV
+8 = MPV
+9 = 跑车
+10 = 皮卡
+11= 电动车]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="2">
+			<item id="optionid"><![CDATA[9]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[3]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[车辆品牌]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybcarpp]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 奥迪
+2 = 奔驰
+3 = 宝马
+4 = 别克
+5 = 大众
+6 = 丰田
+7 = 本田
+8 = 比亚迪
+9 = 现代
+10 = 雪佛兰
+11 = 奇瑞
+12 = 福特
+13 = 日产
+14 = 马自达
+15 = 金杯
+16 = 其他]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="3">
+			<item id="optionid"><![CDATA[10]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[4]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[上牌年份]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybaryears]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 2015年
+2 = 2014年
+3 = 2013年
+4 = 2012年
+5 = 2011年
+6 = 2010年
+7 = 2009年
+8 = 2008年以前]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="4">
+			<item id="optionid"><![CDATA[11]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[5]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[行驶里程]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybcarlicheng]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[万公里]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="5">
+			<item id="optionid"><![CDATA[12]]></item>
+			<item id="classid"><![CDATA[2]]></item>
+			<item id="displayorder"><![CDATA[6]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[价格]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybcarjiage]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[万元]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="6">
+			<item id="optionid"><![CDATA[13]]></item>
+			<item id="classid"><![CDATA[6]]></item>
+			<item id="displayorder"><![CDATA[0]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[信息来源]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybnewfroum]]></item>
+			<item id="type"><![CDATA[radio]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 个人
+2 = 商家
+3 = 中介]]></item>
+			</item>
+		</item>
+		<item id="7">
+			<item id="optionid"><![CDATA[14]]></item>
+			<item id="classid"><![CDATA[6]]></item>
+			<item id="displayorder"><![CDATA[0]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[联系电话]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybhousetel]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[0]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[1]]></item>
+				<item id="mode"><![CDATA[2]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[mobile]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="8">
+			<item id="optionid"><![CDATA[15]]></item>
+			<item id="classid"><![CDATA[6]]></item>
+			<item id="displayorder"><![CDATA[0]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[联系人]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybhouseren]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[点击查看]]></item>
+			<item id="typeid"><![CDATA[1]]></item>
+			<item id="name"><![CDATA[车辆出售]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybcarimga_value}" width="398px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">	{ybcarjiage}</div><div class="su_con"><span>	{ybcarjiage_value}</span>　&nbsp;&nbsp;{ybnewfroum_value}</div></li>
+     <li><div class="su_tit">{ybcarpp}</div><div class="su_con">	{ybcarpp_value}</div></li>
+     <li><div class="su_tit">{ybaryears}</div><div class="su_con">	{ybaryears_value}</div></li>
+     <li><div class="su_tit">{ybcarlicheng}</div><div class="su_con">	 {ybcarlicheng_value}{ybcarlicheng_unit}</div></li>
+     <li><div class="su_tit">{ybcartype}</div><div class="su_con">	{ybcartype_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>	{ybhouseren_value}：	{ybhousetel_value}</div>
+  </div>
+</div>
+
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+
+  <div class="ybzf_title"><span>详细信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.yb_flul2 li{ height:135px;}
+.yb_flul2 .img2{ height:115px;}
+</style>
+
+<ul class="yb_flul2">
+[loop]
+  <li>
+    <div class="img2"><a href="{subject_url}"><img src="	{ybcarimga_value}" width="200px" height="115px" /></a></div>
+    <div class="text2">
+      <h3><a href="{subject_url}">	{subject}</a> <em class="ye">	{ybnewfroum_value}</em> </h3>
+      <p>{ybcartype}：	{ybcartype_value}</p>
+      <p>{ybcarpp}：	{ybcarpp_value}</p>
+      <p>{ybcarlicheng}：	{ybcarlicheng_value}</p>
+   </div>
+   <div class="other">
+    <p><em>	{ybcarjiage_value}</em>{ybcarjiage_unit}</p>
+  </div>
+  </li>
+
+[/loop]
+</ul>
+
+]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[1]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[0]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="mode"><![CDATA[2]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+	</item>
+</root>
