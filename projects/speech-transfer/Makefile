@@ -8,11 +8,11 @@ SUFFIX:=cpp
 vpath %.h include/
 vpath %.$(SUFFIX) src/
 
-TARGET:=go
+TARGET:=transfer
 CC:=g++
-OBJS:=main transfer netutility logging rtp aes opus ortp_send
+OBJS:=main transfer netutility logging rtp aes opus speech_mix
 
-CFLAGS:=-g -lpthread -lcrypto -Wall -lopus -lortp -I/usr/include -L/usr/lib
+CFLAGS:= -g -lpthread -lcrypto -Wall -lopus
 INCLUDE_DIR:=./include/
 INSTALL_DIR:=/usr/local/bin
 CONFIG_FILE:=./config/server.conf
@@ -33,10 +33,10 @@ $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 
 
-
 clean:
 	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz
 install:
+	-rm -f $(INSTALL_DIR)/$(TARGET)
 	-mv $(TARGET) $(INSTALL_DIR)
 	-cp -f $(SERVICE) /etc/init.d/$(TARGET)
 	-rm -rf $(CONFIG_INSTALL_PATH)
