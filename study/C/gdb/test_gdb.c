@@ -6,9 +6,9 @@ int array_sum( int *array, int array_size )
 }
 int main( int argc, char ** argv )
 {
+	int a;
 	int array[5]={1,2,3,4,5};
 	int sum=0;
 	sum=array_sum( array,5);
 	printf("sum is %d\n",sum);
-	return 0;
 }
