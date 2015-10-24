@@ -39,6 +39,6 @@ typedef struct
 
 int rtp_packet_encapsulate(uint8_t *rtp_packet,size_t packet_size,
 	const uint8_t *rtp_payload,size_t payload_size, const RTP_HEADER & rtp_header);
-int rtp_header_parse( const uint8_t *rtp_packet, size_t size, RTP_HEADER & rtp_header); 
+int rtp_header_parse( const uint8_t *rtp_packet, size_t size, RTP_HEADER & rtp_header ); 
 #endif
 

@@ -1,0 +1,26 @@
+<div class="z yibai_fdtt">{lang forum_recommend}</div>
+<!--{if $_G['forum']['recommendlist']['images'] && $_G['forum']['modrecommend']['imagenum']}-->
+<div class="z yibai_pro_promo yibai_fdtp">
+	<div class="bd">
+		<ul>
+			<!--{loop $_G['forum']['recommendlist']['images'] $k $imginfo}-->
+			<li>
+				<a href="forum.php?mod=viewthread&tid=$imginfo[tid]" title="$imginfo[subject]" target="_blank"><img src="$imginfo[filename]"/></a>
+			</li>
+			<!--{/loop}-->
+		</ul>
+	</div>
+	<div class="hd">
+		<ul class="cl yibai_tir"></ul>
+	</div>
+<script type="text/javascript">jQuery(".yibai_fdtp").slide({titCell:".yibai_tir",mainCell:".bd ul",autoPage:true,effect:"fold",autoPlay:true}); </script>
+</div>
+<ul class="z cl w6 mbm yibai_fdtl <!--{if !$_G['forum']['allowside']}-->k<!--{/if}-->">
+<!--{else}-->
+<ul class="z cl w8 mbm yibai_fdtl <!--{if !$_G['forum']['allowside']}-->k<!--{/if}-->">
+<!--{/if}-->
+<!--{eval unset($_G['forum']['recommendlist']['images']);}-->
+<!--{loop $_G['forum']['recommendlist'] $rtid $recommend}-->
+	<li class="yibai_bgimg"><a href="forum.php?mod=viewthread&tid=$rtid" $recommend[subjectstyles] target="_blank">$recommend[subject]</a></li>
+<!--{/loop}-->
+</ul>

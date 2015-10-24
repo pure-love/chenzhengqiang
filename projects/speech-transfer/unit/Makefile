@@ -11,8 +11,8 @@ vpath %.$(SUFFIX) ../src/
 TARGET:=camera
 CC:=g++
 #OBJS:=test_mix netutility logging rtp aes opus signalling speech_mix
-OBJS:=test_camera ortp_send ortp_recv logging netutility rtp aes opus signalling
-CFLAGS:=-g -lpthread -lcrypto -lopus -lortp -W -Wall
+OBJS:=test_camera logging netutility rtp aes opus signalling
+CFLAGS:=-g -lpthread -lcrypto -lopus -W -Wall
 INCLUDE_DIR:=./../include/
 INSTALL_DIR:=/usr/local/bin
 CONFIG_FILE:=./config/server.conf

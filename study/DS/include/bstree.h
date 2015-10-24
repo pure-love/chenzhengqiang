@@ -209,6 +209,7 @@ namespace czq
 		delete bstree;
 	}
 	
+<<<<<<< HEAD
 
 	template<typename T>
 	typename bstree<T>::BSTREE  bstree<T>::erase( const T & value, BSTREE bstree )
@@ -335,4 +336,8 @@ namespace czq
 }
 
 
+=======
+	
+}
+>>>>>>> 733484d885f3ec52c05167126690289b085eb353
 #endif

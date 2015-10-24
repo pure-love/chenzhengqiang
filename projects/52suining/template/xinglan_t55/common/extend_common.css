@@ -1,0 +1,102 @@
+/* ----------------------------------
+
+Something New For Discuz! (C) Comsenz Inc.
+http://www.comsenz.com
+
+----------------------------------
+
+/* 导航 by Pony 1203311106 */
+
+.xst{ font-size:14px !important;}
+
+#wi_wrap{ background:#fff; width:612px; float:right; overflow:hidden; margin-top:45px;}
+#nv { margin:0 auto;height:62px; background:#fff;}
+#nv li { height:62px; padding-right: 0px; background:none;}
+#toptb .qq_bind {margin-top: 6px!important;}
+#nv li a:hover, #nv li.hover a, #nv li.hover a:hover { color: #ec774b !important; border-radius:0; background:#fff;}
+#nv li.a { margin-left: 0px; padding-right: 0px; background:#fff; border-radius:0; }
+#nv li.a a, #nv li.a a:hover { padding:0 30px; text-decoration:none; color: #ec774b !important;}
+#nv li a { float: left; padding:0 31px; font-size:18px; color:#4d4d4d; font-weight:500; height:62px;text-decoration:none; text-align:center; border-radius:0px;}
+#nv li span{ display:block; font-size:12px; color:#a9a9a9;}
+
+
+
+/*--------------------TOPTB--------------------*/
+/*顶部导航*/
+#wp_toptb { min-width: 960px; line-height:42px; height:42px; background:#4D4D4D;}
+#wp_toptb .cl{ line-height:42px; height:42px; background:#4D4D4D;}
+#wp_toptb a { float: left; font-size:12px; color:#cbcbcb; font-family:"宋体"; text-align:center; padding:0 6px;}
+#wp_toptb a:hover{ color:#ec774b; text-shadow:none;}
+#wp_toptb a.hover { background-color: #FFF; }
+#wp_toptb .pipe { display:none;}
+#loginstatus{ display:none;}
+#wp_toptb .z a{ padding:0 12px;}
+#wp_toptb .y .wi_tpipe{ display:none;}
+
+#wp_toptb .z .fastlg_fm .hm{ display:none;}
+#wp_toptb .z .fastlg_fm{ border-right:none;}
+#wp_toptb .z .fastlg_fm{ margin-top:7px;}
+#wp_toptb .qq_bind { margin-top:10px !important;}
+
+
+
+/*头像*/
+.wi_ttbat img{ width:28px; height:28px; margin-top:6px !important;  border-radius: 50%;}
+
+/*快捷导航*/
+#wqmenu{ float:left; position: relative;}
+#wqmenu.a{ text-decoration:underline;}
+#wqmenu_menu li a{ background-image:none !important;}
+
+/*消息*/
+#wmn{ float:left; position: relative;}
+#wmn.a{ text-decoration:underline;}
+#wmn.new{}
+#myprompt.new{padding-left: 25px !important; background: url({IMGDIR}/notice.gif) no-repeat 10px 14px;}
+#pm_ntc.new {padding-left: 25px !important;background: url({IMGDIR}/new_pm.gif) no-repeat 2px 3px; }
+#task_ntc {padding-left: 25px !important; background: url({STATICURL}image/feed/task.gif) no-repeat 10px 14px; }
+/*管理*/
+#wmod{ float:left; width:40px; padding:0px !important; height:33px; position: relative;}
+#wmod.a{ text-decoration:underline;}
+
+
+
+/*通用下拉菜单*/
+.wi_pop,#wi_menu,#esearch_menu{ position:absolute !important; top:42px !important; padding:5px 10px; background:#fff; border:1px solid #ddd; margin-left:1px; margin-top:0px;}
+.wi_pop li{ border-bottom:1px solid #eee; height:30px; line-height:30px;}
+.wi_pop a{ background-repeat:no-repeat;background-position: -999px; padding-left:0px; color:#369;}
+
+.ie6 .wi_pop{ width:80px;}
+
+/*短信*/
+#wmn_menu #pm_ntc{}
+
+
+/*提醒*/
+#wmn_menu #myprompt{}
+#wmn_menu #myprompt.new{ background-image:none !important;}
+
+/*任务*/
+#wmn_menu #task_ntc{}
+
+#smenu{ width:40px; height:42px; padding:0px !important; display:block; background: url({STYLEIMGDIR}/weipai.png) 10px -148px no-repeat;}
+#smenu_menu{ background:#fff; width:238px; height:50px;}
+
+
+
+#chart{margin:10px 0 !important;}
+#wp .wp{width:auto; margin: 0 auto;}
+.bottombg{ background:#E9EAEC url({STYLEIMGDIR}/tmbg.png) center top repeat-x;}
+.xuxian{ background:#E9EAEC url({STYLEIMGDIR}/tmbg.png) center top repeat-x;}
+
+#pt {height:29px; line-height:29px; margin:0; padding:8px 6px 8px;}
+
+#pt .z em{ float:left; margin-left:10px; width:5px; height:9px; margin-top:10px; margin-right:10px; text-indent:-999px;background:url({STYLEIMGDIR}/kf.png) no-repeat !important;}
+#pt .z,#pt .z a{font-size:12px; color:#333333; font-family:"宋体";}
+
+
+#hd{ margin-bottom:0px; background:#fff ;}
+.hdc{ min-height:114px; position:static !important; background:#fff;}
+#hd h2{ display:inline-block; padding:0 0 0px;}
+#hd .fastlg{ display:none;}
+.hdc #um{ display:none;}

@@ -1,0 +1,1010 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Threadtypes]]></item>
+	<item id="Version"><![CDATA[X3.2]]></item>
+	<item id="Time"><![CDATA[2015-04-17 16:41]]></item>
+	<item id="From"><![CDATA[艺佰设计 (http://2048.h-elab.com/zmt/city3/)]]></item>
+	<item id="Data">
+		<item id="0">
+			<item id="optionid"><![CDATA[86]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[0]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[照片]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovepic]]></item>
+			<item id="type"><![CDATA[image]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxwidth"><![CDATA[]]></item>
+				<item id="maxheight"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="1">
+			<item id="optionid"><![CDATA[87]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[12]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[对Ta说]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovedt]]></item>
+			<item id="type"><![CDATA[textarea]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[说说你对Ta的期待！]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[300]]></item>
+				<item id="colsize"><![CDATA[]]></item>
+				<item id="rowsize"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="2">
+			<item id="optionid"><![CDATA[88]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[11]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[爱情宣言]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovexy]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入少于20个汉字]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[40]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="3">
+			<item id="optionid"><![CDATA[89]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[7]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[月薪]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovexz]]></item>
+			<item id="type"><![CDATA[radio]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 1000以下
+2 = 1000-2000
+3 = 2000-3000
+4 = 3000-5000
+5 = 5000-8000
+6 = 8000-12000
+7 = 12000-20000
+8 = 20000-30000
+9 = 30000-40000
+10 = 4万以上]]></item>
+			</item>
+		</item>
+		<item id="4">
+			<item id="optionid"><![CDATA[90]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[6]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[学历]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovexl]]></item>
+			<item id="type"><![CDATA[radio]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1= 初中以下
+2 = 高中
+3 = 技校
+4 = 中专
+5 = 大专
+6 = 本科
+7 = 硕士
+8 = 博士]]></item>
+			</item>
+		</item>
+		<item id="5">
+			<item id="optionid"><![CDATA[91]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[5]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[体重]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovetz]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[KG]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入数字，如：50]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="6">
+			<item id="optionid"><![CDATA[92]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[4]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[身高]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovesg]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[CM]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入数字，如：180]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="7">
+			<item id="optionid"><![CDATA[93]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[3]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[星座]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovexingz]]></item>
+			<item id="type"><![CDATA[radio]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 白羊座
+2 = 金牛座
+3 = 双子座
+4 = 巨蟹座
+5 = 狮子座
+6 = 处女座
+7 = 天秤座
+8 = 天蝎座
+9 = 射手座
+10 = 摩羯座
+11 = 水瓶座
+12 = 双鱼座]]></item>
+			</item>
+		</item>
+		<item id="8">
+			<item id="optionid"><![CDATA[94]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[2]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[年龄]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybloveage]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[岁]]></item>
+			<item id="permprompt"><![CDATA[你不权查看]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[请输入数字，如：20]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[1]]></item>
+				<item id="mode"><![CDATA[2]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="9">
+			<item id="optionid"><![CDATA[95]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[1]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[姓名]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovename]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="10">
+			<item id="optionid"><![CDATA[96]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[8]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="protect"><![CDATA[]]></item>
+			<item id="title"><![CDATA[职业]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovezhiye]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="rules"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+		</item>
+		<item id="11">
+			<item id="optionid"><![CDATA[97]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[9]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="protect"><![CDATA[]]></item>
+			<item id="title"><![CDATA[作息习惯]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovexiguan]]></item>
+			<item id="type"><![CDATA[textarea]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="rules"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+		</item>
+		<item id="12">
+			<item id="optionid"><![CDATA[98]]></item>
+			<item id="classid"><![CDATA[3]]></item>
+			<item id="displayorder"><![CDATA[10]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="protect"><![CDATA[]]></item>
+			<item id="title"><![CDATA[籍贯]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[yblovejiguan]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="rules"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[8]]></item>
+			<item id="name"><![CDATA[找男朋友]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<!--交友内容-->
+<div class="yb_jycon">
+  <div class="yb_jycm">
+  
+     <div class="yb_jycmimg"><img src="	{yblovepic_value}"  width="190px" height="260px"/></div>
+     <div class="yb_jycmfont">
+       <h3>	{yblovename_value}</h3>
+	   <p>	{yblovexy_value}</p>
+       <ul>
+	     <li><i>身　　高：</i>	{yblovesg_value}	{yblovesg_unit} </li>
+	     <li><i>籍　　贯：</i>	{yblovejiguan_value}</li>
+         <li><i>职　　业：</i>	{yblovezhiye_value}</li>
+	    
+	     <li><i>体　　重：</i>{yblovetz_value}{yblovetz_unit}</li>
+	     <li><i>年　　 龄：</i> 	{ybloveage_value}</li>
+	     <li><i>收　　入：</i>{yblovexz_value}</li>
+	     <li><i>星　　座：</i>{yblovexingz_value}</li>
+	     <li><i>学　　历：</i>	{yblovexl_value}</li>
+	     <li><i>作息习惯：</i>	{yblovexiguan_value}</li>
+	     <li><i>{yblovedt}：</i>	{yblovedt_value}</li>
+	   </ul>
+     </div>
+     
+  </div>
+</div>
+<!--交友内容end-->]]></item>
+			<item id="stemplate"><![CDATA[<div class="yb_jylist">
+  <ul>
+[loop]
+    <li>
+		<div class="avt"><a href="{subject_url}"><img src="{yblovepic_value}" / ></a></div>
+		<h3><a href="{subject_url}">{yblovename_value}</a> </h3>
+		<div class="yb_js">{ybloveage_value}岁<span>|</span>	{yblovesg_value}	{yblovesg_unit}<Br />	{yblovexl_value}<span>|</span>	{yblovexingz_value}</p></div>
+		<div class="yb_zhh"><a href="{subject_url}"><img src="template/yibai_fenlei/style/zf_icon5.png" />打招呼</a></div>
+	</li>
+[/loop]
+  </ul>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[]]></item>
+			<item id="sortid"><![CDATA[8]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+		</item>
+	</item>
+</root>

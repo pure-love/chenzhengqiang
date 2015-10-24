@@ -1,0 +1,1411 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+	<item id="Title"><![CDATA[Discuz! Threadtypes]]></item>
+	<item id="Version"><![CDATA[X3.2]]></item>
+	<item id="Time"><![CDATA[2015-04-17 16:41]]></item>
+	<item id="From"><![CDATA[艺佰设计 (http://2048.h-elab.com/zmt/city3/)]]></item>
+	<item id="Data">
+		<item id="0">
+			<item id="optionid"><![CDATA[50]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[9]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[年龄]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqage]]></item>
+			<item id="type"><![CDATA[range]]></item>
+			<item id="unit"><![CDATA[岁]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxnum"><![CDATA[70]]></item>
+				<item id="minnum"><![CDATA[15]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="searchtxt"><![CDATA[20,30,40]]></item>
+			</item>
+		</item>
+		<item id="1">
+			<item id="optionid"><![CDATA[51]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[12]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[个人照片]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqpic]]></item>
+			<item id="type"><![CDATA[image]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxwidth"><![CDATA[]]></item>
+				<item id="maxheight"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="2">
+			<item id="optionid"><![CDATA[52]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[11]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[个人简介]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqjianjie]]></item>
+			<item id="type"><![CDATA[textarea]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="colsize"><![CDATA[]]></item>
+				<item id="rowsize"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="3">
+			<item id="optionid"><![CDATA[53]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[5]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[工作年限]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqnianxian]]></item>
+			<item id="type"><![CDATA[range]]></item>
+			<item id="unit"><![CDATA[年]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxnum"><![CDATA[50]]></item>
+				<item id="minnum"><![CDATA[1]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="searchtxt"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="4">
+			<item id="optionid"><![CDATA[54]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[8]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[姓名]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqname]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="5">
+			<item id="optionid"><![CDATA[55]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[7]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[目前居住地]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqjuzud]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[0]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="6">
+			<item id="optionid"><![CDATA[56]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[4]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[目前职位]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqzhiwei]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 销售
+2 = 客服
+3 = 人事/行政/后勤
+4 = 酒店/餐饮/旅游
+5 = 美容/美发/健身
+6 = 计算机/网络/通信
+7 = 房产/装修/物业
+8 = 普工/技工/生产
+9 = 司机
+10 = 家政保洁/安保
+11 = 影视/娱乐/KTV
+12 = 编辑/出版/印刷
+13 = 教育培训/翻译
+14 = 财务/审计/统计]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="7">
+			<item id="optionid"><![CDATA[57]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[2]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[期待薪资]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqxinshui]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[元/月]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 面议
+2 = 1000
+3 = 1000-2000
+4 = 2000-3000
+5 = 3000-5000
+6 = 5000-8000
+7 = 8000-12000
+8 = 12000-20000
+9 = 20000-25000
+10 = 25000-30000
+11 = 30000以上]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="8">
+			<item id="optionid"><![CDATA[58]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[1]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[应聘职位]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybqzhifwei]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 网页设计师 
+2 = Flash设计师 
+3 = APP设计师 
+4 = UI设计师
+5 = 产品经理 
+6 = 网页产品经理 
+7 = 移动产品经理 
+8 = 产品助理
+9 = 内容运营 
+10 = 产品运营 
+11 = 数据运营 
+12 = 用户运营 
+13 = 活动运营]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="9">
+			<item id="optionid"><![CDATA[71]]></item>
+			<item id="classid"><![CDATA[6]]></item>
+			<item id="displayorder"><![CDATA[13]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[联系电话]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybhousetel_6]]></item>
+			<item id="type"><![CDATA[text]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[0]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="status"><![CDATA[1]]></item>
+				<item id="mode"><![CDATA[2]]></item>
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="maxlength"><![CDATA[]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+				<item id="profile"><![CDATA[mobile]]></item>
+				<item id="defaultvalue"><![CDATA[]]></item>
+			</item>
+		</item>
+		<item id="10">
+			<item id="optionid"><![CDATA[83]]></item>
+			<item id="classid"><![CDATA[5]]></item>
+			<item id="displayorder"><![CDATA[0]]></item>
+			<item id="expiration"><![CDATA[0]]></item>
+			<item id="title"><![CDATA[学历]]></item>
+			<item id="description"><![CDATA[]]></item>
+			<item id="identifier"><![CDATA[ybzxueli]]></item>
+			<item id="type"><![CDATA[select]]></item>
+			<item id="unit"><![CDATA[]]></item>
+			<item id="permprompt"><![CDATA[]]></item>
+			<item id="typeid"><![CDATA[4]]></item>
+			<item id="name"><![CDATA[求职]]></item>
+			<item id="icon"><![CDATA[]]></item>
+			<item id="special"><![CDATA[1]]></item>
+			<item id="modelid"><![CDATA[0]]></item>
+			<item id="template"><![CDATA[<style>
+.ybzf_img{width:198px;}
+</style>
+
+<!--租房内容-->
+<div class="ybzf_div">
+  <div class="ybzf_img"><img src="{ybqpic_value}" width="198px" height="278px"/></div>
+  <div class="ybzf_cont">
+   <ul>
+     <li><div class="su_tit">{ybqname}</div><div class="su_con">{ybqname_value}</div></li>
+     <li><div class="su_tit">{ybqage}</div><div class="su_con">	{ybqage_value}</div></li>
+     <li><div class="su_tit">{ybqzhifwei}</div><div class="su_con">{ybqzhifwei_value}</div></li>
+     <li><div class="su_tit">{ybqxinshui}</div><div class="su_con">{ybqxinshui_value}</div></li>
+     <li><div class="su_tit">{ybqzhiwei}</div><div class="su_con">	{ybqzhiwei_value}</div></li>
+     <li><div class="su_tit">{ybqnianxian}</div><div class="su_con">	{ybqnianxian_value}{ybqnianxian_unit}     	{ybzxueli_value}</div></li>
+
+   </ul>  
+   <div class="ybzf_lxr"><i></i>{ybqname_value}：{ybhousetel_6_value}</div>
+  </div>
+</div>
+<!--租房内容end-->
+
+<!--详情-->
+<div class="ybzf_xx">
+  
+  <div class="ybzf_xxaq">
+	<p>① 预付定金均存在欺骗行为！<br>② 价格低廉、在更多信息里填写电话的要谨慎！<br>③ 若遇上疑似或确定为欺诈交易、网络诈骗等信息，请向本网站举报！</p>
+  </div>
+  <div class="ybzf_title"><span>{ybqjianjie}</span></div>
+  <div class="ybzf_font">	{ybqjianjie_value}</div>
+  <div class="ybzf_title"><span>更多信息</span></div>
+
+</div>
+<!--详情end-->]]></item>
+			<item id="stemplate"><![CDATA[<style>
+.tl tr th{ font-size:14px;}
+</style>
+
+<div class="tl">
+	<div class="th">
+		<table cellspacing="0" cellpadding="0">
+			<tr>
+				<th width="150"><strong>应聘职位</strong></th>
+		
+                                <td width="90"><strong>工作经验</strong></td>
+                                <td width="90"><strong>学历</strong></td>
+				<td width="130"><strong>目前职位</strong></td>
+                                 <td width="130"><strong>期待薪资</strong></td>
+				 <td width="130"><strong>目前居住地</strong></td>
+				<td width="200"><strong>发布时间</strong></td>
+
+
+			</tr>
+		</table>
+	</div>
+	<div class="bm_c">
+		<table cellspacing="0" cellpadding="0">
+			[loop]<tbody><tr>
+				<td width="150">
+		
+					<a href="{subject_url}" target="_blank">{ybqzhifwei_value}</a>
+
+				</td>
+		
+		
+				<td width="90">{ybqnianxian_value}</td>
+				<td width="90">{ybzxueli_value}</td>
+				<td width="130">{ybqzhiwei_value}</td>
+<td width="130">	{ybqjuzud_value}</td>
+<td width="130">		{ybqjuzud_value}</td>
+				<td width="200">{dateline}</td>
+			</tr></tbody>[/loop]
+		</table>
+	</div>
+</div>]]></item>
+			<item id="ptemplate"><![CDATA[]]></item>
+			<item id="btemplate"><![CDATA[<ul class="ifi_ul">
+[loop]
+      <li>
+      <span class="list_one"><a href="{subject_url}">	{subject}</a>{ybqjuzud_value}</span>
+      <span class="list_three"><b>	{ybqxinshui_value}</b>/月</span>
+      <span class="list_four">	{ybqzhiwei_value}</span>
+      <span class="list_five">	{dateline}</span>
+      </li>
+
+[/loop]
+</ul>]]></item>
+			<item id="sortid"><![CDATA[4]]></item>
+			<item id="available"><![CDATA[1]]></item>
+			<item id="required"><![CDATA[1]]></item>
+			<item id="unchangeable"><![CDATA[0]]></item>
+			<item id="search"><![CDATA[2]]></item>
+			<item id="subjectshow"><![CDATA[1]]></item>
+			<item id="tpdescription"><![CDATA[]]></item>
+			<item id="ttdescription"><![CDATA[]]></item>
+			<item id="tpexpiration"><![CDATA[0]]></item>
+			<item id="ttexpiration"><![CDATA[0]]></item>
+			<item id="__protect">
+				<item id="usergroup"><![CDATA[]]></item>
+				<item id="verify"><![CDATA[]]></item>
+			</item>
+			<item id="__rules">
+				<item id="choices"><![CDATA[1 = 不限
+2 = 高中
+3 = 技校
+4 = 中专
+5 = 大专
+6 = 本科
+7 = 硕士
+8 = 博士]]></item>
+				<item id="inputsize"><![CDATA[]]></item>
+			</item>
+		</item>
+	</item>
+</root>

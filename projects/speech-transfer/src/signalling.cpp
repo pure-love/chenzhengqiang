@@ -25,6 +25,7 @@ bool generate_signalling(char *signalling_buf,size_t buf_size,
     return false;
     if( flags != CAMERA && flags != PC )
     return false;
+
     if( action != 0 && action != 1)
     return false;
     

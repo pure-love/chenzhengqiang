@@ -57,7 +57,8 @@
 /**
  * Diarrhee level, lots and lots of pointless text.
  */
-#define LOG_DIARRHEA 10
+#define LOG_DIARRHEA 5
+
 
 #define MACRO_TO_STRING(MACRO) #MACRO
 #define LINE_TO_STRING(LINE)  MACRO_TO_STRING(LINE)
