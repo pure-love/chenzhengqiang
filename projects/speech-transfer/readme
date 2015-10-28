@@ -1,0 +1,44 @@
+Detailed information about this software like the followling:
+#Author:chenzhengqiang
+#start date:2015/6/24
+#modified date:2015/5/27
+#company:swwy
+
+Copyright
+---------
+
+(C) 2015- swwy company
+
+Requirements
+------------
+openssl(for AES's encrypt and decrypt)
+
+Build instructions
+------------------
+
+To build on Linux, you only need to type the usual commands :
+make && make install
+
+
+Structure
+---------
+
+ config/   - configuration of this transfer server
+ include/ and  src/:the core of this server's implementation,socres of modules included like the follwing: 
+ aes: - providing the AES's encrypt,decrypt using openssl
+ rtp:  - providing the RTP protocol's encapsulate and parse
+ transfer: - the kernel of this entire server
+
+ scripts/  - shell script file,used to register this server into  system 
+ unit/   - Unit tests
+
+Relevant standards
+------------------
+
+
+Now To Make It!
+just press "make" under this directory,if necessary enter "make test" to check if making ok before "make install"
+make
+make test
+make install
+make clean
