@@ -846,10 +846,10 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
         //now go to find the none key frame from viewer's queue
         if( !( (viewer_queue.flv_tags[pointer])->is_key_frame ) )
         {
-            viewer_queue_delete(viewer_queue,pointer);
+            viewer_queue_delete( viewer_queue,pointer );
             return;
         }
-        pointer=(pointer+1) % CACHED_TAGS_LIMIT;
+        pointer= ( pointer+1 ) % CACHED_TAGS_LIMIT;
     } while( pointer != (int)viewer_queue.rear );
    
     if( pointer == (int) viewer_queue.rear )
@@ -1018,12 +1018,16 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     
     if( ci_iter->second->not_received_tag_data_done )
     {
-        log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV TAG DATA");
+        
+        log_module( LOG_DEBUG, "RECEIVE_STREAM_CB", "NOT RECEIVE THE TAG DATA DONE--TAG TOTAL BYTES:%d--RECEIVED BYTES:%d",
+                                                                               ci_iter->second->tag_data_size,
+                                                                               ci_iter->second->tag_data_received_bytes );
+        
         total_bytes = ci_iter->second->tag_data_size-ci_iter->second->tag_data_received_bytes;
-        received_bytes = read_specify_size(camera_watcher->fd,
+        received_bytes = read_specify_size( camera_watcher->fd,
                 ci_iter->second->tag_data+ci_iter->second->tag_data_received_bytes,total_bytes);
 
-        DELETE_CAMERA_IF(received_bytes,0);
+        DELETE_CAMERA_IF( received_bytes, 0 );
         ci_iter->second->tag_data_received_bytes += received_bytes;
         if( received_bytes != total_bytes )
         {

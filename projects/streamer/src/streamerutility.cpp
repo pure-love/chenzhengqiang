@@ -691,7 +691,7 @@ int read_specify_size( int fd, void *buffer, size_t total_bytes)
                 }
                 else if( errno == EAGAIN || errno == EWOULDBLOCK )
                 {
-		    if( (total_bytes-left_bytes) <= 0 )
+		    if( (total_bytes-left_bytes) == 0 )
 		    continue;		
 		    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","+++++DONE+++++");
                   return (total_bytes-left_bytes);

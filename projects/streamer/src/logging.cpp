@@ -38,6 +38,7 @@
  * Prototypes                                                                   *
  *******************************************************************************/
 
+static const char * LOG_LEVEL_DESC[]={"_ERROR_","_INFO_","_INFOV_","_DEBUG_","_DEBUGV_"};
 static void log_impl(int level, const char *module, const char * format, va_list valist);
 
 /*******************************************************************************
@@ -60,7 +61,7 @@ static int64_t FILE_SIZE_LIMIT = 1024*1024*100;
 /*******************************************************************************
  * Global functions                                                             *
  *******************************************************************************/
-int logging_init(const char *filepath, int logLevel)
+int logging_init(const char *filepath, int logLevel )
 {
     logFP = fopen(filepath, "w");
     if (logFP == NULL)
@@ -68,8 +69,8 @@ int logging_init(const char *filepath, int logLevel)
         return -1;
     }
 
-    strncpy(INITIAL_LOG_FILE,filepath, sizeof(INITIAL_LOG_FILE));
-    strncpy(CURRENT_LOG_FILE,filepath,sizeof(CURRENT_LOG_FILE));
+    strncpy( INITIAL_LOG_FILE,filepath, sizeof(INITIAL_LOG_FILE));
+    strncpy( CURRENT_LOG_FILE,filepath,sizeof(CURRENT_LOG_FILE));
     /* Turn off buffering */
     setbuf(logFP, NULL);
     verbosity = logLevel;
@@ -104,17 +105,18 @@ int log_reopen( void )
     /* Convert it to local time representation. */
     loctime = localtime(&curtime);
     /* Print it out in a nice format. */
-    strftime (timeBuffer, sizeof(timeBuffer), "%Y%m%d%H%M%S", loctime);
-    snprintf(new_file,sizeof(new_file),"%s.%s",INITIAL_LOG_FILE,timeBuffer);
-    memset(CURRENT_LOG_FILE,0,sizeof(CURRENT_LOG_FILE));
-    strncpy(CURRENT_LOG_FILE,new_file,sizeof(CURRENT_LOG_FILE));
-    logFP = fopen(new_file, "w");
+    strftime ( timeBuffer, sizeof(timeBuffer), "%Y%m%d%H%M%S", loctime);
+    snprintf( new_file,sizeof(new_file),"%s.%s",INITIAL_LOG_FILE,timeBuffer);
+    rename( INITIAL_LOG_FILE, new_file );
+    fclose( logFP );
+    
+    logFP = fopen( INITIAL_LOG_FILE, "w");
     if (logFP == NULL)
     {
         return -1;
     }
     /* Turn off buffering */
-    setbuf(logFP, NULL);
+    setbuf( logFP, NULL );
     return 0;
 }
 
@@ -182,19 +184,19 @@ static void log_impl(int level, const char *module, const char * format, va_list
     /* Print it out in a nice format. */
     strftime (timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
     
-    fprintf(logFP, "%s %-10s : %2d : ", timeBuffer, module ? module:"<Unknown>", level);
+    fprintf(logFP, "%s %-15s : %-8s : ", timeBuffer, module ? module:"<Unknown>", LOG_LEVEL_DESC[level] );
 
     vfprintf(logFP, format, valist);
 
     if (strchr(format, '\n') == NULL)
     {
-        fprintf(logFP, "\n");
+        fprintf( logFP, "\n" );
     }
 
     if (( level == LOG_ERROR ) && ( errno != 0))
     {
-        fprintf(logFP, "%s %-10s : %2d : errno = %d (%s)\n", timeBuffer,
-                module ? module:"<Unknown>", level, errno, strerror(errno));
+        fprintf(logFP, "%s %-15s : %-8s : errno = %d (%s)\n", timeBuffer,
+                module ? module:"<Unknown>",LOG_LEVEL_DESC[level] , errno, strerror(errno));
     }
     pthread_mutex_unlock(&mutex);
 }
