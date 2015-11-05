@@ -91,4 +91,7 @@ void init_opus_encoder();
 void init_opus_decoder();
 bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & client_request );
 void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter );
+void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter );
+void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter );
+
 #endif

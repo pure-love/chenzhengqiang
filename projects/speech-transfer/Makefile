@@ -1,48 +1,47 @@
-#@Author:chenzhengqiang
-#@Company:swwy
-#@Date: 2015/6/23
-#@Version: v1.0
-#@Desc
+#author:chenzhengqiang
+#generate date:20151105-09:13:36
+
+
+INCLUDE_DIR:=./include/
+SOURCE_DIR:=./src/
 
 SUFFIX:=cpp
-vpath %.h include/
-vpath %.$(SUFFIX) src/
+vpath %.h $(INCLUDE_DIR)
+vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=transfer
 CC:=g++
-OBJS:=main transfer netutility logging rtp aes opus speech_mix
-
-CFLAGS:= -g -lpthread -lcrypto -Wall -lopus
-INCLUDE_DIR:=./include/
-INSTALL_DIR:=/usr/local/bin
-CONFIG_FILE:=./config/server.conf
-CONFIG_INSTALL_PATH:=/etc/transfer
-SERVICE:=./scripts/transfer
-TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
-
+CFLAGS:=-g -W -Wall -Werror -Wshadow -I$(INCLUDE_DIR) -lpthread -lcrypto -lopus
+OBJS:=transfer speech_mix  signalling rtp  opus netutility logging aes main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
+
+INSTALL_DIR:=/usr/local/bin
+CONFIG_PATH:=./config
+SERVICE:=./scripts/streamer
+CONFIG_INSTALL_PATH:=/etc/streamer
+TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 .PHONEY=clean
 .PHONEY=install
 .PHONEY=test
 .PHONEY=tar
-
 all:$(TARGET)
 $(TARGET):$(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
 $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 
-
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz
+	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
+
 install:
 	-rm -f $(INSTALL_DIR)/$(TARGET)
 	-mv $(TARGET) $(INSTALL_DIR)
 	-cp -f $(SERVICE) /etc/init.d/$(TARGET)
 	-rm -rf $(CONFIG_INSTALL_PATH)
 	-mkdir $(CONFIG_INSTALL_PATH)
-	-cp -f $(CONFIG_FILE) $(CONFIG_INSTALL_PATH)
+	-cp -f $(CONFIG_PATH)/* $(CONFIG_INSTALL_PATH)
+
 test:
-	./$(TARGET) -f ./config/server.conf
+	./$(TARGET)
 tar:
-	tar -cvzf $(TAR_NAME).tar.gz .  
+	tar -cvzf $(TAR_NAME).tar.gz .

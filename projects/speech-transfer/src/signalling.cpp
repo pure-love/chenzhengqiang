@@ -21,7 +21,7 @@
 bool generate_signalling(char *signalling_buf,size_t buf_size,
                                               const char *channel,int flags, int action )
 {
-    if( buf_size < SIGNALLING_LENGTH || strlen(channel) > CHANNEL_LENGTH )
+    if( buf_size < (size_t)SIGNALLING_LENGTH || strlen(channel) > (size_t) CHANNEL_LENGTH )
     return false;
     if( flags != CAMERA && flags != PC )
     return false;

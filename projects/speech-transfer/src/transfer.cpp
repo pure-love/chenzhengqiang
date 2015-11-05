@@ -23,7 +23,6 @@ static struct timeval PREV;
 static struct timeval NOW;
 static bool the_first_calculate = true;
 static const unsigned long MAX_ELAPSED_USEC= 100000;
-static int LOG_LEVEL = -1;
 static const int RTP_HEADER_SIZE = 12;
 
 //global rtp header
@@ -274,8 +273,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
 
     //initialize the logger
     //ortp_scheduler_init();
-    logging_init(config.log_file.c_str(),config.log_level);
-    LOG_LEVEL = config.log_level;
+    logging_init( config.log_file.c_str(),config.log_level );
     struct rlimit rt;
     rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
     if ( setrlimit( RLIMIT_NOFILE, &rt ) == -1 ) 
@@ -768,6 +766,20 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
 }
 
 
+/*
+*@args:the udp_sock_fd indicates the udp server's file descriptor
+       the crr_iter specify the C++ 's iterator of global CHAT_ROOM
+*@desc:choose the simple way to mix multi-speech streams
+*/
+void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
+{
+    #define MSG_MODULE6 "DO_MIX_AND_BROADCAST"
+    
+    log_module( LOG_DEBUG, MSG_MODULE6, "MULTI-SPEECH MIX USING THE SIMPLE WAY");
+    do_mix_and_broadcast_S( udp_sock_fd, crr_iter );
+}
+
+
 
 /*
 *@args:the udp_sock_fd indicates the udp server's file descriptor
@@ -776,9 +788,9 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
     decode the SPEAKERS_OPUS_RTP_PACKETS_POOL's opus data to pcm data,and then mix them;
     when mixed,enocode the mixed buffer to opus and do broadcast to all listeners in chatroom
 */
-void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
+void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter )
 {
-    #define MSG_MODULE_5 "DO_MIX_AND_BROADCAST"
+    #define MSG_MODULE_5 "DO_MIX_AND_BROADCAST_C"
     
     log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++START++++++++++");
     if ( SPEAKERS_OPUS_RTP_PACKETS_POOL.empty() )
@@ -924,7 +936,7 @@ void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
        }
 
        log_module( LOG_DEBUG, MSG_MODULE_5, "ALL SPEAKERS' RTP PACKETS BUFFER MERGED DONE" );
-       if( LOG_LEVEL == LOG_DEBUG )
+       if( loglevel_is_enabled( LOG_DEBUG ) )
        {
             log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++PRINT ALL SPEAKERS INFO START++++++++++" );
             std::vector<SPEAKER_RTP_PACKET>::iterator mrpp_iter = merged_rtp_packets_pool.begin();
@@ -1022,7 +1034,7 @@ void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
                     decode_bytes = decode_opus_stream( OPUS_DECODER,curr_mrpp_iter->rtp_packet+RTP_HEADER_SIZE+12,
                                                                                  40,decoded_pcm_buffer1, 320 );
                     log_module( LOG_DEBUG, MSG_MODULE_5, "DECODE %d BYTES RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
-                    decode_bytes = decode_opus_stream( OPUS_DECODER, next_mrpp_iter->rtp_packet+12,
+                    decode_bytes = decode_opus_stream( OPUS_DECODER, next_mrpp_iter->rtp_packet+RTP_HEADER_SIZE+12,
                                                                                  40, decoded_pcm_buffer2, 320 );
                     log_module( LOG_DEBUG, MSG_MODULE_5, "DECODE %d BYTES RELATED TO %s", next_mrpp_iter->C_ID.c_str() );
                     
@@ -1056,6 +1068,184 @@ void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
        log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++DO MIX AND BROADCAST DONE++++++++++" ); 
     }
     
+    SPEAKERS_OPUS_RTP_PACKETS_POOL.clear();
+}
+
+
+
+/*
+*@args:the udp_sock_fd indicates the udp server's file descriptor
+       the crr_iter specify the C++ 's iterator of global CHAT_ROOM
+*@desc:    
+*/
+void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter )
+{
+    #define MSG_MODULE_S "DO_MIX_AND_BROADCAST_S"
+    
+    log_module( LOG_DEBUG, MSG_MODULE_S, "++++++++++START++++++++++");
+    if ( SPEAKERS_OPUS_RTP_PACKETS_POOL.empty() )
+    {
+        log_module( LOG_DEBUG, MSG_MODULE_S, "++++++++++DONE++++++++++");
+        return;
+    }
+
+    SORPP_ITER sorpp_iter = SPEAKERS_OPUS_RTP_PACKETS_POOL.begin();
+    
+    //obviously there is only one speaker when the container size is 1 
+    if( SPEAKERS_OPUS_RTP_PACKETS_POOL.size() == 1 )
+    {
+        log_module( LOG_DEBUG, MSG_MODULE_S, "THERE IS ONLY ONE SPEAKER, JUST BROADCAST ALL OPUS RTP PACKETS TO OTHERS RELATED TO %s", 
+                                                                     sorpp_iter->first.c_str() );
+        
+        //just broadcast the rtp packet from single speaker
+        std::map<uint32_t, RTP_PACKET>::iterator rp_iter = sorpp_iter->second.begin();
+        
+        while( rp_iter != sorpp_iter->second.end() )
+        {
+            if( rp_iter->second != NULL )
+            {
+                broadcast_speech_message( udp_sock_fd, rp_iter->second+RTP_HEADER_SIZE, OPUS_RTP_BUFFER_SIZE,
+                                                           sorpp_iter->first, crr_iter );
+                delete [] rp_iter->second;
+                rp_iter->second = NULL;
+            }
+            else
+            {
+                log_module( LOG_ERROR, MSG_MODULE_S, "RTP PACKET POINTER DETECTED IS NULL RELATED TO ID:%s", 
+                                  sorpp_iter->first.c_str() );
+            }
+            ++rp_iter;
+        }
+        
+        sorpp_iter->second.clear();
+        log_module( LOG_DEBUG, MSG_MODULE_S, "THERE IS ONLY ONE SPEAKER, BROADCAST ALL OPUS RTP PACKETS DONE RELATED TO %s", 
+                                                                     sorpp_iter->first.c_str() );
+    }
+    else
+    {
+        std::vector<RTP_PACKET> RTP_PACKETS_POOL;
+        log_module( LOG_DEBUG, MSG_MODULE_S, "THERE ARE MORE THAN ONE SPEAKER,JUST MIX THOSE SPEECH DATAS VERTICALLY");
+
+        if( loglevel_is_enabled( LOG_DEBUG ) )
+        {
+            while( sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
+            {
+                log_module( LOG_DEBUG, MSG_MODULE_S, "SPEAKER:%s TOTAL RTP PACKETS:%u",
+                                                                              sorpp_iter->first.c_str(), sorpp_iter->second.size() );
+                ++sorpp_iter;
+            }
+        }
+        
+        //retrieve the max buffer size
+        std::map<uint32_t, RTP_PACKET>::size_type MAX_BUFFER_SIZE = 0;
+        while( sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
+        {   
+             if( sorpp_iter->second.size() > MAX_BUFFER_SIZE )
+             {
+                MAX_BUFFER_SIZE = sorpp_iter->second.size();
+             }
+             ++sorpp_iter;
+        }
+
+        log_module( LOG_DEBUG, MSG_MODULE_S, "THE MAX BUFFER SIZE IN ALL SPEAKERS IS:%u", MAX_BUFFER_SIZE );
+        RTP_PACKETS_POOL.reserve( MAX_BUFFER_SIZE );
+        std::map<uint32_t, RTP_PACKET>::size_type COUNT = 0;        
+        while( true )
+        {
+            sorpp_iter = SPEAKERS_OPUS_RTP_PACKETS_POOL.begin();
+            while( sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
+            {   
+                 if( ! sorpp_iter->second.empty() )
+                 {
+                     std::map<uint32_t, RTP_PACKET>::iterator iter = sorpp_iter->second.begin();
+                     RTP_PACKETS_POOL.push_back( iter->second );
+                     sorpp_iter->second.erase( iter );
+                 }
+                ++sorpp_iter;
+            }
+
+            log_module( LOG_DEBUG, MSG_MODULE_S, " MULTI PCM STREAM MIX+++++START+++++:%d",COUNT );
+            if( ! RTP_PACKETS_POOL.empty() )
+            {
+                if( RTP_PACKETS_POOL.size() == 1 )
+                {
+                    log_module( LOG_DEBUG, MSG_MODULE_S, "THERE IS ONLY ONE OPUS RTP PACKET IN PACKETS POOL,JUST BROADCAST");
+                    broadcast_speech_message( udp_sock_fd, RTP_PACKETS_POOL[0]+RTP_HEADER_SIZE, 
+                                                                OPUS_RTP_BUFFER_SIZE,
+                                                                sorpp_iter->first, crr_iter );
+                    delete [] RTP_PACKETS_POOL[0];
+                    RTP_PACKETS_POOL[0] = NULL;
+                    log_module( LOG_DEBUG, MSG_MODULE_S, " MULTI PCM STREAM MIX+++++DONE+++++:%d",COUNT );
+                }
+                else
+                {
+                    opus_int16 decoded_pcm_buffer1[320];
+                    opus_int16 decoded_pcm_buffer2[320];
+                    opus_int16 mixed_pcm_buffer[320];
+                    opus_int32 encode_bytes = 0;
+                    unsigned char encoded_opus_buffer[MAX_PACKET];
+                    uint8_t rtp_packet[OPUS_RTP_BUFFER_SIZE];
+                    opus_int32 decode_bytes;
+
+                    std::vector<RTP_PACKET>::iterator rpp_iter = RTP_PACKETS_POOL.begin();
+                    decode_bytes = decode_opus_stream( OPUS_DECODER, *rpp_iter+RTP_HEADER_SIZE+12,
+                                                                                 40,decoded_pcm_buffer1, 320 );
+                    delete [] *rpp_iter;
+                    log_module( LOG_DEBUG, MSG_MODULE_S, "DECODE %d BYTES ",  decode_bytes );
+                   
+                    ++rpp_iter;
+                    decode_bytes = decode_opus_stream( OPUS_DECODER, *rpp_iter+RTP_HEADER_SIZE+12,
+                                                                                 40, decoded_pcm_buffer2, 320 );
+                    delete [] *rpp_iter;
+                    log_module( LOG_DEBUG, MSG_MODULE_S, "DECODE %d BYTES ", decode_bytes );
+                    generate_speech_mix( ( char * ) decoded_pcm_buffer1, ( char * ) decoded_pcm_buffer2, ( char * )mixed_pcm_buffer, 640 );
+                    ++rpp_iter;
+                    
+                    while( rpp_iter != RTP_PACKETS_POOL.end() )
+                    {
+                        decode_bytes = decode_opus_stream( OPUS_DECODER, *rpp_iter+RTP_HEADER_SIZE+12,
+                                                                                 40, decoded_pcm_buffer1, 320 );
+                        if( decode_bytes <=0 )
+                        {
+                            log_module( LOG_ERROR, MSG_MODULE_S, "DECODE OPUS STREAM FAILED");
+                            ++rpp_iter;
+                            continue;
+                        }
+
+                        delete [] *rpp_iter;
+                        log_module( LOG_DEBUG, MSG_MODULE_S, "DECODE %d BYTES ", decode_bytes );
+                        generate_speech_mix( ( char * ) decoded_pcm_buffer1, ( char * ) mixed_pcm_buffer, ( char * )decoded_pcm_buffer2, 640 );
+                        memcpy( mixed_pcm_buffer, decoded_pcm_buffer2, sizeof( mixed_pcm_buffer ));
+                        ++rpp_iter;
+                    }
+
+                    encode_bytes = encode_pcm_stream( OPUS_ENCODER, mixed_pcm_buffer,
+                                                                         MIN_FRAME_SAMP, encoded_opus_buffer, MAX_PACKET );
+                    if( encode_bytes > 0 )
+                    {
+                        
+                        REPLY_RTP_HEADER.timestamp = (uint32_t) time( NULL ); 
+                        rtp_packet_encapsulate( rtp_packet,RTP_HEADER_LEAST_SIZE+encode_bytes,
+                                                           encoded_opus_buffer, encode_bytes , REPLY_RTP_HEADER );
+                        broadcast_speech_message( udp_sock_fd, rtp_packet, OPUS_RTP_BUFFER_SIZE,
+                                                                    "MIX", crr_iter );
+                        memset( mixed_pcm_buffer, 0, sizeof( mixed_pcm_buffer ) );
+                        
+                    }
+                    else
+                    {
+                        log_module( LOG_ERROR, MSG_MODULE_S, "ENCODE PCM STREAM FAILED" );
+                    }
+                    log_module( LOG_DEBUG, MSG_MODULE_S, " MULTI PCM STREAM MIX+++++DONE+++++:%d",COUNT );
+                }
+                RTP_PACKETS_POOL.clear();
+            }
+            
+            ++COUNT;
+            if( COUNT == MAX_BUFFER_SIZE )
+            break;
+        }
+    }
     SPEAKERS_OPUS_RTP_PACKETS_POOL.clear();
 }
 
