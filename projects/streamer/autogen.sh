@@ -18,8 +18,8 @@ MAKEFILE="./Makefile"
 COMPILER="g++"
 COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow"
 DEPS="-lev -lpthread"
-INSTALL_DIR=/usr/local/bin
-AUTHOR=chenzhengqiang
+INSTALL_DIR="/usr/local/bin"
+AUTHOR="chenzhengqiang"
 DATE=`date '+%Y%m%d-%H:%M:%S'`
 ########global configuration#######
 
