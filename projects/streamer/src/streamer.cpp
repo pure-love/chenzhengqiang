@@ -38,7 +38,7 @@ static const size_t WORKTHREADS_SIZE=8;
 //specify the fragment size
 static const size_t FRAGMENT_SIZE = 1024;
 //specify the size of cached flv tag in queue
-static const size_t CACHED_TAGS_LIMIT = 30;
+static const size_t CACHED_TAGS_LIMIT = 99;
 //notify workthread entry related
 static struct ev_loop *NOTIFY_SERVER_LOOP=NULL;
 static struct ev_async *NOTIFY_ASYNC_WATCHER=NULL;
@@ -53,7 +53,7 @@ static const size_t CHANNELS_LIMIT = 100;
 static const size_t MAX_CHANNEL_SIZE=64;
 static const int ONLINE = 0;
 static const int OFFLINE = 1;
-static const int RECVLOWAT = 9+4+11;
+
 
 //the flv tag item
 struct FLV_TAG_FRAME
@@ -294,7 +294,7 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         camera_ptr->camera_watcher = new struct ev_io;
         if( camera_ptr->camera_watcher == NULL )
         {
-             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
+             log_module( LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO" );
              delete camera_ptr;
              camera_ptr = NULL;
              return NULL;
@@ -382,10 +382,7 @@ VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher,HTTP_REQ
        viewer_info_ptr->register_viewer_callback_first = true;
        viewer_info_ptr->send_key_frame_first = true;
        viewer_info_ptr->client_fd = receive_request_watcher->fd;
-       sdk_set_nonblocking(receive_request_watcher->fd);
-       sdk_set_keepalive(receive_request_watcher->fd);
-       sdk_set_tcpnodelay(receive_request_watcher->fd);
-       sdk_set_sndbuf(receive_request_watcher->fd, 65535);
+          
        viewer_info_ptr->not_sent_http_response_done = true;
        viewer_info_ptr->not_sent_flv_header_done = true;
        viewer_info_ptr->not_sent_avc_sequence_header_done = true;
@@ -724,7 +721,7 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         }
 
         //init the workthread's event loop
-        workthread_loop_info->workthread_loop = ev_loop_new( EVBACKEND_EPOLL | EVFLAG_NOENV );
+        workthread_loop_info->workthread_loop = ev_loop_new( EVBACKEND_EPOLL );
         if( workthread_loop_info->workthread_loop == NULL )
         {
             delete workthread_loop_info;
@@ -737,25 +734,25 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         workthread_loop_info->async_watcher = new ev_async;
         if(  workthread_loop_info->async_watcher == NULL )
         {
-             free(workthread_loop_info->workthread_loop);
+             free( workthread_loop_info->workthread_loop );
              workthread_loop_info->workthread_loop = NULL;
              delete workthread_loop_info;
              workthread_loop_info = NULL;
-             log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","INIT THE SPECIFIED WORKTHREAD'S ASYNC WATCHER FAILED");
+             log_module( LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","INIT THE SPECIFIED WORKTHREAD'S ASYNC WATCHER FAILED");
              return false;
         }
         
         workthread_info.workthread_loop = workthread_loop_info->workthread_loop;
         workthread_info.async_watcher = workthread_loop_info->async_watcher;
         workthread_loop_info->type = 99;
-        ret = pthread_create(&thread_id,&thread_attr,workthread_entry,(void *)workthread_loop_info);
+        ret = pthread_create( &thread_id,&thread_attr,workthread_entry, (void *)workthread_loop_info);
         if(  ret != 0 )
         {
-            log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",strerror(errno));
+            log_module( LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",strerror(errno));
             return false;
         }
         workthread_info.thread_id = thread_id;
-        workthread_info_pool.push_back(workthread_info);
+        workthread_info_pool.push_back( workthread_info );
     }
     
     log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","WORKTHREADS RELATED TO CAMERA AND VIEWER CREATED DONE");
@@ -765,7 +762,7 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
     pthread_attr_init( &thread_attr );
     pthread_attr_setdetachstate( &thread_attr, PTHREAD_CREATE_DETACHED );
 
-    ret = pthread_create(&thread_id,&thread_attr,notify_server_entry,(void *)config.notify_server_file.c_str());
+    ret = pthread_create( &thread_id, &thread_attr, notify_server_entry, (void *)config.notify_server_file.c_str() );
     if(  ret != 0 )
     {
           log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",LOG_LOCATION);
@@ -1444,18 +1441,24 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
 *desc:this callback was called asynchronously 
 *     when main event loop send signal to workthread's event loop
 */
-void async_read_cb(struct ev_loop *workthread_loop, struct ev_async *async_watcher, int revents )
+void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watcher, int revents )
 {
      
     //usefull macro for doing something clean
     LOG_START("ASYNC_READ_CB");
     if( EV_ERROR & revents )
     {
-        log_module(LOG_INFO,"ASYNC_READ_CB","EV_ERROR %s",LOG_LOCATION);
+        log_module( LOG_ERROR,"ASYNC_READ_CB","EV_ERROR %s",LOG_LOCATION);
         LOG_DONE("ASYNC_READ_CB");
         return;
     }
 
+    if( workthread_loop == NULL || async_watcher == NULL )
+    {
+        log_module( LOG_ERROR, "ASYNC_READ_CB", "ARGS NOT VALID");
+        return;
+    }
+    
     EV_ASYNC_DATA *async_data = static_cast<EV_ASYNC_DATA *>(async_watcher->data);
     if( async_data == NULL )
     {
@@ -1471,12 +1474,6 @@ void async_read_cb(struct ev_loop *workthread_loop, struct ev_async *async_watch
         channel.assign(async_data->channel);
         workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
         camera_info_iter ci_iter = get_channel_info_item(wi_iter,channel);
-        
-        sdk_set_nonblocking( async_data->client_fd );
-        sdk_set_keepalive( async_data->client_fd );
-        sdk_set_tcpnodelay( async_data->client_fd );
-        sdk_set_rcvbuf( async_data->client_fd, 65535 );
-        sdk_set_rcvlowat( async_data->client_fd, RECVLOWAT );
         
         ev_io_init( ci_iter->second->reply_watcher,reply_200OK_cb,async_data->client_fd, EV_WRITE );
         ev_io_init( ci_iter->second->camera_watcher,receive_stream_cb,async_data->client_fd, EV_READ );
@@ -1545,17 +1542,7 @@ void async_read_cb(struct ev_loop *workthread_loop, struct ev_async *async_watch
         
         send_backing_resource_watcher->data =(void *)imitated_request;
         pull_stream_watcher->data = (void *)push_stream_watcher;
-        sdk_set_nonblocking( async_data->client_fd );
-        sdk_set_keepalive( async_data->client_fd );
-        sdk_set_tcpnodelay( async_data->client_fd );
-        sdk_set_rcvbuf( async_data->client_fd, 65535 );
-        sdk_set_rcvlowat( async_data->client_fd, RECVLOWAT );
-
-        sdk_set_nonblocking( async_data->request_fd );
-        sdk_set_keepalive( async_data->request_fd );
-        sdk_set_tcpnodelay( async_data->request_fd );
-        
-        
+       
         ev_io_init( send_backing_resource_watcher,send_backing_resource_cb,async_data->client_fd,EV_WRITE );
         ev_io_init( pull_stream_watcher,pull_stream_cb,async_data->client_fd,EV_READ );
         ev_io_init( push_stream_watcher,push_stream_cb,async_data->request_fd,EV_WRITE );
@@ -1582,8 +1569,9 @@ void reply_200OK_cb(struct ev_loop * workthread_loop, struct  ev_io *reply_watch
           log_module(LOG_INFO,"reply_200OK_CB","EV_ERROR %s",LOG_LOCATION);
           return;
      }
+      
      const char *http_200_ok = "HTTP/1.1 200 OK\r\n\r\n";
-     write_specify_size(reply_watcher->fd,http_200_ok,strlen(http_200_ok));
+     write_specify_size2( reply_watcher->fd,http_200_ok,strlen(http_200_ok ));
      ev_io_stop(workthread_loop,reply_watcher);
      delete reply_watcher;
      reply_watcher = NULL;
@@ -1834,7 +1822,7 @@ void read_channel_status_cb( struct ev_loop *workthread_loop, struct ev_async *a
 void * notify_server_entry( void * args )
 {
      
-     NOTIFY_SERVER_LOOP = ev_loop_new( EVBACKEND_SELECT | EVFLAG_NOENV );
+     NOTIFY_SERVER_LOOP = ev_loop_new( EVBACKEND_SELECT );
      NOTIFY_ASYNC_WATCHER = new ev_async;
 
      if( NOTIFY_SERVER_LOOP == NULL || NOTIFY_ASYNC_WATCHER == NULL )
@@ -1856,27 +1844,30 @@ void * notify_server_entry( void * args )
 */
 void * workthread_entry ( void * args )
 {
-    log_module(LOG_DEBUG,"WORKTHREAD_ROUTINE START","ID:%u",pthread_self());
-    sigset_t signal_mask;
-    sigemptyset (&signal_mask);
-    sigaddset (&signal_mask, SIGPIPE);
-    int ret = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
-    if (ret != 0)
-    {
-        log_module(LOG_INFO,"WORKTHREAD_ROUTINE","BLOCK SIGPIPE ERROR");
-    }
+    log_module(LOG_DEBUG,"WORKTHREAD_ROUTINE START","ID:%u", pthread_self() );
     WORKTHREAD_LOOP_INFO * workthread_loop_info = static_cast<WORKTHREAD_LOOP_INFO * >(args);
-
+    if( workthread_loop_info == NULL )
+    {
+        log_module( LOG_ERROR, "WORKTHREAD_ENTRY", "ARGS IS NULL RELATED TO WORK THREAD ID:%u", pthread_self() );
+        return NULL;
+    }
+    
     //register the libev async callback
     //used to receive signal from the main event loop
+    if( workthread_loop_info->async_watcher == NULL || workthread_loop_info->workthread_loop == NULL )
+    {
+        log_module( LOG_ERROR, "WORKTHREAD_ENTRY", "ARGS IN WORKTHREAD_LOOP_INFO INVALID RELATED TO WORKTHREAD ID:%d", pthread_self() );
+        return NULL;
+    }
+    
     ev_async_init( workthread_loop_info->async_watcher, async_read_cb );
     ev_async_start( workthread_loop_info->workthread_loop,workthread_loop_info->async_watcher );
-    ev_run(workthread_loop_info->workthread_loop,0);
-    free(workthread_loop_info->workthread_loop);
+    ev_run( workthread_loop_info->workthread_loop, 0);
+    free( workthread_loop_info->workthread_loop );
     workthread_loop_info->workthread_loop = NULL;
     delete workthread_loop_info->async_watcher;
     workthread_loop_info->async_watcher = NULL;
-    delete static_cast<WORKTHREAD_LOOP_INFO * >(args);
+    delete workthread_loop_info;
     log_module(LOG_DEBUG,"WORKTHREAD_ROUTINE DONE","ID:%u",pthread_self());
     return NULL;
 }
@@ -1890,7 +1881,7 @@ void * workthread_entry ( void * args )
 #this function is called asynchronously when streaming server received the client's request
 # for establising connection
 */
-void accept_cb(struct ev_loop * main_event_loop, struct ev_io * listen_watcher, int revents )
+void accept_cb( struct ev_loop * main_event_loop, struct ev_io * listen_watcher, int revents )
 {
     LOG_START("ACCEPT_CB");
     if( EV_ERROR & revents )
@@ -1912,15 +1903,15 @@ void accept_cb(struct ev_loop * main_event_loop, struct ev_io * listen_watcher, 
     char *client_ip = new char [INET_ADDRSTRLEN];
     if( client_ip == NULL )
     {
-         log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[INET_ADDRSTRLEN]");
-         close(client_fd);
+         log_module( LOG_ERROR,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[INET_ADDRSTRLEN]");
+         close( client_fd );
          return;
     }
 
     struct ev_io * receive_request_watcher = new struct ev_io;
     if( receive_request_watcher == NULL )
     {
-        log_module(LOG_INFO,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
+        log_module( LOG_ERROR,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
         delete [] client_ip;
         client_ip = NULL;
         close(client_fd);
@@ -1928,15 +1919,26 @@ void accept_cb(struct ev_loop * main_event_loop, struct ev_io * listen_watcher, 
     }
     
     
-    inet_ntop(AF_INET,&client_addr.sin_addr,client_ip,INET_ADDRSTRLEN);
+    inet_ntop( AF_INET,&client_addr.sin_addr,client_ip,INET_ADDRSTRLEN );
     receive_request_watcher->data = ( void *)client_ip;
-    log_module( LOG_DEBUG,"ACCEPT_CB","CLIENT %s:%d CONNECTED",client_ip,ntohs(client_addr.sin_port) );
+    log_module( LOG_DEBUG,"ACCEPT_CB","CLIENT %s:%d CONNECTED SOCK FD IS:%d",
+                                                            client_ip,ntohs(client_addr.sin_port), client_fd );
 
     sdk_set_nonblocking( client_fd );
-    sdk_set_rcvbuf( client_fd, 65535 );
     sdk_set_tcpnodelay( client_fd );
     sdk_set_keepalive( client_fd );
 
+    if( loglevel_is_enabled( LOG_DEBUG ) )
+    {
+        uint32_t DEFAULT_RECV_BUF_SIZE;
+        uint32_t DEFAULT_SEND_BUF_SIZE;
+        socklen_t recv_len = sizeof( DEFAULT_RECV_BUF_SIZE );
+        socklen_t send_len = sizeof( DEFAULT_SEND_BUF_SIZE );
+        getsockopt( client_fd, SOL_SOCKET, SO_RCVBUF, &DEFAULT_RECV_BUF_SIZE, &recv_len );
+        getsockopt( client_fd, SOL_SOCKET, SO_SNDBUF, &DEFAULT_SEND_BUF_SIZE, &send_len );
+        log_module( LOG_DEBUG, "ACCEPT_CB", "DEFAULT RECV BUFFER SIZE IS :%u SEND BUFFER SIZE:%u", DEFAULT_RECV_BUF_SIZE, DEFAULT_SEND_BUF_SIZE );
+    }
+    
     //register the socket io callback for reading client's request    
     ev_io_init( receive_request_watcher,receive_request_cb,client_fd, EV_READ );
     ev_io_start( main_event_loop,receive_request_watcher );
@@ -2000,17 +2002,17 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
     HTTP_REQUEST_INFO req_info;
     char request[BUFFER_SIZE];
     //read the http header and then parse it
-    received_bytes = read_http_header(receive_request_watcher->fd,request,BUFFER_SIZE );
+    received_bytes = read_http_header( receive_request_watcher->fd,request,BUFFER_SIZE );
     if(  received_bytes <= 0  )
     {     
           if(  received_bytes == 0  )
           {
-              log_module(LOG_INFO,"RECEIVE_REQUEST_CB"," READ 0 BYTES FROM %s  VIEWER DISCONNECTED ALREADY",
-              static_cast<char *>(receive_request_watcher->data));
+              log_module( LOG_INFO,"RECEIVE_REQUEST_CB"," READ 0 BYTES FROM %s  VIEWER DISCONNECTED ALREADY",
+              static_cast<char *>( receive_request_watcher->data) );
           }
           else if(  received_bytes == -1 )
           {
-              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","READ_HTTP_HEADER:BUFFER SIZE IS TOO SMALL");
+              log_module( LOG_INFO,"RECEIVE_REQUEST_CB","READ_HTTP_HEADER:BUFFER SIZE IS TOO SMALL");
           }
           close( receive_request_watcher->fd );
           DO_RECEIVE_REQUEST_CB_CLEAN();
@@ -2026,10 +2028,9 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
       )
       
     {
-        log_module( LOG_INFO,"RECEIVE_REQUEST_CB","");
         const char * http_400_badrequest = "HTTP/1.1  400  Bad Request\r\n\r\n";
-        write_specify_size2(receive_request_watcher->fd,http_400_badrequest, strlen(http_400_badrequest));
-        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE BAD HTTP REQUEST FROM %s",static_cast<char *>( receive_request_watcher->data ));
+        write_specify_size2( receive_request_watcher->fd,http_400_badrequest, strlen(http_400_badrequest) );
+        log_module( LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE BAD HTTP REQUEST FROM %s OR THE CHANNEL LENGTH IS TOO LONG ",static_cast<char *>( receive_request_watcher->data ));
         close( receive_request_watcher->fd );
         DO_RECEIVE_REQUEST_CB_CLEAN();
     }
@@ -2043,23 +2044,23 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","CAMERA'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO CAMERA");
              const char * http_503_service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n\r\n";
              write_specify_size2(receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable));
-             close(receive_request_watcher->fd);
+             close( receive_request_watcher->fd );
         }
         else
         {
              
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE CAMERA'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
-             bool OK = do_camera_request( main_event_loop,receive_request_watcher,req_info );
-             if( !OK )
+             bool ok = do_camera_request( main_event_loop,receive_request_watcher,req_info );
+             if( ! ok )
             {
                   const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
                   write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
                   close( receive_request_watcher->fd );
-                  log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED");
+                  log_module( LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED" );
             }
             else
             {
-                  log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST SUCCEEDED");
+                  log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "DO_CAMERA_REQUEST SUCCEEDED");
                   log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "+++++SEND THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s START+++++",
                                                         req_info.channel.c_str() );
                   
@@ -2087,8 +2088,8 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
     {
         //http "GET" method indicates viewer's request
         log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE VIEWER'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
-        bool OK = do_viewer_request(main_event_loop,receive_request_watcher,req_info);
-        if( !OK )
+        bool ok = do_viewer_request( main_event_loop,receive_request_watcher,req_info );
+        if( ! ok )
         {
              log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST FAILED");
              close( receive_request_watcher->fd );
@@ -2117,14 +2118,14 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
             log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","CAMERA BAD REQUEST:CHANNEL %s ALREADY EXIST",req_info.channel.c_str());
             const char * http_400_badrequest="HTTP/1.1 400 Bad Request\r\n\r\n";
             write_specify_size2(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
-            close(receive_request_watcher->fd);
+            close( receive_request_watcher->fd );
             return false;
         }
 
         //now choose a work thread through round robin
         workthread_info_iter wi_iter = get_workthread_through_round_robin();
-        log_module(LOG_DEBUG,"DO_CAMERA_REQUEST","GET_WORKTHREAD_THROUGH_ROUND_ROBIN--OK--ID:%u",wi_iter->thread_id);
-        if( ev_async_pending( wi_iter->async_watcher) == 0 )
+        log_module( LOG_DEBUG,"DO_CAMERA_REQUEST","GET_WORKTHREAD_THROUGH_ROUND_ROBIN--OK--ID:%u",wi_iter->thread_id);
+        if( ev_async_pending( wi_iter->async_watcher ) == 0 )
         {
              //now allocate EV_ASYNC_DATA for async_read_cb's sake
              EV_ASYNC_DATA *async_data = new EV_ASYNC_DATA;
@@ -2136,7 +2137,7 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
              
              async_data->client_type = CAMERA;
              async_data->client_fd = receive_request_watcher->fd;
-             strcpy(async_data->channel,req_info.channel.c_str());
+             strcpy( async_data->channel,req_info.channel.c_str() );
 
              CAMERAS_PTR camera_ptr = new_cameras( receive_request_watcher,req_info.channel );
              if( camera_ptr == NULL )
@@ -2148,7 +2149,7 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
              }
              wi_iter->camera_info_pool.insert( std::make_pair(req_info.channel,camera_ptr) );
              wi_iter->async_watcher->data=(void *)async_data;
-             ev_async_send( wi_iter->workthread_loop,wi_iter->async_watcher );
+             ev_async_send( wi_iter->workthread_loop, wi_iter->async_watcher );
         }     
         else
         {
@@ -2173,7 +2174,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
         camera_info_iter ci_iter;
         while( wi_iter != workthread_info_pool.end() )
         {
-            ci_iter = wi_iter->camera_info_pool.find(req_info.channel);
+            ci_iter = wi_iter->camera_info_pool.find( req_info.channel );
             if( ci_iter != wi_iter->camera_info_pool.end())
                 break;
             ++wi_iter;
@@ -2183,7 +2184,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
         if( wi_iter != workthread_info_pool.end() )
         {
             //firstly check the limit of viewers
-            if(ci_iter->second->viewer_info_pool.size() > VIEWERS_LIMIT )
+            if( ci_iter->second->viewer_info_pool.size() > VIEWERS_LIMIT )
             {
                 log_module( LOG_INFO,"DO_VIEWER_REQUEST","OVERTOP THE VIEWERS' LIMIT,SEND 503 TO VIEWER" );
                 const char *http_503_overload="HTTP/1.1 503 Service Unavailable\r\n\r\n";
@@ -2191,11 +2192,12 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
                 close( receive_request_watcher->fd );
                 return false;
             }
+            
             log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL:%s--ID:%u",ci_iter->first.c_str(),wi_iter->thread_id );
-            viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find(receive_request_watcher->fd);
+            viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find( receive_request_watcher->fd );
             if( vi_iter == ci_iter->second->viewer_info_pool.end() )
             {
-                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info(receive_request_watcher,req_info);
+                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info( receive_request_watcher,req_info );
                 if( viewer_info_ptr == NULL )
                 {
                     log_module( LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION );
@@ -2203,7 +2205,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
                 }
                 
                 log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START",receive_request_watcher->fd );
-                ci_iter->second->viewer_info_pool.insert(std::make_pair(receive_request_watcher->fd,viewer_info_ptr) );
+                ci_iter->second->viewer_info_pool.insert(std::make_pair( receive_request_watcher->fd,viewer_info_ptr ) );
                 log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd );
             }
             else
@@ -2244,8 +2246,8 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             
             log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SRC=%s",req_info.src.c_str() );
             //now do the backing resource request
-            bool OK = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd,req_info );
-            if( !OK )
+            bool ok = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd,req_info );
+            if( ! ok )
             {
                  log_module( LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE FAILED:%s",LOG_LOCATION );
                  const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
@@ -2297,7 +2299,7 @@ void do_notify_cb( struct ev_loop *workthread_loop, struct ev_io *notify_watcher
                                                                          "&status=%d HTTP/1.1\r\n\r\n",notify_data->channel,
                                                                          notify_data->flag);
     log_module( LOG_DEBUG, "DO_NOTIFY_CB", "NOTIFY MESSAGE:%s BYTES:%d", notify_message, strlen(notify_message) );
-    write_specify_size2( notify_watcher->fd, notify_message,strlen(notify_message));
+    write_specify_size2( notify_watcher->fd, notify_message,strlen(notify_message) );
     EXIT:
     close( notify_watcher->fd );
     delete static_cast<NOTIFY_DATA *>( notify_watcher->data );
@@ -2484,6 +2486,10 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
          br_iter->second.socketfd_pool.insert( local_fd );
     }
 
+    
+    sdk_set_nonblocking( local_fd );
+    sdk_set_keepalive( local_fd );
+    sdk_set_tcpnodelay( local_fd );    
     async_data->client_fd = local_fd;
     async_data->request_fd = request_fd;
     async_data->client_type = BACKER;
@@ -2522,13 +2528,13 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
     
     //initialize the logger for logging
     logging_init( config.log_file.c_str(),config.log_level );
-    LOG_START("SERVE_FOREVER");
+    log_module( LOG_DEBUG, "SERVE_FOREVER",  "LISTEN SOCKET FD:%d", streamer_listen_fd );
     
     //you have to ignore the PIPE's signal when client close the socket
     struct sigaction sa;
     sa.sa_handler = SIG_IGN;//just ignore the sigpipe
     sa.sa_flags = 0;
-    if( sigemptyset(&sa.sa_mask) == -1 ||sigaction(SIGPIPE, &sa, 0) == -1 )
+    if( sigemptyset(&sa.sa_mask) == -1 ||sigaction( SIGPIPE, &sa, 0 ) == -1 )
     { 
         log_module(LOG_ERROR,"SERVE_FOREVER","FAILED TO IGNORE SIGPIPE SIGNAL");
         goto STREAMER_EXIT;
@@ -2549,14 +2555,13 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
             goto STREAMER_EXIT;
         }
         
-        strncpy(NOTIFY_SERVER_CONFIG_FILE,config.notify_server_file.c_str(),sizeof(NOTIFY_SERVER_CONFIG_FILE));
+        strncpy( NOTIFY_SERVER_CONFIG_FILE,config.notify_server_file.c_str(),sizeof( NOTIFY_SERVER_CONFIG_FILE ) );
         //and now initialize the workthread pool.pool size is specified with global "WORKTHREADS_SIZE"
-        if( ! init_workthread_info_pool( config,WORKTHREADS_SIZE) )
+        if( ! init_workthread_info_pool( config,WORKTHREADS_SIZE ) )
         {
             log_module( LOG_ERROR,"SERVE_FOREVER","INIT_WORKTHREAD_INFO_POOL FAILED");
             goto STREAMER_EXIT;
         }
-
         
         sdk_set_tcpnodelay( streamer_listen_fd );
         sdk_set_nonblocking( streamer_listen_fd );
@@ -2564,19 +2569,30 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
 
         sdk_set_tcpnodelay( state_server_fd );
         sdk_set_nonblocking( state_server_fd );
-        sdk_set_keepalive( state_server_fd );
+        
 
         //meanwhile startup the state server
         bool state_ok = startup_state_server( state_server_fd );
         if( state_ok )
         {
-             ev_io_init( listen_watcher,accept_cb, streamer_listen_fd, EV_READ );
+             ev_io_init( listen_watcher, accept_cb, streamer_listen_fd, EV_READ );
              ev_io_start( main_event_loop, listen_watcher );
              if( !config.run_as_daemon  )
              {
                   print_welcome( config );
              }
-             ev_run( main_event_loop,0 );
+             
+             if( loglevel_is_enabled( LOG_DEBUG ) )
+            {
+                uint32_t DEFAULT_RECV_BUF_SIZE;
+                uint32_t DEFAULT_SEND_BUF_SIZE;
+                socklen_t recv_len = sizeof( DEFAULT_RECV_BUF_SIZE );
+                socklen_t send_len = sizeof( DEFAULT_SEND_BUF_SIZE );
+                getsockopt( streamer_listen_fd , SOL_SOCKET, SO_RCVBUF, &DEFAULT_RECV_BUF_SIZE, &recv_len );
+                getsockopt( streamer_listen_fd , SOL_SOCKET, SO_SNDBUF, &DEFAULT_SEND_BUF_SIZE, &send_len );
+                log_module( LOG_DEBUG, "SERVE_FOREVER", "DEFAULT RECV BUFFER SIZE IS :%u SEND BUFFER SIZE:%u", DEFAULT_RECV_BUF_SIZE, DEFAULT_SEND_BUF_SIZE );
+            }
+            ev_run( main_event_loop,0 );
         }
         else
         {

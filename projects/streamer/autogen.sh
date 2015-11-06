@@ -16,6 +16,7 @@ CONFIG_INSTALL_PATH=/etc/streamer
 SERVICE=./scripts/streamer
 MAKEFILE="./Makefile"
 COMPILER="g++"
+COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow"
 DEPS="-lev -lpthread"
 INSTALL_DIR=/usr/local/bin
 AUTHOR=chenzhengqiang
@@ -54,7 +55,7 @@ echo >> $MAKEFILE
 
 echo "TARGET:=$TARGET" >> $MAKEFILE
 echo "CC:=$COMPILER" >> $MAKEFILE
-echo "CFLAGS:=-g -W -Wall -I\$(INCLUDE_DIR) $DEPS" >> $MAKEFILE
+echo "CFLAGS:=$COMPILER_FLAGS -I\$(INCLUDE_DIR) $DEPS" >> $MAKEFILE
 
 for cpp_file in `ls $SOURCE_DIR` 
 do
@@ -88,6 +89,7 @@ echo -e "\t-rm -f *.o *.a *.so *.log *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKE
 echo >> $MAKEFILE
 
 echo "install:" >> $MAKEFILE
+echo -e "\t-rm -f \$(INSTALL_DIR)/\$(TARGET)" >> $MAKEFILE
 echo -e "\t-mv \$(TARGET) \$(INSTALL_DIR)" >> $MAKEFILE
 echo -e "\t-cp -f \$(SERVICE) /etc/init.d/\$(TARGET)" >> $MAKEFILE
 echo -e "\t-rm -rf \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE

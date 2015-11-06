@@ -582,17 +582,16 @@ void get_src_info( const std::string & src, string & IP, int & PORT)
 
 
 
-
 /*
 #@args:
 #@returns:0 ok,-1 error or it indicates that clients has close the socket
           others indicates try again
 #@desc:
 */
-int  read_http_header(int fd, void *buffer, size_t buffer_size )
+int read_http_header( int fd, void *buffer, size_t buffer_size )
 {
     #define JUDGE_RETURN(X) \
-    if( (X) <= 0 )\
+    if( (X) < 0 )\
     {\
            if( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK )\
            {\
@@ -600,52 +599,54 @@ int  read_http_header(int fd, void *buffer, size_t buffer_size )
            }\
            else\
            {\
-                log_module(LOG_DEBUG,"READ_HTTP_HEADER","READ BYTES:%d READ ERROR:%s",(X),strerror(errno));\
-                return 0;\
+               log_module( LOG_ERROR,"READ_HTTP_HEADER","SYSTEM ERROR:%s",strerror(errno));\
+               return 0;\
            }\
      }\
      else\
-     return 0;  
+     {\
+	log_module( LOG_ERROR, "READ_HTTP_HEADER", "READ 0 BYTE CLIENT DISCONNECTED RELATED TO SOCK FD:%d", fd );\
+	return 0;\
+     }	
               
     int received_bytes;
     size_t left_bytes = 0;
     size_t read_bytes = 0;
     char *buffer_forward = (char *)buffer;
-    bool read_http_header_done = false;
-    
+
+    log_module( LOG_DEBUG, "READ_HTTP_HEADER", "READ THE HTTP HEADER BYTE BY BYTE SOCK FD:%d START", fd );
     while(  true )
     {
-         if( (received_bytes = read( fd,buffer_forward,sizeof(char))) <= 0 )
+         if( ( received_bytes = read( fd,buffer_forward,sizeof(char))) <= 0 )
          {
-              JUDGE_RETURN(received_bytes);
+              JUDGE_RETURN( received_bytes );
          }
          
          read_bytes += received_bytes;
-         if( read_bytes > buffer_size )
+         if( read_bytes == buffer_size )
          {
-              log_module(LOG_DEBUG,"READ_HTTP_HEADER","READ_BYTES:%d--%s",read_bytes,LOG_LOCATION);
+              log_module( LOG_ERROR,"READ_HTTP_HEADER","REQUESTED HTTP HEADER IS TOO LONG");
               return -1;
          }
 
-         if( *buffer_forward == '\0' )
-         return read_bytes;
-
-         if( !read_http_header_done && *buffer_forward == '\r' )
+         if( *buffer_forward == '\r' )
          {
-              buffer_forward+=received_bytes; 
-              left_bytes = 3*sizeof(char);
+              buffer_forward += received_bytes; 
+              left_bytes = 3*sizeof( char );
+	      if( ( read_bytes + left_bytes ) > buffer_size )
+	      {
+		 log_module( LOG_ERROR, "READ_HTTP_HEADER", "REQUESTED HTTP HEADER IS TOO LONG");
+		 return -1;		 
+	      }
+
               while( true )
               {
-                   if((received_bytes = read( fd,buffer_forward,left_bytes)) <= 0)
+                   if( (received_bytes = read( fd,buffer_forward,left_bytes )) <= 0 )
                    {
-                        JUDGE_RETURN(received_bytes);
+                        JUDGE_RETURN( received_bytes );
                    }
+                   
                    read_bytes+=received_bytes;
-                   if( read_bytes > buffer_size )
-                   {
-                       log_module(LOG_DEBUG,"READ_HTTP_HEADER","READ_BYTES:%d--%s",read_bytes,LOG_LOCATION);
-                       return -1;
-                   }
                    buffer_forward += received_bytes;
                    left_bytes -= received_bytes;
                    if( left_bytes == 0 )
@@ -653,7 +654,6 @@ int  read_http_header(int fd, void *buffer, size_t buffer_size )
               }
               if( *--buffer_forward == '\n' )
               {
-                    read_http_header_done = true;
                     return read_bytes;
               }
               ++buffer_forward;
@@ -663,6 +663,8 @@ int  read_http_header(int fd, void *buffer, size_t buffer_size )
               buffer_forward+=received_bytes; 
          }
     }
+    
+    log_module( LOG_DEBUG, "READ_HTTP_HEADER", "READ THE HTTP HEADER BYTE BY BYTE SOCK FD:%d DONE", fd );
     return read_bytes;
 }
 
@@ -679,6 +681,7 @@ int read_specify_size( int fd, void *buffer, size_t total_bytes)
     uint8_t *buffer_forward;
     buffer_forward = (uint8_t *)buffer;
     left_bytes = total_bytes;
+
     while ( true )
     {
         if ( (received_bytes = read(fd, buffer_forward, left_bytes)) <= 0)
@@ -691,32 +694,34 @@ int read_specify_size( int fd, void *buffer, size_t total_bytes)
                 }
                 else if( errno == EAGAIN || errno == EWOULDBLOCK )
                 {
-		    if( (total_bytes-left_bytes) == 0 )
-		    continue;		
-		    //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","+++++DONE+++++");
-                  return (total_bytes-left_bytes);
+		        if( (total_bytes-left_bytes) == 0 )
+		        continue;		
+		        log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","+++++DONE+++++");
+		        return ( total_bytes-left_bytes );
                 }
                 else
-		{
-	 	    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ ERROR %s",strerror(errno));
-		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
-                    return 0;
-		}
+		   {
+	 	        log_module( LOG_ERROR,"READ_SPECIFY_SIZE","SOCKET READ ERROR OCCURRED:%s", strerror( errno ) );
+		        log_module( LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++" );	
+                     return 0;
+		   }
             }
             else
-	    {
-		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","READ 0 BYTE FROM CLIENT:%s",strerror(errno));
-		    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");
+	     {
+		    log_module( LOG_INFO,"READ_SPECIFY_SIZE","READ 0 BYTE FROM CLIENT ERROR:%s",strerror(errno));
+		    log_module( LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");
                  return 0; // it indicates the camera has  stoped to push stream or unknown error occurred
-	    }
+	     }
         }
+        
         left_bytes -= received_bytes;
         if( left_bytes == 0 )
             break;
         buffer_forward   += received_bytes;
     }
-    //log_module(LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
-    return (total_bytes-left_bytes);
+
+    log_module( LOG_DEBUG,"READ_SPECIFY_SIZE","+++++DONE+++++");	
+    return ( total_bytes-left_bytes );
 }
 
 
@@ -739,11 +744,18 @@ int read_specify_size2( int fd, void *buffer, size_t total_bytes)
                     received_bytes = 0;
                 }
                 else
+                {
+                    log_module( LOG_ERROR, "READ_SPECIFY_SIZE2", "SOCKET READ ERROR OCCURRED:%s", strerror(errno) );
                     return 0;
+                }
             }
             else
+            {
+                log_module( LOG_INFO,"READ_SPECIFY_SIZE2","READ 0 BYTE FROM CLIENT ERROR MSG:%s",strerror(errno));
                 return 0; // it indicates the camera has  stoped to push stream or unknown error occurred
+            }
         }
+        
         left_bytes -= received_bytes;
         if( left_bytes == 0 )
             break;
@@ -764,28 +776,29 @@ ssize_t   write_specify_size(int fd, const void *buffer, size_t total_bytes)
     left_bytes = total_bytes;
     while ( true )
     {
-        if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+        if ( (sent_bytes = write( fd, buffer_forward, left_bytes)) <= 0)
         {
             if ( sent_bytes < 0 )
             {
                 if( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK )
                 {
-                    if( (total_bytes - left_bytes) == 0)
-                    {
-                        sent_bytes = 0;
-                        continue;
-                    }
+                    log_module( LOG_DEBUG, "WRITE_SPECIFY_SIZE", "EAGAIN OR EINTER OCCURRED, JUST WAITING FOR THE NEXT");
                     return total_bytes-left_bytes;
                 }
                 else
                 {
+                    log_module( LOG_ERROR, "WRITE_SPECIFY_SIZE", "SOCKET WRITE ERROR OCCURRED:%s", strerror(errno) );
                     return -1;
                 }
             }
             else
-                return -1;
+            {
+                log_module( LOG_INFO, "WRITE_SPECIFY_SIZE", "WRITE ZERO BYTE, JUST WAITING FOR THE NEXT");
+                return total_bytes-left_bytes;
+            }
 
         }
+        
         left_bytes -= sent_bytes;
         if( left_bytes == 0 )
             break;
@@ -807,7 +820,7 @@ ssize_t   write_specify_size2(int fd, const void *buffer, size_t total_bytes)
     left_bytes = total_bytes;
     while ( true )
     {
-        if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+        if ( (sent_bytes = write( fd, buffer_forward, left_bytes ) ) <= 0)
         {
             if ( sent_bytes < 0 )
             {
@@ -817,13 +830,17 @@ ssize_t   write_specify_size2(int fd, const void *buffer, size_t total_bytes)
                 }
                 else
                 {
+                    log_module( LOG_ERROR, "WRITE_SPECIFY_SIZE2", "SOCKET WRITE ERROR OCCURRED:%s", strerror(errno) );
                     return -1;
                 }
             }
             else
-                return -1;
+            {
+                sent_bytes = 0;
+            }
 
         }
+        
         left_bytes -= sent_bytes;
         if( left_bytes == 0 )
             break;

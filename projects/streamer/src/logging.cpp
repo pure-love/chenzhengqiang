@@ -101,15 +101,15 @@ int log_reopen( void )
     time_t curtime;
     struct tm *loctime;
     /* Get the current time. */
-    curtime = time (NULL);
+    curtime = time ( NULL );
     /* Convert it to local time representation. */
-    loctime = localtime(&curtime);
+    loctime = localtime( &curtime );
     /* Print it out in a nice format. */
     strftime ( timeBuffer, sizeof(timeBuffer), "%Y%m%d%H%M%S", loctime);
     snprintf( new_file,sizeof(new_file),"%s.%s",INITIAL_LOG_FILE,timeBuffer);
     rename( INITIAL_LOG_FILE, new_file );
     fclose( logFP );
-    
+   
     logFP = fopen( INITIAL_LOG_FILE, "w");
     if (logFP == NULL)
     {
@@ -126,12 +126,12 @@ void loglevel_set(int level)
     verbosity = level;
 }
 
-int loglevel_get(void)
+int loglevel_get( void )
 {
     return verbosity;
 }
 
-void loglevel_inc(void)
+void loglevel_inc( void )
 {
     verbosity++;
 }
@@ -141,7 +141,7 @@ void loglevel_dec(void)
     verbosity--;
 }
 
-unsigned int loglevel_is_enabled(int level)
+unsigned int loglevel_is_enabled( int level )
 {
     return (level <= verbosity);
 }
@@ -169,18 +169,17 @@ static void log_impl(int level, const char *module, const char * format, va_list
     pthread_mutex_lock(&mutex);
     if( logfile_size() >= FILE_SIZE_LIMIT )
     {
-         fclose(logFP);
-         logFP = NULL;
          if( log_reopen() == -1 )
          {
              pthread_mutex_unlock(&mutex);
              return;
          }
     }
+    
     /* Get the current time. */
-    curtime = time (NULL);
+    curtime = time ( NULL );
     /* Convert it to local time representation. */
-    loctime = localtime(&curtime);
+    loctime = localtime( &curtime );
     /* Print it out in a nice format. */
     strftime (timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
     
@@ -193,9 +192,9 @@ static void log_impl(int level, const char *module, const char * format, va_list
         fprintf( logFP, "\n" );
     }
 
-    if (( level == LOG_ERROR ) && ( errno != 0))
+    if (( level == LOG_ERROR ) && ( errno != 0) )
     {
-        fprintf(logFP, "%s %-15s : %-8s : errno = %d (%s)\n", timeBuffer,
+        fprintf( logFP, "%s %-15s : %-8s : errno = %d (%s)\n", timeBuffer,
                 module ? module:"<Unknown>",LOG_LEVEL_DESC[level] , errno, strerror(errno));
     }
     pthread_mutex_unlock(&mutex);

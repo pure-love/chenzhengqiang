@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20150930-16:46:53
+#generate date:20151106-09:28:39
 
 
 INCLUDE_DIR:=./include/
@@ -11,8 +11,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=streamer
 CC:=g++
-CFLAGS:=-g -W -Wall -I$(INCLUDE_DIR)
-LDFLAGS:=-lev -lpthread
+CFLAGS:=-g -W -Wall -Werror -Wshadow -I$(INCLUDE_DIR) -lev -lpthread
 OBJS:=system_info streamerutility streamer state_server parson logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
@@ -27,7 +26,7 @@ TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 .PHONEY=tar
 all:$(TARGET)
 $(TARGET):$(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS)
 $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
 
@@ -35,6 +34,7 @@ clean:
 	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
 
 install:
+	-rm -f $(INSTALL_DIR)/$(TARGET)
 	-mv $(TARGET) $(INSTALL_DIR)
 	-cp -f $(SERVICE) /etc/init.d/$(TARGET)
 	-rm -rf $(CONFIG_INSTALL_PATH)

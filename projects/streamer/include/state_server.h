@@ -11,13 +11,12 @@
 
 #include<ev++.h>
 #include<cstddef>
-int register_state_server();
+
 void accept_request_cb(struct ev_loop *, struct ev_io *, int);
 void receive_cb(struct ev_loop *, struct ev_io *, int);
 void send_system_info_cb(struct ev_loop *, struct ev_io *, int);
 void * state_server_entry( void * args );
 bool start_by_pthread();
 bool startup_state_server( ssize_t listen_fd );
-
 bool start_by_main_loop();
 #endif

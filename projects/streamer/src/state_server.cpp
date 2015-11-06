@@ -23,21 +23,6 @@
 
 system_info SI;
 
-int register_state_server( const char *HOST, const char *SERVICE )
-{
-    log_module( LOG_DEBUG, "STATE_SERVER" , "REGISTER_STATE_SERVER START" );
-    int listenfd = tcp_listen( HOST, SERVICE );
-    
-    if( listenfd == -1 )
-    {
-        log_module(LOG_INFO,"REGISTER_STATE_SERVER","FAILED: TCP_LISTEN:%s",LOG_LOCATION);
-    }
-    return listenfd;
-    log_module(LOG_DEBUG,"STATE_SERVER","REGISTER_STATE_SERVER DONE");
-}
-
-
-
 void * state_server_entry( void * args )
 {
     //convert the args to long,cause it might be 64 ocet pointer
@@ -47,6 +32,7 @@ void * state_server_entry( void * args )
     if( state_server_loop == NULL )
     {
         log_module( LOG_ERROR,"STATE_SERVER","EV_LOOP_NEW FAILED:%s",LOG_LOCATION );
+        close( listen_fd );
         return NULL;
     }
     
@@ -56,6 +42,7 @@ void * state_server_entry( void * args )
         free( state_server_loop );
         state_server_loop = NULL;
         log_module( LOG_ERROR, "STATE_SERVER", "ALLOCATE MEMORY FAILED:%s", LOG_LOCATION );
+        close( listen_fd );
         return NULL;
     }
     
@@ -74,7 +61,7 @@ void * state_server_entry( void * args )
 
 
 
-bool start_by_pthread(ssize_t listen_fd )
+bool start_by_pthread( ssize_t listen_fd )
 {
     pthread_t tid;
     pthread_attr_t thread_attr;
@@ -83,7 +70,7 @@ bool start_by_pthread(ssize_t listen_fd )
     int ret = pthread_create( &tid, &thread_attr, state_server_entry, (void *)listen_fd );
     if( ret == -1 )
     {
-         log_module(LOG_INFO,"STATE_SERVER","START_BY_PTHREAD FAILED:%s",LOG_LOCATION);
+         log_module( LOG_INFO, "STATE_SERVER", "START_BY_PTHREAD FAILED:%s", LOG_LOCATION );
          return false;
     }
     return true;
@@ -91,11 +78,11 @@ bool start_by_pthread(ssize_t listen_fd )
 
 
 
-void accept_request_cb(struct ev_loop * state_server_loop, struct ev_io *listen_watcher, int revents )
+void accept_request_cb( struct ev_loop * state_server_loop, struct ev_io *listen_watcher, int revents )
 {
-    log_module(LOG_DEBUG,"STATE SERVER","ACCEPT_REQUEST_CB START");
+    log_module( LOG_DEBUG,"STATE SERVER","ACCEPT_REQUEST_CB START" );
     struct sockaddr_in client_addr;
-    socklen_t len = sizeof(struct sockaddr_in);
+    socklen_t len = sizeof( struct sockaddr_in );
  
     if( EV_ERROR & revents )
     {
@@ -103,37 +90,26 @@ void accept_request_cb(struct ev_loop * state_server_loop, struct ev_io *listen_
         return;
     }
     
-    int client_fd = accept( listen_watcher->fd, (struct sockaddr *)&client_addr, &len );
+    int client_fd = accept( listen_watcher->fd, ( struct sockaddr *)&client_addr, &len );
     if( client_fd < 0 )
     {
         log_module( LOG_ERROR, "STATE SERVER", "ACCEPT ERROR:%s--%s", strerror(errno), LOG_LOCATION );
         return;
     }
-    
-    char *client_ip = new char[INET_ADDRSTRLEN];
-    if( client_ip == NULL )
-    {
-         close( client_fd );
-         log_module( LOG_ERROR, "STATE SERVER", "ALLOCATE MEMORY FAILED:%s", LOG_LOCATION );
-         return;
-    }
-    
-    inet_ntop( AF_INET, &client_addr.sin_addr, client_ip, INET_ADDRSTRLEN );
-    log_module( LOG_DEBUG,"STATE SERVER","ACCEPT_CB:CLIENT %s CONNECTED", client_ip );
+
+    log_module( LOG_DEBUG,"STATE SERVER","CLIENT %s:%d CONNECTED SOCK FD IS:%d", 
+                                inet_ntoa( client_addr.sin_addr), ntohs(client_addr.sin_port), client_fd );
     //register the socket io events for reading
     struct ev_io * receive_request_watcher = (struct ev_io *) malloc(sizeof(struct ev_io) );
     
     if( receive_request_watcher == NULL )
     {
-         delete [] client_ip;
-         client_ip = NULL;
          close( client_fd );
-         log_module( LOG_INFO,"STATE SERVER","ALLOCATE MEMORY FAILED:%s--%s", strerror(errno), LOG_LOCATION );
+         log_module( LOG_ERROR, "STATE SERVER", "ALLOCATE MEMORY FAILED:%s--%s", strerror(errno), LOG_LOCATION );
          return;
     }
 
     sdk_set_nonblocking( client_fd );
-    receive_request_watcher->data = (void *)client_ip;
     ev_io_init(  receive_request_watcher, receive_cb, client_fd, EV_READ );
     ev_io_start(  state_server_loop, receive_request_watcher );
     log_module( LOG_DEBUG, "STATE SERVER", "ACCEPT_CB DONE" );
@@ -145,16 +121,13 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
 {
     #define DO_STATE_SERVER_RECEIVE_CLEAN() \
     ev_io_stop( state_server_loop,receive_request_watcher );\
-    delete [] static_cast<char *>( receive_request_watcher->data );\
-    receive_request_watcher->data = NULL;\
     delete receive_request_watcher;\
     receive_request_watcher = NULL;\
     return;
           
-    log_module( LOG_DEBUG,"STATE SERVER","RECEIVE_CB START");
     if( EV_ERROR & revents )
     {
-        log_module( LOG_ERROR,"STATE SERVER","RECEIVE_CB:ERROR FOR EV_ERROR:%s",LOG_LOCATION);
+        log_module( LOG_ERROR,"STATE SERVER","RECEIVE_CB:ERROR FOR EV_ERROR:%s",LOG_LOCATION );
         close( receive_request_watcher->fd );
         DO_STATE_SERVER_RECEIVE_CLEAN();
     }
@@ -166,8 +139,7 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
     {     
           if( received_bytes == 0 )
           {
-              log_module( LOG_INFO,"STATE SERVER","RECEIVE_CB ERROR:CLIENT %s DISCONNECTED",
-              static_cast<char *>(receive_request_watcher->data) );
+              log_module( LOG_INFO,"STATE SERVER","RECEIVE_CB ERROR:READ 0 BYTE CLIENT DISCONNECTED" );
           }
           else if( received_bytes == -1 )
           {
@@ -178,7 +150,7 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
     }
     
     http_request[received_bytes]='\0';
-    log_module( LOG_DEBUG,"STATE SERVER", "RECEIVE_CB--HTTP REQUEST IS:%s", http_request );
+    log_module( LOG_DEBUG,"STATE SERVER", "HTTP REQUEST IS:%s", http_request );
 
     std::string http_header( http_request );
     if( (http_header.find("GET") == std::string::npos && http_header.find("get") == std::string::npos )
@@ -187,20 +159,19 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
       )
       
     {
-        log_module( LOG_ERROR, "STATE SERVER","INVALID HTTP REQUEST:%s", http_header.substr(0,http_header.find("\r\n")));
+        log_module( LOG_ERROR, "STATE SERVER","INVALID HTTP REQUEST:%s", (http_header.substr(0,http_header.find("\r\n"))).c_str());
         const char *http_400_badrequest="HTTP/1.1 400 Bad Request\r\n\r\n";
-        write_specify_size2(receive_request_watcher->fd, http_400_badrequest, strlen(http_400_badrequest) );
+        write_specify_size2( receive_request_watcher->fd, http_400_badrequest, strlen(http_400_badrequest) );
         close( receive_request_watcher->fd );
         DO_STATE_SERVER_RECEIVE_CLEAN();
     }
     
-    log_module( LOG_DEBUG,"STATE SERVER","READY TO SEND SYSTEM INFO TO CLIENT:%s",static_cast<char*>(receive_request_watcher->data));
     struct ev_io *send_system_info_watcher = new struct ev_io;
     if( send_system_info_watcher == NULL )
     {
-            log_module(LOG_INFO,"STATE SERVER","RECEIVE_CB:Failed To Allocate Memory:%s",LOG_LOCATION );
+            log_module( LOG_INFO,"STATE SERVER","RECEIVE_CB:FAILED TO ALLOCATE MEMORY:%s", LOG_LOCATION );
             const char *http_500_internal="HTTP/1.1 500 Internal Server Error\r\n\r\n";
-            write_specify_size2(receive_request_watcher->fd, http_500_internal, strlen( http_500_internal ));
+            write_specify_size2( receive_request_watcher->fd, http_500_internal, strlen( http_500_internal ) );
             close( receive_request_watcher->fd );
             DO_STATE_SERVER_RECEIVE_CLEAN();
             return;
@@ -208,21 +179,23 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
         
     ev_io_init( send_system_info_watcher, send_system_info_cb, receive_request_watcher->fd, EV_WRITE );
     ev_io_start( state_server_loop,send_system_info_watcher );
-    log_module( LOG_DEBUG, "STATE_SERVER", "RECEIVE_CB DONE" );
     DO_STATE_SERVER_RECEIVE_CLEAN();
 }
 
 
 void send_system_info_cb(struct ev_loop *state_server_loop, struct ev_io * send_system_info_watcher, int revents )
 {
+    #define DO_SEND_SYSTEM_INFO_CLEAN() \
+    close( send_system_info_watcher->fd );\
+    ev_io_stop( state_server_loop,send_system_info_watcher );\
+    delete send_system_info_watcher;\
+    send_system_info_watcher = NULL;\
+    return;
+        
     if( EV_ERROR & revents )
     {
-        log_module(LOG_INFO,"STATE SERVER","SEND_SYSTEM_INFO_CB:ERROR OCCURRED FOR EV_ERROR %s",LOG_LOCATION);
-        close( send_system_info_watcher->fd );
-        ev_io_stop( state_server_loop,send_system_info_watcher );
-        delete send_system_info_watcher;
-        send_system_info_watcher = NULL;
-        return;
+        log_module( LOG_ERROR,"STATE SERVER","SEND_SYSTEM_INFO_CB:ERROR OCCURRED FOR EV_ERROR %s",LOG_LOCATION);
+        DO_SEND_SYSTEM_INFO_CLEAN();
     }
 
     double cpu_occupy = SI.get_cpu_occupy();
@@ -234,11 +207,7 @@ void send_system_info_cb(struct ev_loop *state_server_loop, struct ev_io * send_
     {
          const char * http_200_ok = "HTTP/1.1 200 OK\r\nContent-type:application/json\r\n\r\n{\"code\":10006,\"message\":\"server error\"}";
          write_specify_size2(send_system_info_watcher->fd,http_200_ok,strlen(http_200_ok));
-         close( send_system_info_watcher->fd );
-         ev_io_stop( state_server_loop,send_system_info_watcher );
-         delete send_system_info_watcher;
-         send_system_info_watcher = NULL;
-         return;
+         DO_SEND_SYSTEM_INFO_CLEAN();
     }
 
     JSON_Value *root_value = json_value_init_object();
@@ -310,17 +279,14 @@ void send_system_info_cb(struct ev_loop *state_server_loop, struct ev_io * send_
     json_free_serialized_string( serialized_string );
     json_value_free( root_value );
     root_value = NULL;
-    close( send_system_info_watcher->fd );
-    ev_io_stop( state_server_loop,send_system_info_watcher );
-    delete send_system_info_watcher;
-    send_system_info_watcher = NULL;
-
+    log_module( LOG_DEBUG, "STATE SERVER","STREAMER STAT INFO ALREADY SENT,SOCK FD:%d CLOSED", send_system_info_watcher->fd );
+    DO_SEND_SYSTEM_INFO_CLEAN();
 }
 
 
 bool startup_state_server( ssize_t listen_fd )
 {
-    log_module( LOG_DEBUG, "STATE SERVER" , "STARTUP_STATE_SERVER START:%s" ,LOG_LOCATION );
+    log_module( LOG_DEBUG, "STATE SERVER" , "STARTUP_STATE_SERVER LISTEN FD:%d" ,listen_fd );
     //int listen_fd = register_state_server(NULL,"state_server");
     if( listen_fd < 0 )
     {
@@ -329,7 +295,7 @@ bool startup_state_server( ssize_t listen_fd )
     }
     
     start_by_pthread( listen_fd );
-    log_module(LOG_DEBUG,"STATE SERVER","STARTUP_STATE_SERVER DONE:%s",LOG_LOCATION);
+    log_module( LOG_DEBUG,"STATE SERVER","STARTUP_STATE_SERVER DONE",LOG_LOCATION);
     return true;
 }
 

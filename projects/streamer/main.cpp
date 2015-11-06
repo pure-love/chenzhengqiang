@@ -26,11 +26,11 @@ int main( int ARGC, char ** ARGV )
 
     if( cmd_options.need_print_version )
     {
-        print_version(config.version.c_str());
+        print_version( config.version.c_str() );
     }
 
-    streamer_listen_fd = register_tcp_server(config.streamer_ip.c_str(),config.streamer_port);
-    state_listen_fd = register_tcp_server(config.state_ip.c_str(),config.state_port);
-    serve_forever(streamer_listen_fd,state_listen_fd,config);
+    streamer_listen_fd = register_tcp_server(config.streamer_ip.c_str(), config.streamer_port);
+    state_listen_fd = register_tcp_server(config.state_ip.c_str(), config.state_port );
+    serve_forever(streamer_listen_fd, state_listen_fd, config);
     return 0;
 }	
