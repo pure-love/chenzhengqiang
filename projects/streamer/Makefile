@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20151106-09:28:39
+#generate date:20151113-17:51:57
 
 
 INCLUDE_DIR:=./include/
@@ -11,8 +11,8 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=streamer
 CC:=g++
-CFLAGS:=-g -W -Wall -Werror -Wshadow -I$(INCLUDE_DIR) -lev -lpthread
-OBJS:=system_info streamerutility streamer state_server parson logging main
+CFLAGS:=-O0 -g -W -Wall -Werror -Wshadow -I$(INCLUDE_DIR) -lev -lpthread
+OBJS:=system_info streamer state_server rosehttp parson netutility logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

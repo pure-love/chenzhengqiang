@@ -9,12 +9,13 @@
 #define _CZQ_ERRORS_H_
 
 static const int OK = 0;
-static const int SYSTEM_ERROR = 99;
-static const int ARGUMENT_ERROR = 98;
-static const int FILE_EOF = 97;
-static const int FILE_FORMAT_ERROR = 96;
-static const int FILE_LENGTH_ERROR = 95;
-static const int LENGTH_OVERFLOW = 94;
-static const int STREAM_FORMAT_ERROR = 93;
-static const int STREAM_LENGTH_ERROR = 92;
+static const int SYSTEM_ERROR = -99;
+static const int ARGUMENT_ERROR = -98;
+static const int FILE_EOF = -97;
+static const int FILE_FORMAT_ERROR = -96;
+static const int FILE_LENGTH_ERROR = -95;
+static const int LENGTH_OVERFLOW = -94;
+static const int STREAM_FORMAT_ERROR = -93;
+static const int STREAM_LENGTH_ERROR = -92;
+
 #endif

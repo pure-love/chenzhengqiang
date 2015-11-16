@@ -9,11 +9,12 @@
  * @Desc:the kernel of the entire streaming server
  **********************************************************/
 
+#include "errors.h"
 #include "common.h"
 #include "flv.h"
 #include "streamer.h"
 #include "state_server.h"
-#include "streamerutility.h"
+#include "netutility.h"
 #include "logging.h"
 #include <sys/resource.h>
 
@@ -50,7 +51,7 @@ static const size_t SCRIPT_TAG = 18;
 static const size_t TAG_DATA_SIZE=1024;
 static const size_t VIEWERS_LIMIT = 2000;
 static const size_t CHANNELS_LIMIT = 100;
-static const size_t MAX_CHANNEL_SIZE=64;
+static const size_t MAX_CHANNEL_SIZE=32;
 static const int ONLINE = 0;
 static const int OFFLINE = 1;
 
@@ -78,8 +79,7 @@ struct VIEWER_QUEUE
 //every signle viewer own a viewer queue
 typedef struct
 {
-    string channel;
-    char IP[INET_ADDRSTRLEN];
+    char channel[MAX_CHANNEL_SIZE];
     ssize_t client_fd;
     bool send_first; //specify that if it's the first time to send tags to viewer
     bool register_viewer_callback_first;
@@ -271,9 +271,14 @@ static inline void free_workthread_info_pool(void)
 #@returns:CAMERAS_PTR
 #@desc:new camera_ptr and initialize it
 */
-CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & channel )
+CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::string & channel )
 {
-        assert(receive_request_watcher!=NULL);
+        if( receive_request_watcher == NULL )
+        {
+            log_module( LOG_ERROR, "NEW_CAMERAS", "RUNTIME ERROR OCCURRED: RECEIVE_REQUEST_WATCHER IS NOT VALID");
+            return NULL;
+        }
+        
         CAMERAS_PTR  camera_ptr = new CAMERAS;
         if( camera_ptr == NULL )
         {
@@ -290,7 +295,6 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
         }
         
         //CAMERAS_PTR INITIALIZATION START
-        memcpy( camera_ptr->IP,static_cast<char *>(receive_request_watcher->data),INET_ADDRSTRLEN );
         camera_ptr->camera_watcher = new struct ev_io;
         if( camera_ptr->camera_watcher == NULL )
         {
@@ -357,27 +361,31 @@ CAMERAS_PTR new_cameras(struct ev_io * receive_request_watcher, const string & c
 #@returns:VIEWER_INFO_PTR
 #@desc:new viewer_info_ptr and initialize it
 */
-VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher,HTTP_REQUEST_INFO & req_info )
+VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher, const std::string & channel )
 {
-       assert(receive_request_watcher!=NULL);
+       if( receive_request_watcher == NULL || receive_request_watcher->fd < 0 )
+       {
+            log_module( LOG_ERROR, "NEW_VIEWER_INFO", "RUNTIME ERROR OCCURRED:RECEIVE_REQUEST_WATCHER IS NOT VALID");
+            return NULL;
+       }
+       
        VIEWER_INFO_PTR viewer_info_ptr = new VIEWER_INFO;
        if( viewer_info_ptr == NULL )
        {
-            log_module(LOG_INFO,"NEW_VIEWER_INFO","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+            log_module( LOG_ERROR, "NEW_VIEWER_INFO","ALLOCATE MEMORY FAILED:%s", strerror( errno));
             return NULL;
        }
 
        viewer_info_ptr->viewer_watcher = new struct ev_io;
-       if( viewer_info_ptr == NULL )
+       if( viewer_info_ptr->viewer_watcher == NULL )
        {
-            log_module(LOG_INFO,"NEW_VIEWER_INFO","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+            log_module(LOG_INFO,"NEW_VIEWER_INFO","ALLOCATE MEMORY FAILED:%s", strerror(errno) );
             delete viewer_info_ptr;
             viewer_info_ptr = NULL;
             return NULL;
        }
        
-       viewer_info_ptr->channel = req_info.channel;
-       strcpy(viewer_info_ptr->IP,static_cast<char *>(receive_request_watcher->data));
+       strncpy( viewer_info_ptr->channel, channel.c_str(), MAX_CHANNEL_SIZE );
        viewer_info_ptr->send_first = true;
        viewer_info_ptr->register_viewer_callback_first = true;
        viewer_info_ptr->send_key_frame_first = true;
@@ -858,90 +866,158 @@ void drop_frame( VIEWER_QUEUE & viewer_queue )
 
 
 
+void do_channel_notify( const std::string & channel , const int flag )
+{
+      log_module( LOG_DEBUG, "DO_CHANNEL_NOTIFY", "RELATED TO CHANNEL:%s", channel.c_str() );
+      if( ev_async_pending( NOTIFY_ASYNC_WATCHER ) == 0 )
+      {
+             NOTIFY_DATA * notify_data = new NOTIFY_DATA;
+             strcpy( notify_data->channel, channel.c_str() );
+             notify_data->flag = flag;
+             NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;
+             ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );
+             log_module( LOG_DEBUG, "DO_CHANNEL_NOTIFY", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s DONE+++++",
+                                                        channel.c_str() );
+      }
+      else
+      {
+            log_module( LOG_ERROR, "DO_CHANNEL_NOTIFY", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s FAILED+++++",
+                                                        channel.c_str() );
+      }
+      log_module( LOG_DEBUG, "DO_CHANNEL_NOTIFY", "RELATED TO CHANNEL:%s", channel.c_str() );
+}
+
+
+
+void delete_camera( struct ev_loop * workthread_loop, struct  ev_io *camera_watcher, 
+                                    workthread_info_reference_iter wir_iter, camera_info_reference_iter cir_iter )
+{
+        if( workthread_loop == NULL || camera_watcher == NULL )
+        {
+            log_module( LOG_ERROR, "DELETE_CAMERA", "RUNTIME ERROR OCCURRED,WORKTHREADLOOP OR CAMERA WATCHER IS NULL");
+            return;
+        }
+        
+        log_module( LOG_DEBUG, "DELETE_CAMERA", "++++++++++START++++++++++");
+        do_channel_notify( cir_iter->first, OFFLINE );
+        
+        if( !cir_iter->second->viewer_info_pool.empty() )
+        {
+            viewer_info_iter vi_iter = cir_iter->second->viewer_info_pool.begin();
+            while( vi_iter != cir_iter->second->viewer_info_pool.end() )
+            {
+                if( vi_iter->second->viewer_watcher != NULL )
+                {
+                    ev_io_stop( workthread_loop, vi_iter->second->viewer_watcher );
+                    close( vi_iter->second->viewer_watcher->fd  );
+                    delete vi_iter->second->viewer_watcher;
+                    vi_iter->second->viewer_watcher = NULL;
+                }
+                
+                delete_viewer_queue( vi_iter->second->viewer_queue );
+                delete vi_iter->second;
+                vi_iter->second=NULL;
+                ++vi_iter;
+            }
+            cir_iter->second->viewer_info_pool.clear();
+        }
+
+        if( loglevel_is_enabled( LOG_INFO ) )
+        {
+            if( camera_watcher->fd > 0 )
+            {
+                std::string peer_info = get_peer_info( camera_watcher->fd );
+                log_module( LOG_INFO, "DELETE_CAMERA", "CAMERA %s OFFLINE RELATED TO CHANNEL:%s", peer_info.c_str(), 
+                                                                              cir_iter->first.c_str() );
+            }
+        }
+        
+        if( camera_watcher->fd > 0 )
+        {
+            close( camera_watcher->fd );
+        }
+        else
+        {
+            log_module( LOG_ERROR, "DELETE_CAMERA", "RUNTIME ERROR OCCURRED,SOCKET FD IS NOT VALID RELATED TO CHANNEL:%s",
+                                                                             cir_iter->first.c_str() );
+        }
+        
+        ev_io_stop( workthread_loop, camera_watcher);
+        delete camera_watcher;
+        camera_watcher = NULL;
+        if( cir_iter->second->tag_data != NULL )
+        delete [] cir_iter->second->tag_data;
+        cir_iter->second->tag_data = NULL;
+        if( cir_iter->second->flv_script_tag != NULL )
+        delete [] cir_iter->second->flv_script_tag;
+        cir_iter->second->flv_script_tag = NULL;
+        if( cir_iter->second->avc_sequence_header != NULL )
+        delete [] cir_iter->second->avc_sequence_header;
+        cir_iter->second->avc_sequence_header = NULL;
+        if( cir_iter->second->aac_sequence_header != NULL )
+        delete [] cir_iter->second->aac_sequence_header;
+        cir_iter->second->aac_sequence_header = NULL;
+        delete cir_iter->second;
+        cir_iter->second = NULL;
+
+        log_module( LOG_INFO, "DELETE_CAMERA", "ERASE THE CHANNEL %s FROM CAMERAS CONTAINER", cir_iter->first.c_str() );
+        wir_iter->camera_info_pool.erase( cir_iter );
+        log_module( LOG_INFO, "DELETE_CAMERA", "ERASE DONE, THERE IS(ARE) REMAIN %u CAMERA(S)", 
+                                                                      wir_iter->camera_info_pool.size() );
+        
+        log_module( LOG_DEBUG, "DELETE_CAMERA", "++++++++++DONE++++++++++");
+        return;
+   
+}
+
+
 /*
 #@desc:receiving the stream pushed from the camera
 */
-void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_watcher, int revents )
+void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_watcher, int revents )
 {
     //usefull macros for deleting channel when camera has stoped to push stream
     //meanwhile delete all the viewers
-    #define DELETE_CAMERA_IF(X,Y) \
-    if((X) == (Y))\
-    {\
-        char MSG[199];\
-        snprintf(MSG,199,"CAMERA %s OFF LINE--READ BYTES:%d",ci_iter->second->IP,int(X));\
-        log_module( LOG_INFO,"RECEIVE_STREAM_CB",MSG );\
-        if( !ci_iter->second->viewer_info_pool.empty() )\
-        {\
-            viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.begin();\
-            while( vi_iter != ci_iter->second->viewer_info_pool.end())\
-            {\
-                close(vi_iter->second->viewer_watcher->fd);\
-                if( vi_iter->second->viewer_watcher != NULL )\
-                {\
-                     delete vi_iter->second->viewer_watcher;\
-                     vi_iter->second->viewer_watcher = NULL;\
-                }\
-                vi_iter->second->viewer_watcher = NULL;\
-                delete_viewer_queue(vi_iter->second->viewer_queue);\
-                delete vi_iter->second;\
-                vi_iter->second=NULL;\
-                ci_iter->second->viewer_info_pool.erase(vi_iter);\
-                ++vi_iter;\
-            }\
-        }\
-        NOTIFY_DATA * notify_data = new NOTIFY_DATA;\
-        if( notify_data == NULL )\
-        {\
-            log_module( LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW NOTIFY_DATA");\
-        }\
-        else\
-        {\
-            strcpy( notify_data->channel,cstr_channel );\
-            notify_data->flag = OFFLINE;\
-            NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;\
-            ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );\
-        }\
-        close(camera_watcher->fd);\
-        if( ci_iter->second->flv_script_tag != NULL )\
-        delete [] ci_iter->second->flv_script_tag;\
-        ci_iter->second->flv_script_tag = NULL;\
-        if( ci_iter->second->avc_sequence_header != NULL )\
-        delete [] ci_iter->second->avc_sequence_header;\
-        ci_iter->second->avc_sequence_header = NULL;\
-        if( ci_iter->second->aac_sequence_header != NULL )\
-        delete [] ci_iter->second->aac_sequence_header;\
-        ci_iter->second->aac_sequence_header = NULL;\
-        delete ci_iter->second;\
-        ci_iter->second = NULL;\
-        wi_iter->camera_info_pool.erase(ci_iter);\
-        ev_io_stop(workthread_loop,camera_watcher);\
-        delete camera_watcher;\
-        camera_watcher = NULL;\
-        return;\
-    }
-
     (void)workthread_loop;
     uint8_t tag_type;
     bool is_key_frame = false;
     bool tag_is_sequence_header = false;
-    if( EV_ERROR & revents )
+    
+    workthread_info_iter wi_iter = get_workthread_info_item( pthread_self() );
+    char * cstr_channel =(char *)camera_watcher->data;
+    if( cstr_channel == NULL )
     {
-        log_module(LOG_INFO,"RECEIVE_STREAM_CB","EV_ERROR %s",LOG_LOCATION);
+        log_module( LOG_ERROR, "RECEIVE_STREAM_CB", "RUNTIME ERROR OCCURRED,CAMERA WATCHER'S DATA IS NULL" );
+        rosehttp_reply_with_status( 500, camera_watcher->fd );
+	close( camera_watcher->fd );
+        return;
+    }
+    
+    string channel( cstr_channel );
+    camera_info_iter ci_iter = get_channel_info_item( wi_iter, channel );
+    if( ci_iter == wi_iter->camera_info_pool.end())
+    {
+        log_module( LOG_ERROR, "RECEIVE_STREAM_CB", "RUNTIME ERROR OCCURRED RELATED TO CHANNEL:%s", cstr_channel );
+        rosehttp_reply_with_status( 500, camera_watcher->fd );
+        ev_io_stop( workthread_loop, camera_watcher );
+        close( camera_watcher->fd );
+        delete [] cstr_channel;
+        delete camera_watcher;
         return;
     }
 
-    workthread_info_iter wi_iter;
-    camera_info_iter ci_iter;
+    if( EV_ERROR & revents )
+    {
+        log_module( LOG_ERROR,"RECEIVE_STREAM_CB","EV_ERROR OCCURRED" );
+        rosehttp_reply_with_status( 500, camera_watcher->fd );
+        delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+        return;
+    }
+
+
+
     //just initialize once for the capability's sake
-    wi_iter = get_workthread_info_item(pthread_self());
-    char * cstr_channel =(char *)camera_watcher->data;
-    
-    string channel(cstr_channel);
-    ci_iter = get_channel_info_item(wi_iter,channel);
-    if( ci_iter == wi_iter->camera_info_pool.end())
-    return; 
-    
+   
     size_t received_bytes = 0;
     size_t total_bytes = 0;
     if(ci_iter->second == NULL )
@@ -956,8 +1032,12 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
             received_bytes = read_specify_size(camera_watcher->fd,
                     ci_iter->second->flv_header+ci_iter->second->flv_header_received_bytes,
                     total_bytes);
+            if( received_bytes == 0 )
+            {
+                delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+                return;
+            }
             ci_iter->second->flv_header_received_bytes += received_bytes;
-            DELETE_CAMERA_IF(received_bytes,0);
             if( received_bytes != total_bytes )
             {
                 return;
@@ -988,10 +1068,16 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         total_bytes = TAG_HEADER_SIZE-ci_iter->second->tag_header_received_bytes;
         received_bytes = read_specify_size(camera_watcher->fd,
                 ci_iter->second->tag_header+ci_iter->second->tag_header_received_bytes , total_bytes);
+
+        if( received_bytes == 0 )
+        {
+              delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+              return;
+        }
+        
         ci_iter->second->tag_header_received_bytes += received_bytes;
-        DELETE_CAMERA_IF(received_bytes,0);
-	if( received_bytes != total_bytes )
-	return;
+	 if( received_bytes != total_bytes )
+	 return;
        
 	ci_iter->second->not_received_tag_header_done = false;
        ci_iter->second->tag_header_received_bytes = 0;
@@ -1007,6 +1093,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         if(  ci_iter->second->tag_data == NULL  )
         {
             log_module(LOG_ERROR,"RECEIVE_STREAM_CB","FAILED TO ALLOCATE MEMORY:%s",strerror(errno));
+            delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
             return;
         }
         
@@ -1022,9 +1109,13 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
         
         total_bytes = ci_iter->second->tag_data_size-ci_iter->second->tag_data_received_bytes;
         received_bytes = read_specify_size( camera_watcher->fd,
-                ci_iter->second->tag_data+ci_iter->second->tag_data_received_bytes,total_bytes);
+                ci_iter->second->tag_data+ci_iter->second->tag_data_received_bytes,total_bytes );
 
-        DELETE_CAMERA_IF( received_bytes, 0 );
+        if( received_bytes == 0 )
+        {
+             delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+             return;
+        }
         ci_iter->second->tag_data_received_bytes += received_bytes;
         if( received_bytes != total_bytes )
         {
@@ -1038,16 +1129,17 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     
     size_t packet_size = TAG_HEADER_SIZE  + ci_iter->second->tag_data_size;
     uint8_t *packet = new uint8_t[packet_size];
-    memset(packet,0,packet_size);
+    memset( packet, 0, packet_size);
     //std::vector<uint8_t> packet(packet_size);
     if( packet == NULL )
     {
-        log_module(LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:uint8_t *packet= new uint8_t[packet_size]");
+        log_module( LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:uint8_t *packet= new uint8_t[packet_size]");
+        delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
         return;
     }
 
-    memcpy(packet,ci_iter->second->tag_header,TAG_HEADER_SIZE);
-    memcpy(packet+TAG_HEADER_SIZE, ci_iter->second->tag_data, ci_iter->second->tag_data_size);
+    memcpy( packet,ci_iter->second->tag_header,TAG_HEADER_SIZE);
+    memcpy( packet+TAG_HEADER_SIZE, ci_iter->second->tag_data, ci_iter->second->tag_data_size);
 
     tag_type =  ci_iter->second->tag_header[0] & 0x1F;
     //log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","NOW PARSE THE FLV TAG :VIDEO TAG--AUDIO TAG--SCRIPT TAG--");
@@ -1069,7 +1161,7 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                     if( ci_iter->second->aac_sequence_header == NULL )
                     {
                          log_module(LOG_INFO,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
-                         DELETE_CAMERA_IF(0,0);
+                         delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
                     }
                     memcpy(ci_iter->second->aac_sequence_header,packet,packet_size);
                     ci_iter->second->aac_sequence_header_total_bytes = packet_size;
@@ -1112,8 +1204,9 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                     ci_iter->second->avc_sequence_header = new uint8_t[packet_size];
                     if(  ci_iter->second->avc_sequence_header == NULL )
                     {
-                         log_module(LOG_INFO,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
-                         DELETE_CAMERA_IF(0,0);
+                         log_module(LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
+                         delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+                         return;
                     }
                     memcpy(ci_iter->second->avc_sequence_header,packet,packet_size);
                     log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SAVE THE AVC SEQUENCE HEADER INTO CHANNEL POOL OK");
@@ -1142,10 +1235,11 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
             ci_iter->second->flv_script_tag = new uint8_t[packet_size];
             if( ci_iter->second->flv_script_tag == NULL )
             {
-                  log_module(LOG_INFO,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
-                  DELETE_CAMERA_IF(0,0);
+                  log_module( LOG_ERROR,"RECEIVE_STREAM_CB","ALLOCATE MEMORY FAILED:%s",strerror(errno));
+                  delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
+                  return;
             }
-            memcpy(ci_iter->second->flv_script_tag,packet,packet_size);
+            memcpy( ci_iter->second->flv_script_tag, packet,packet_size );
             log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","SAVE THE FLV SCRIPT TAG INTO CHANNEL POOL OK");
             break;
     }
@@ -1186,22 +1280,29 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
                  if( viewer_queue_full(vi_iter->second->viewer_queue) )
                  {
                       //network congestion might happened,now drop the none-key frame first
-                      log_module(LOG_INFO,"RECEIVE_STREAM_CB","THE %s:%d'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
-                                                       vi_iter->second->IP,vi_iter->second->client_fd);
-                      drop_frame(vi_iter->second->viewer_queue);
-		         log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","FRAME DROPPED FROM %s:%d'S VIEWER QUEUE RELATED TO CHANNEL %s",
-                                                       vi_iter->second->IP,vi_iter->second->client_fd,cstr_channel);
+		      if( loglevel_is_enabled( LOG_DEBUG ))
+		      {
+			  std::string peer_info = get_peer_info( vi_iter->second->client_fd );  
+			log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","THE %s'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
+				                                  peer_info.c_str());
+		      }
+
+                      drop_frame( vi_iter->second->viewer_queue );
                  }
                  
-                 viewer_queue_push( vi_iter->second->viewer_queue,flv_tag );
+                 viewer_queue_push( vi_iter->second->viewer_queue, flv_tag );
                  if( need_start_viewer_callback )
                  {
                       need_start_viewer_callback = false;
                       ev_io_start( workthread_loop, vi_iter->second->viewer_watcher );
                  }
-
-                 log_module(LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s:%d'S VIEWER QUEUE",
-                                                      vi_iter->second->IP,vi_iter->second->client_fd);
+                 
+		 if( loglevel_is_enabled( LOG_DEBUG ))
+		 {
+		     std::string peer_info = get_peer_info( vi_iter->second->client_fd ); 
+                     log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s'S VIEWER QUEUE",
+                                                                peer_info.c_str() );
+		 }
                  ++vi_iter;
             }
         }
@@ -1215,9 +1316,52 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
     packet = NULL;
     tag_is_sequence_header = false;
     is_key_frame = false;
-    memset(ci_iter->second->tag_header,0,TAG_HEADER_SIZE);
+    memset( ci_iter->second->tag_header,0,TAG_HEADER_SIZE );
     ci_iter->second->not_received_tag_header_done = true;
     ci_iter->second->not_received_tag_data_done = true;
+}
+
+
+
+
+void delete_viewer( struct ev_loop * workthread_loop, struct  ev_io *viewer_watcher,
+                                   viewer_info_reference_iter vir_iter, camera_info_reference_iter cir_iter )
+{
+    if( workthread_loop == NULL || viewer_watcher == NULL )
+    {
+        log_module( LOG_ERROR, "DELETE_VIEWER", "RUNTIME ERROR OCCURRED:WORKTHREADLOOP OR VIEWER_WATCHER IS NULL");
+        return;
+    }
+    
+    log_module( LOG_DEBUG, "DELETE_VIEWER","++++++++++START++++++++++");
+    if( viewer_watcher->fd > 0 )
+    {
+        if( loglevel_is_enabled( LOG_DEBUG ) )
+        {
+            std::string peer_info = get_peer_info( viewer_watcher->fd );
+            log_module( LOG_DEBUG, "DELETE_VIEWER", "VIEWER %s OFFLINE", peer_info.c_str() );
+        }
+        
+        close( viewer_watcher->fd );
+        ev_io_stop( workthread_loop, viewer_watcher );
+        delete viewer_watcher;
+        viewer_watcher = NULL;
+        
+        log_module( LOG_DEBUG, "DELETE_VIEWER", "DELETE THE VIEWER'S VIEWER QUEUE++++++++++START++++++++++");
+        delete_viewer_queue( vir_iter->second->viewer_queue );
+        log_module( LOG_DEBUG, "DELETE_VIEWER", "DELETE THE VIEWER'S VIEWER QUEUE++++++++++DONE++++++++++");
+        delete vir_iter->second;
+        vir_iter->second = NULL;
+        log_module( LOG_DEBUG, "DELETE_VIEWER", "ERASE VIEWER FROM VIEWER CONTAINER RELATED TO CHANNEL:%s START", cir_iter->first.c_str() );
+        cir_iter->second->viewer_info_pool.erase( vir_iter );
+        log_module( LOG_DEBUG, "DELETE_VIEWER", "ERASE VIEWER DONE RELATED TO CHANNEL:%s, THERE ARE(IS) REMAIN %u VIEWER(S)", 
+            cir_iter->first.c_str(), cir_iter->second->viewer_info_pool.size() );
+    }
+    else
+    {
+        log_module( LOG_ERROR, "DELETE_VIEWER", "RUNTIME ERROR OCCURRED:SOCKET FD IS NOT VALID IN VIEWER WATCHER");
+    }
+    log_module( LOG_DEBUG, "DELETE_VIEWER","++++++++++DONE++++++++++");
 }
 
 
@@ -1226,24 +1370,9 @@ void receive_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *camera_w
 #@args:
 #@desc:parse the flv stream and send the cached tags to the viwer
 */
-void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watcher, int revents )
+void send_tags_cb( struct ev_loop * workthread_loop, struct  ev_io *viewer_watcher, int revents )
 {
-    //usefull macros for deleting the viewer's queue
-    #define DELETE_VIEWER_IF(X,Y) \
-    if((X) == (Y)) \
-    {\
-        char MSG[99];\
-        snprintf(MSG,99,"VIEWER %s OFF LINE",vi_iter->second->IP);\
-        log_module(LOG_INFO,"SEND_TAGS_CB",MSG);\
-        close(viewer_watcher->fd);\
-        delete_viewer_queue(vi_iter->second->viewer_queue);\
-        delete vi_iter->second;\
-        vi_iter->second=NULL;\
-        ci_iter->second->viewer_info_pool.erase(vi_iter);\
-        ev_io_stop(workthread_loop,viewer_watcher);\
-        return;\
-    }
-
+    
     if( EV_ERROR & revents )
     {
         log_module(LOG_INFO,"SEND_TAGS_CB","EV_ERROR %s",LOG_LOCATION);
@@ -1253,27 +1382,32 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
     int sent_bytes = -1;
     size_t total_bytes = -1;
     workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
-    if( wi_iter == workthread_info_pool.end())
+    if( wi_iter == workthread_info_pool.end() )
     {
         log_module(LOG_DEBUG,"SEND_TAGS_CB","REACH THE END OF WORKTHREAD_INFO_POOL UNKNOWN ERROR OCCURRED");
         return;
     }
 
-    viewer_info_iter vi_iter = get_viewer_info_item(viewer_watcher->fd);
-    camera_info_iter ci_iter = get_channel_info_item(wi_iter,vi_iter->second->channel);
+    viewer_info_iter vi_iter = get_viewer_info_item( viewer_watcher->fd );
+    std::string channel( vi_iter->second->channel );
+    camera_info_iter ci_iter = get_channel_info_item( wi_iter, channel );
 
     if(  vi_iter->second->send_first )
     {
         //send_first indicates send the flv header,avc tag,aac tag,script tag for once
         if( vi_iter->second->not_sent_http_response_done )
         {
-            log_module(LOG_DEBUG,"SEND_TAGS_CB","START SEND HTTP 200 RESPONSE TO VIEWER");
+            log_module( LOG_DEBUG,"SEND_TAGS_CB","START SEND HTTP 200 RESPONSE TO VIEWER");
             static const char *http_response="HTTP/1.1 200 OK\r\nContent-type:video/x-flv\r\n\r\n";
             static int sent_http_response_bytes = 0;
             total_bytes = strlen(http_response)-sent_http_response_bytes;
-            sent_bytes = write_specify_size2(viewer_watcher->fd,http_response+sent_http_response_bytes,
+            sent_bytes = write_specify_size2( viewer_watcher->fd, http_response+sent_http_response_bytes,
                     total_bytes);
-            DELETE_VIEWER_IF(sent_bytes,-1);
+            if( sent_bytes == -1 )
+            {
+                delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                return;
+            }
             if( (size_t) sent_bytes != total_bytes )
             {
                 sent_http_response_bytes += sent_bytes;
@@ -1294,17 +1428,22 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
                     ci_iter->second->flv_header+ci_iter->second->flv_header_sent_bytes,
                     total_bytes);
 
-            DELETE_VIEWER_IF(sent_bytes,-1);
+            if( sent_bytes == -1 )
+            {
+                delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                return;
+            }
+            
             if( (size_t)sent_bytes != total_bytes )
             {
                 ci_iter->second->flv_header_sent_bytes += sent_bytes;
                 return;
             }
             vi_iter->second->not_sent_flv_header_done = false;
-            log_module(LOG_DEBUG,"SEND_TAGS_CB","THE FLV SIGNATURE:%c%c%c VERSION:%d",
+            log_module( LOG_DEBUG,"SEND_TAGS_CB","THE FLV SIGNATURE:%c%c%c VERSION:%d",
                     ci_iter->second->flv_header[0],ci_iter->second->flv_header[1],
                     ci_iter->second->flv_header[2],ci_iter->second->flv_header[3]);
-            log_module(LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV HEADER DONE");
+            log_module( LOG_DEBUG,"SEND_TAGS_CB","SEND THE FLV HEADER DONE");
         }
 
 
@@ -1318,7 +1457,13 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
                 sent_bytes = write_specify_size(viewer_watcher->fd,
                         ci_iter->second->flv_script_tag+ci_iter->second->script_tag_sent_bytes,
                         total_bytes);
-                DELETE_VIEWER_IF(sent_bytes,-1);
+
+                if( sent_bytes == -1 )
+                {
+                    delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                    return;
+                }
+                
                 if( (size_t)sent_bytes != total_bytes )
                 {
                     ci_iter->second->script_tag_sent_bytes += sent_bytes;
@@ -1340,7 +1485,12 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
                 sent_bytes = write_specify_size(viewer_watcher->fd,
                         ci_iter->second->avc_sequence_header+ci_iter->second->avc_sequence_header_sent_bytes,
                         total_bytes);
-                DELETE_VIEWER_IF(sent_bytes,-1);
+                if( sent_bytes == -1 )
+                {
+                    delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                    return;
+                }
+                
                 if( (size_t)sent_bytes != total_bytes )
                 {
                     ci_iter->second->avc_sequence_header_sent_bytes += sent_bytes;
@@ -1362,7 +1512,13 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
                 sent_bytes = write_specify_size(viewer_watcher->fd,
                         ci_iter->second->aac_sequence_header+ci_iter->second->aac_sequence_header_sent_bytes,
                         total_bytes);
-                DELETE_VIEWER_IF(sent_bytes,-1);
+
+                if( sent_bytes == -1 )
+                {
+                    delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                    return;
+                }
+                
                 if( (size_t)sent_bytes != total_bytes )
                 {
                     ci_iter->second->aac_sequence_header_sent_bytes += sent_bytes;
@@ -1398,7 +1554,7 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
         }
         else
         {
-            log_module(LOG_DEBUG,"SEND_TAGS_CB","NOW JUST SEND THE FLV TAG FROM THE VIEWER QUEUE");
+            log_module( LOG_DEBUG,"SEND_TAGS_CB","NOW JUST SEND THE FLV TAG FROM THE VIEWER QUEUE");
             //write_specify_size2(viewer_watcher->fd,flv_tag->TAG,flv_tag->data_size);
             if( ( flv_tag->TAG != NULL ) && ( flv_tag->data_size != flv_tag->sent_bytes ) )
             {
@@ -1416,7 +1572,12 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
                     sent_bytes = write_specify_size( viewer_watcher->fd, 
                                                                    flv_tag->TAG+flv_tag->sent_bytes,
                                                                    flv_tag->data_size-flv_tag->sent_bytes);
-                    DELETE_VIEWER_IF(sent_bytes,-1);
+                    if( sent_bytes == -1 )
+                    {
+                        delete_viewer( workthread_loop, viewer_watcher, vi_iter, ci_iter );
+                        return;
+                    }
+                    
                     if( (size_t)sent_bytes != (flv_tag->data_size-flv_tag->sent_bytes) )
                     {
                         flv_tag->sent_bytes += sent_bytes;
@@ -1443,26 +1604,34 @@ void send_tags_cb(struct ev_loop * workthread_loop, struct  ev_io *viewer_watche
 */
 void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watcher, int revents )
 {
-     
-    //usefull macro for doing something clean
+    #define ERASE_CAMERA() \
+    if( ci_iter->second->flv_script_tag != NULL )\
+    delete [] ci_iter->second->flv_script_tag;\
+    if( ci_iter->second->avc_sequence_header != NULL )\
+    delete [] ci_iter->second->avc_sequence_header;\
+    if( ci_iter->second->aac_sequence_header != NULL )\
+    delete [] ci_iter->second->aac_sequence_header;\
+    delete ci_iter->second;\
+    ci_iter->second = NULL;\
+    wi_iter->camera_info_pool.erase( ci_iter );
+
     LOG_START("ASYNC_READ_CB");
     if( EV_ERROR & revents )
     {
         log_module( LOG_ERROR,"ASYNC_READ_CB","EV_ERROR %s",LOG_LOCATION);
-        LOG_DONE("ASYNC_READ_CB");
         return;
     }
 
     if( workthread_loop == NULL || async_watcher == NULL )
     {
-        log_module( LOG_ERROR, "ASYNC_READ_CB", "ARGS NOT VALID");
+        log_module( LOG_ERROR, "ASYNC_READ_CB", "RUNTIME ERROR:ARGS NOT VALID");
         return;
     }
     
-    EV_ASYNC_DATA *async_data = static_cast<EV_ASYNC_DATA *>(async_watcher->data);
+    EV_ASYNC_DATA *async_data = static_cast<EV_ASYNC_DATA *>( async_watcher->data );
     if( async_data == NULL )
     {
-         LOG_DONE("ASYNC_READ_CB");
+         log_module( LOG_ERROR, "ASYNC_READ_CB", "ASYNC DATA IS NULL");
          return;
     }
     
@@ -1470,15 +1639,34 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
     {
         //now handle camera's request
         log_module(LOG_DEBUG,"ASYNC_READ_CB","CAMERA'S REQUEST--ID:%u",pthread_self());
-        string channel;
-        channel.assign(async_data->channel);
-        workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
-        camera_info_iter ci_iter = get_channel_info_item(wi_iter,channel);
-        
-        ev_io_init( ci_iter->second->reply_watcher,reply_200OK_cb,async_data->client_fd, EV_WRITE );
-        ev_io_init( ci_iter->second->camera_watcher,receive_stream_cb,async_data->client_fd, EV_READ );
-        ev_io_start( workthread_loop, ci_iter->second->reply_watcher );
-        ev_io_start( workthread_loop, ci_iter->second->camera_watcher );
+        string channel( async_data->channel );
+        workthread_info_iter wi_iter = get_workthread_info_item( pthread_self() );
+        camera_info_iter ci_iter = get_channel_info_item( wi_iter, channel);
+       
+	if( async_data->client_fd > 0 )
+	{    
+	    int ret = rosehttp_reply_with_status( 200, async_data->client_fd );
+	    if( ret == -1 )
+	    {
+		log_module( LOG_ERROR, "ASYNC_READ_CB","WRITE_SPECIFY_SIZE2 ERROR:FAILED TO SEND http 200 OK TO CAMERA RELATED TO CHANNEL %s", channel.c_str() );
+		delete async_data;
+		ERASE_CAMERA();
+		return;
+	    }
+
+	    log_module( LOG_DEBUG, "ASYNC_READ_CB", "SEND 200 OK TO CAMERA RELATED TO SOCKET FD:%d", async_data->client_fd );
+	    //ev_io_init( ci_iter->second->reply_watcher,reply_200OK_cb,async_data->client_fd, EV_WRITE );
+	    ev_io_init( ci_iter->second->camera_watcher, receive_stream_cb, async_data->client_fd, EV_READ );
+	    //ev_io_start( workthread_loop, ci_iter->second->reply_watcher );
+	    ev_io_start( workthread_loop, ci_iter->second->camera_watcher );
+	}
+	else
+	{
+           log_module( LOG_ERROR, "ASYNC_READ_CB", "RUNTIME ERROR OCCURRED:SOCKET FD IS NOT VALID");
+	    delete async_data;
+	    ERASE_CAMERA();
+	    return;
+	}
     }
     else if( async_data->client_type == BACKER )
     {
@@ -1487,7 +1675,7 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
         struct ev_io *pull_stream_watcher = new struct ev_io;
         if( pull_stream_watcher == NULL )
         {
-              log_module(LOG_INFO,"ASYNC_READ_CB","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+              log_module( LOG_ERROR,"ASYNC_READ_CB","ALLOCATE MEMORY FAILED:%s", strerror(errno) );
               delete [] ((static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
               delete static_cast<EV_ASYNC_DATA*>(async_watcher->data);
               async_watcher->data = NULL;
@@ -1497,7 +1685,7 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
         struct ev_io *send_backing_resource_watcher = new struct ev_io;
         if( send_backing_resource_watcher == NULL )
         {
-              log_module(LOG_INFO,"ASYNC_READ_CB","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+              log_module(LOG_ERROR,"ASYNC_READ_CB","ALLOCATE MEMORY FAILED:%s", strerror(errno) );
               delete pull_stream_watcher;
               pull_stream_watcher = NULL;
               delete [] ((static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
@@ -1537,7 +1725,7 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
              return;
         }
         
-        strcpy(imitated_request, (static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
+        strcpy( imitated_request, (static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
         delete [] ((static_cast<EV_ASYNC_DATA*>(async_watcher->data))->data);
         
         send_backing_resource_watcher->data =(void *)imitated_request;
@@ -1550,6 +1738,7 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
         ev_io_start( workthread_loop, pull_stream_watcher );
             
     }
+    
     delete static_cast<EV_ASYNC_DATA*>(async_watcher->data);
     async_watcher->data = NULL;
     LOG_DONE( "ASYNC_READ_CB" );
@@ -1569,9 +1758,8 @@ void reply_200OK_cb(struct ev_loop * workthread_loop, struct  ev_io *reply_watch
           log_module(LOG_INFO,"reply_200OK_CB","EV_ERROR %s",LOG_LOCATION);
           return;
      }
-      
      const char *http_200_ok = "HTTP/1.1 200 OK\r\n\r\n";
-     write_specify_size2( reply_watcher->fd,http_200_ok,strlen(http_200_ok ));
+     write_specify_size2( reply_watcher->fd,http_200_ok, strlen(http_200_ok) );
      ev_io_stop(workthread_loop,reply_watcher);
      delete reply_watcher;
      reply_watcher = NULL;
@@ -1771,7 +1959,7 @@ void read_channel_status_cb( struct ev_loop *workthread_loop, struct ev_async *a
     std::map<std::string, int> notify_servers;
     //obtain the servers' address wrtten in config file
     
-    read_config2( NOTIFY_SERVER_CONFIG_FILE,notify_servers );
+    read_config2( NOTIFY_SERVER_CONFIG_FILE, notify_servers );
     std::map<std::string, int>::iterator it = notify_servers.begin();
     int conn_fd;
 
@@ -1845,6 +2033,14 @@ void * notify_server_entry( void * args )
 void * workthread_entry ( void * args )
 {
     log_module(LOG_DEBUG,"WORKTHREAD_ROUTINE START","ID:%u", pthread_self() );
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;//just ignore the sigpipe
+    sa.sa_flags = 0;
+    if( sigemptyset(&sa.sa_mask) == -1 || sigaction( SIGPIPE, &sa, 0 ) == -1 )
+    { 
+        log_module( LOG_ERROR,"WORKTHREAD_ENTRY","FAILED TO IGNORE SIGPIPE SIGNAL");
+        abort();
+    }
     WORKTHREAD_LOOP_INFO * workthread_loop_info = static_cast<WORKTHREAD_LOOP_INFO * >(args);
     if( workthread_loop_info == NULL )
     {
@@ -1861,14 +2057,14 @@ void * workthread_entry ( void * args )
     }
     
     ev_async_init( workthread_loop_info->async_watcher, async_read_cb );
-    ev_async_start( workthread_loop_info->workthread_loop,workthread_loop_info->async_watcher );
-    ev_run( workthread_loop_info->workthread_loop, 0);
+    ev_async_start( workthread_loop_info->workthread_loop, workthread_loop_info->async_watcher );
+    ev_run( workthread_loop_info->workthread_loop, 0 );
     free( workthread_loop_info->workthread_loop );
     workthread_loop_info->workthread_loop = NULL;
     delete workthread_loop_info->async_watcher;
     workthread_loop_info->async_watcher = NULL;
     delete workthread_loop_info;
-    log_module(LOG_DEBUG,"WORKTHREAD_ROUTINE DONE","ID:%u",pthread_self());
+    log_module( LOG_DEBUG,"WORKTHREAD_ROUTINE DONE","ID:%u",pthread_self() );
     return NULL;
 }
 
@@ -1886,44 +2082,37 @@ void accept_cb( struct ev_loop * main_event_loop, struct ev_io * listen_watcher,
     LOG_START("ACCEPT_CB");
     if( EV_ERROR & revents )
     {
-        log_module(LOG_INFO,"ACCEPT_CB","LIBEV ERROR FOR EV_ERROR:%d--%s",EV_ERROR,LOG_LOCATION);
+        log_module( LOG_ERROR,"ACCEPT_CB","LIBEV ERROR FOR EV_ERROR:%d--%s",EV_ERROR,LOG_LOCATION);
         return;
     }
 
     ssize_t client_fd;
     struct sockaddr_in client_addr;
-    socklen_t len = sizeof(struct sockaddr_in);
+    socklen_t len = sizeof( struct sockaddr_in );
     client_fd = accept( listen_watcher->fd, (struct sockaddr *)&client_addr, &len );
     if( client_fd < 0 )
     {
-        log_module(LOG_INFO,"ACCEPT_CB","ACCEPT ERROR:%s",strerror(errno));   
+        log_module( LOG_ERROR,"ACCEPT_CB","ACCEPT ERROR:%s",strerror(errno));   
         return;
     }
     
-    char *client_ip = new char [INET_ADDRSTRLEN];
-    if( client_ip == NULL )
-    {
-         log_module( LOG_ERROR,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[INET_ADDRSTRLEN]");
-         close( client_fd );
-         return;
-    }
-
     struct ev_io * receive_request_watcher = new struct ev_io;
     if( receive_request_watcher == NULL )
     {
-        log_module( LOG_ERROR,"ACCEPT_CB","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO");
-        delete [] client_ip;
-        client_ip = NULL;
-        close(client_fd);
+        log_module( LOG_ERROR,"ACCEPT_CB","ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        rosehttp_reply_with_status( 500, client_fd );
+        close( client_fd );
         return;
     }
     
     
-    inet_ntop( AF_INET,&client_addr.sin_addr,client_ip,INET_ADDRSTRLEN );
-    receive_request_watcher->data = ( void *)client_ip;
-    log_module( LOG_DEBUG,"ACCEPT_CB","CLIENT %s:%d CONNECTED SOCK FD IS:%d",
-                                                            client_ip,ntohs(client_addr.sin_port), client_fd );
-
+    if( loglevel_is_enabled( LOG_INFO ))
+    {
+        std::string peer_info = get_peer_info( client_fd );
+        log_module( LOG_INFO, "ACCEPT_CB", "CLIENT %s CONNECTED SOCK FD IS:%d",
+                                                             peer_info.c_str(), client_fd );
+    }
+    
     sdk_set_nonblocking( client_fd );
     sdk_set_tcpnodelay( client_fd );
     sdk_set_keepalive( client_fd );
@@ -1940,9 +2129,9 @@ void accept_cb( struct ev_loop * main_event_loop, struct ev_io * listen_watcher,
     }
     
     //register the socket io callback for reading client's request    
-    ev_io_init( receive_request_watcher,receive_request_cb,client_fd, EV_READ );
+    ev_io_init(  receive_request_watcher, receive_request_cb, client_fd, EV_READ );
     ev_io_start( main_event_loop,receive_request_watcher );
-    LOG_DONE( "ACCEPT_CB");
+    LOG_DONE( "ACCEPT_CB" );
 }
 
 
@@ -1980,9 +2169,7 @@ workthread_info_iter get_workthread_through_round_robin()
 void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receive_request_watcher, int revents )
 {
     #define DO_RECEIVE_REQUEST_CB_CLEAN() \
-    ev_io_stop( main_event_loop,receive_request_watcher );\
-    delete [] static_cast<char *>( receive_request_watcher->data );\
-    receive_request_watcher->data = NULL;\
+    ev_io_stop( main_event_loop, receive_request_watcher );\
     delete receive_request_watcher;\
     receive_request_watcher = NULL;\
     return;
@@ -1991,114 +2178,116 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
     if( EV_ERROR & revents )
     {
         log_module ( LOG_ERROR,"RECEIVE_REQUEST_CB","ERROR FOR EV_ERROR,JUST STOP THIS IO WATCHER" );
-        const char *http_500_internal_server_error="HTTP/1.1 500 Internal Server Error\r\n\r\n";
-        write_specify_size2( receive_request_watcher->fd,http_500_internal_server_error, strlen(http_500_internal_server_error));
+        rosehttp_reply_with_status( 500, receive_request_watcher->fd );
         close( receive_request_watcher->fd );
         DO_RECEIVE_REQUEST_CB_CLEAN();
     }
 
     int received_bytes;
     //used to store those key-values parsed from http request
-    HTTP_REQUEST_INFO req_info;
     char request[BUFFER_SIZE];
     //read the http header and then parse it
-    received_bytes = read_http_header( receive_request_watcher->fd,request,BUFFER_SIZE );
+    received_bytes = read_rosehttp_header( receive_request_watcher->fd, request, BUFFER_SIZE );
     if(  received_bytes <= 0  )
     {     
           if(  received_bytes == 0  )
           {
-              log_module( LOG_INFO,"RECEIVE_REQUEST_CB"," READ 0 BYTES FROM %s  VIEWER DISCONNECTED ALREADY",
-              static_cast<char *>( receive_request_watcher->data) );
+              if( loglevel_is_enabled( LOG_INFO ) )
+              {
+                    std::string peer_info = get_peer_info( receive_request_watcher->fd );
+                    log_module( LOG_INFO, "RECEIVE_REQUEST_CB"," READ 0 BYTE FROM %s CLIENT DISCONNECTED ALREADY",
+                                                                                           peer_info.c_str() );
+              }
           }
-          else if(  received_bytes == -1 )
+          else if(  received_bytes == LENGTH_OVERFLOW  )
           {
-              log_module( LOG_INFO,"RECEIVE_REQUEST_CB","READ_HTTP_HEADER:BUFFER SIZE IS TOO SMALL");
+              if( loglevel_is_enabled( LOG_INFO ) )
+              {
+                    std::string peer_info = get_peer_info( receive_request_watcher->fd );
+                    log_module( LOG_INFO, "RECEIVE_REQUEST_CB","CLIENT %s'S HTTP REQUEST LINE IS TOO LONG",
+                                                                                          peer_info.c_str() );
+              }
           }
+          
+          rosehttp_reply_with_status( 400, receive_request_watcher->fd );
           close( receive_request_watcher->fd );
           DO_RECEIVE_REQUEST_CB_CLEAN();
     }
     
     request[received_bytes]='\0';
-    log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","HTTP REQUEST HEADER:%s",request);
-    parse_http_request(request, req_info);
+    log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","HTTP REQUEST HEADER:%s", request );
 
+    SIMPLE_ROSEHTTP_HEADER simple_rosehttp_header;
+    int ret = parse_simple_rosehttp_header( request, strlen( request ), simple_rosehttp_header );
+    if( ret == STREAM_FORMAT_ERROR )
+    {
+        log_module( LOG_INFO, "RECEIVE_REQUEST_CB", "HTTP REQUEST LINE FORMAT ERROR");
+        rosehttp_reply_with_status( 400, receive_request_watcher->fd );
+        DO_RECEIVE_REQUEST_CB_CLEAN();
+    }
+
+    std::string channel = simple_rosehttp_header.url_args["channel"];
+    std::string method = simple_rosehttp_header.method;
     //varify the channel and the http method
-    if( req_info.channel.empty() || req_info.channel.length() > MAX_CHANNEL_SIZE 
-        || ( req_info.method != "POST" && req_info.method != "GET" ) 
+    if( channel.empty() || channel.length() > MAX_CHANNEL_SIZE 
+        || (  method != "POST" &&  method != "GET" ) 
       )
       
     {
-        const char * http_400_badrequest = "HTTP/1.1  400  Bad Request\r\n\r\n";
-        write_specify_size2( receive_request_watcher->fd,http_400_badrequest, strlen(http_400_badrequest) );
-        log_module( LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE BAD HTTP REQUEST FROM %s OR THE CHANNEL LENGTH IS TOO LONG ",static_cast<char *>( receive_request_watcher->data ));
+        log_module( LOG_INFO, "RECEIVE_REQUEST_CB", "BAD HTTP REQUEST:%s", request );
+        rosehttp_reply_with_status( 400, receive_request_watcher->fd );
         close( receive_request_watcher->fd );
         DO_RECEIVE_REQUEST_CB_CLEAN();
     }
     
-    if( req_info.method == "POST" )
+    if( method == "POST" )
     {
          //http "POST" method indicates camera's request
         //check if the channels'amounts overtop the limit before do the camera's request
         if( get_channel_list().size() > CHANNELS_LIMIT )
         {
-             log_module(LOG_INFO,"RECEIVE_REQUEST_CB","CAMERA'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO CAMERA");
-             const char * http_503_service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n\r\n";
-             write_specify_size2(receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable));
+             log_module( LOG_INFO,"RECEIVE_REQUEST_CB","CAMERA'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO CAMERA");
+             rosehttp_reply_with_status( 503, receive_request_watcher->fd );
              close( receive_request_watcher->fd );
         }
         else
         {
              
-             log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE CAMERA'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
-             bool ok = do_camera_request( main_event_loop,receive_request_watcher,req_info );
+             log_module( LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE CAMERA'S REQUEST--CHANNEL:%s", channel.c_str());
+             bool ok = do_camera_request( main_event_loop, receive_request_watcher, channel );
              if( ! ok )
-            {
-                  const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                  write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+             {
+                  rosehttp_reply_with_status( 500, receive_request_watcher->fd );
                   close( receive_request_watcher->fd );
-                  log_module( LOG_INFO,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED" );
-            }
-            else
-            {
+                  log_module( LOG_ERROR,"RECEIVE_REQUEST_CB","DO_CAMERA_REQUEST FAILED" );
+             }
+             else
+             {
                   log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "DO_CAMERA_REQUEST SUCCEEDED");
                   log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "+++++SEND THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s START+++++",
-                                                        req_info.channel.c_str() );
+                                                        channel.c_str() );
                   
-                  if( ev_async_pending( NOTIFY_ASYNC_WATCHER ) == 0 )
-                  {
-                        NOTIFY_DATA * notify_data = new NOTIFY_DATA;
-                        strcpy( notify_data->channel,req_info.channel.c_str() );
-                        notify_data->flag = ONLINE;
-                        NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;
-                        ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );
-                        log_module( LOG_DEBUG, "RECEIVE_REQUEST_CB", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s DONE+++++",
-                                                        req_info.channel.c_str() );
-                  }
-                  else
-                  {
-                        log_module( LOG_ERROR, "RECEIVE_REQUEST_CB", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s FAILED+++++",
-                                                        req_info.channel.c_str() );
-                  }
+                  do_channel_notify( channel, ONLINE );
                   
             }
             
         }    
     }
-    else if( req_info.method == "GET" )
+    else if( method == "GET" )
     {
         //http "GET" method indicates viewer's request
-        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE VIEWER'S REQUEST--CHANNEL:%s",req_info.channel.c_str());
-        bool ok = do_viewer_request( main_event_loop,receive_request_watcher,req_info );
+        log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE VIEWER'S REQUEST--CHANNEL:%s", channel.c_str());
+        bool ok = do_viewer_request( main_event_loop,receive_request_watcher, simple_rosehttp_header );
         if( ! ok )
         {
-             log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST FAILED");
-             close( receive_request_watcher->fd );
+             log_module( LOG_ERROR, "RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST FAILED" );
         }
         else
         {
-             log_module(LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST SUCCEEDED");
+             log_module( LOG_INFO,"RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST SUCCEEDED");
         }
     }
+    
     DO_RECEIVE_REQUEST_CB_CLEAN();
 }
 
@@ -2109,15 +2298,14 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
  *@returns:true indicates do camera's request ok,failed the otherwise
  *@desc:as the function name described,do the camera's request
  */
-bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_request_watcher, HTTP_REQUEST_INFO & req_info )
+bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_request_watcher, const std::string & channel )
 {
         (void)main_event_loop;
-        if( camera_already_in(req_info.channel) )
+        if( camera_already_in( channel ) )
         {
             //if the "channel" exists then just reply http 400,otherwise ok
-            log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","CAMERA BAD REQUEST:CHANNEL %s ALREADY EXIST",req_info.channel.c_str());
-            const char * http_400_badrequest="HTTP/1.1 400 Bad Request\r\n\r\n";
-            write_specify_size2(receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest));
+            log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","CAMERA BAD REQUEST:CHANNEL %s ALREADY EXISTS", channel.c_str());
+            rosehttp_reply_with_status( 400, receive_request_watcher->fd );
             close( receive_request_watcher->fd );
             return false;
         }
@@ -2125,7 +2313,8 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
         //now choose a work thread through round robin
         workthread_info_iter wi_iter = get_workthread_through_round_robin();
         log_module( LOG_DEBUG,"DO_CAMERA_REQUEST","GET_WORKTHREAD_THROUGH_ROUND_ROBIN--OK--ID:%u",wi_iter->thread_id);
-        if( ev_async_pending( wi_iter->async_watcher ) == 0 )
+        
+	 if( ev_async_pending( wi_iter->async_watcher ) == 0 )
         {
              //now allocate EV_ASYNC_DATA for async_read_cb's sake
              EV_ASYNC_DATA *async_data = new EV_ASYNC_DATA;
@@ -2137,9 +2326,9 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
              
              async_data->client_type = CAMERA;
              async_data->client_fd = receive_request_watcher->fd;
-             strcpy( async_data->channel,req_info.channel.c_str() );
+             strcpy( async_data->channel, channel.c_str() );
 
-             CAMERAS_PTR camera_ptr = new_cameras( receive_request_watcher,req_info.channel );
+             CAMERAS_PTR camera_ptr = new_cameras( receive_request_watcher, channel );
              if( camera_ptr == NULL )
              {
                    log_module( LOG_INFO,"DO_CAMERA_REQUEST","ALLOCATE MEMORY FAILED:CAMERAS_PTR:%s",LOG_LOCATION );
@@ -2147,9 +2336,57 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
                    async_data = NULL;
                    return false;
              }
-             wi_iter->camera_info_pool.insert( std::make_pair(req_info.channel,camera_ptr) );
-             wi_iter->async_watcher->data=(void *)async_data;
-             ev_async_send( wi_iter->workthread_loop, wi_iter->async_watcher );
+
+             std::pair<std::map<CHANNEL,CAMERAS_PTR>::iterator,bool> ret = 
+             wi_iter->camera_info_pool.insert( std::make_pair( channel, camera_ptr ) );
+             if( ret.second )
+             {
+                    wi_iter->async_watcher->data=(void *)async_data;
+                    ev_async_send( wi_iter->workthread_loop, wi_iter->async_watcher );
+             }
+             else
+             {
+                   log_module( LOG_ERROR, "DO_CAMERA_REQUEST", "RUNTIME ERROR OCCURRED, MAP INSERT FAILED");
+                   if( camera_ptr->camera_watcher != NULL )
+                   {
+                        delete camera_ptr->camera_watcher;
+                        camera_ptr->camera_watcher = NULL;
+                   }
+
+                   if( camera_ptr->reply_watcher != NULL )
+                   {
+                        delete camera_ptr->reply_watcher;
+                        camera_ptr->reply_watcher = NULL;
+                   }
+
+                   if( camera_ptr->tag_data != NULL )
+                   {
+                        delete [] camera_ptr->tag_data;
+                        camera_ptr->tag_data = NULL;
+                   }
+
+                   if( camera_ptr->flv_script_tag != NULL )
+                   {
+                        delete [] camera_ptr->flv_script_tag;
+                        camera_ptr->flv_script_tag = NULL;
+                   }
+
+                   if( camera_ptr->aac_sequence_header != NULL )
+                   {
+                        delete [] camera_ptr->aac_sequence_header;
+                        camera_ptr->aac_sequence_header = NULL;
+                   }
+
+                   if( camera_ptr->avc_sequence_header != NULL )
+                   {
+                        delete [] camera_ptr->avc_sequence_header;
+                        camera_ptr->avc_sequence_header = NULL;
+                   }
+                   
+                   delete async_data;
+                   async_data = NULL;
+                   return false;      
+             }
         }     
         else
         {
@@ -2167,19 +2404,28 @@ bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_r
  *@returns:true indicates do viewer's request ok,failed the otherwise
  *@desc:as the function name described,do the viewer's request
  */
-bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive_request_watcher, HTTP_REQUEST_INFO & req_info)
+bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive_request_watcher, 
+                                                          SIMPLE_ROSEHTTP_HEADER & simple_rosehttp_header )
 {
         //firstly find the channel
         workthread_info_iter wi_iter = workthread_info_pool.begin();
         camera_info_iter ci_iter;
+	 std::string channel = simple_rosehttp_header.url_args["channel"];
+	 if( channel.empty() )
+	 {
+            log_module( LOG_ERROR, "DO_VIEWER_REQUEST", "CHANNEL REQUESTED IN SIMPLE ROSEHTTP HEADER IS EMPTY");
+	     return false;
+	 }
+     
         while( wi_iter != workthread_info_pool.end() )
         {
-            ci_iter = wi_iter->camera_info_pool.find( req_info.channel );
+            ci_iter = wi_iter->camera_info_pool.find( channel );
             if( ci_iter != wi_iter->camera_info_pool.end())
                 break;
             ++wi_iter;
         }
 
+        std::string src = simple_rosehttp_header.url_args["src"];
         //wi_ter != workthread_info_pool.end() indicates that the channel requested exists
         if( wi_iter != workthread_info_pool.end() )
         {
@@ -2187,8 +2433,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             if( ci_iter->second->viewer_info_pool.size() > VIEWERS_LIMIT )
             {
                 log_module( LOG_INFO,"DO_VIEWER_REQUEST","OVERTOP THE VIEWERS' LIMIT,SEND 503 TO VIEWER" );
-                const char *http_503_overload="HTTP/1.1 503 Service Unavailable\r\n\r\n";
-                write_specify_size2( receive_request_watcher->fd, http_503_overload,strlen(http_503_overload) );
+                rosehttp_reply_with_status( 503, receive_request_watcher->fd );
                 close( receive_request_watcher->fd );
                 return false;
             }
@@ -2197,34 +2442,50 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find( receive_request_watcher->fd );
             if( vi_iter == ci_iter->second->viewer_info_pool.end() )
             {
-                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info( receive_request_watcher,req_info );
+                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info( receive_request_watcher, channel );
                 if( viewer_info_ptr == NULL )
                 {
                     log_module( LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION );
                     return false;
                 }
                 
-                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START",receive_request_watcher->fd );
-                ci_iter->second->viewer_info_pool.insert(std::make_pair( receive_request_watcher->fd,viewer_info_ptr ) );
-                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd );
+                log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d START", receive_request_watcher->fd );
+                std::pair<std::map<CLIENT_ID, VIEWER_INFO_PTR>::iterator,bool> ret = 
+                ci_iter->second->viewer_info_pool.insert( std::make_pair( receive_request_watcher->fd, viewer_info_ptr ) );
+
+                if( ! ret.second )
+                {
+                    log_module( LOG_ERROR, "DO_VIEWER_REQUEST", "RUNTIME ERROR OCCURRED,MAP INSERT FAILED" );
+                    rosehttp_reply_with_status( 500, receive_request_watcher->fd );
+                    close( receive_request_watcher->fd );
+                    if( viewer_info_ptr->viewer_watcher != NULL )
+                    {
+                        delete viewer_info_ptr->viewer_watcher;
+                        viewer_info_ptr->viewer_watcher = NULL;
+                    }
+                    delete viewer_info_ptr;
+                    return false;
+                }
+                else
+                {
+                    log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","ADD CLIENT_ID:%d DONE",receive_request_watcher->fd );
+                }
             }
             else
             {
                  log_module(LOG_INFO,"DO_VIEWER_REQUEST","SYSTEM ERROR:SYSTEM GENERATE ThE SOCKET FD TAHT WAS ALREADY IN USE");
-                 const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                 write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+                 rosehttp_reply_with_status( 500, receive_request_watcher->fd );
                  close( receive_request_watcher->fd );
                  return false;
             }
 
         }
-        else if( req_info.src.empty() )  
+        else if( src.empty() )  
         //if there is no channel requested in streaming server,
         //either "src" is empty then simply reply http 400 bad request
         {
                 log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL FAILED, EITHER SRC IS EMPTY,JUST SEND 404 TO CLIENT" );
-                const char * http_400_badrequest="HTTP/1.1   400   Bad Request\r\n\r\n";
-                write_specify_size2( receive_request_watcher->fd,http_400_badrequest,strlen(http_400_badrequest) );
+                rosehttp_reply_with_status( 404, receive_request_watcher->fd );
                 close( receive_request_watcher->fd );
                 return false;
         }
@@ -2237,32 +2498,31 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             //also check if the channels' amount overtop the limit
             if( get_channel_list().size() > CHANNELS_LIMIT )
             {
-                  log_module( LOG_INFO,"RECEIVE_REQUEST_CB","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER" );
-                  const char * http_503_service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n\r\n";
-                  write_specify_size2( receive_request_watcher->fd,http_503_service_unavailable, strlen(http_503_service_unavailable) );
+                  log_module( LOG_INFO,"DO_VIEWER_REQUEST","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER" );
+                  rosehttp_reply_with_status( 503, receive_request_watcher->fd  );
                   close( receive_request_watcher->fd );
                   return false;
             }
             
-            log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SRC=%s",req_info.src.c_str() );
+            log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","SENDING THE BACKING-SOURCE REQUEST:SRC=%s",src.c_str() );
             //now do the backing resource request
-            bool ok = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd,req_info );
+            bool ok = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd, simple_rosehttp_header );
             if( ! ok )
             {
-                 log_module( LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE FAILED:%s",LOG_LOCATION );
-                 const char * http_500_internalerror = "HTTP/1.1  500  Internal Server Error\r\n\r\n";
-                 write_specify_size2( receive_request_watcher->fd,http_500_internalerror, strlen(http_500_internalerror) );
+                 log_module( LOG_ERROR,"DO_VIEWER_REQUEST","DO THE BACKING RESOURCE REQUEST FAILED" );
+                 rosehttp_reply_with_status( 500, receive_request_watcher->fd );
                  close( receive_request_watcher->fd );
-                 log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:FAILED" );
+                 log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","SENDING THE BACKING-SOURCE REQUEST:FAILED" );
             }
             else
             {
-                  log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED" );
+                  log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED" );
             }
-            return OK;
+            return ok;
         }
         return true;
 }
+
 
 
 
@@ -2424,17 +2684,45 @@ size_t get_all_online_viewers()
 //suppose that the default port is 80
 //src=IP:PORT
 
-bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t request_fd, HTTP_REQUEST_INFO & req_info )
+bool do_the_backing_source_request( struct ev_loop * main_event_loop,ssize_t request_fd, 
+                                                                SIMPLE_ROSEHTTP_HEADER & simple_rosehttp_header )
 {
-    (void)main_event_loop;
+    #define DELETE_ASYNC_DATA() \
+    if( async_data->data != NULL )\
+    {\
+                delete [] static_cast<char *>(async_data->data);\
+                async_data->data = NULL;\
+    }\
+    if( async_data != NULL )\
+    {\
+          delete async_data;\
+          async_data = NULL;\
+    }\
+
+            
+    if( main_event_loop == NULL || request_fd < 0 )
+    {
+        log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "RUNTIME ERROR OCCURRED,EVENT LOOP OR SOCKET FD IS NOT VALID");
+        return false;
+    }
+    
     string IP;
     int port = 80;
-    get_src_info( req_info.src,IP,port );
-    log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","IP:%s--PORT:%d",IP.c_str(),port);
+    
+    std::string src= simple_rosehttp_header.url_args["src"];
+    std::string channel = simple_rosehttp_header.url_args["channel"];
+    if( src.empty() || channel.empty() )
+    {
+	log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "SRC OR CHANNEL IN HTTP REQUEST LINE IS EMPTY");
+	return false;
+    }
+
+    get_src_info( src, IP, port );
+    log_module( LOG_DEBUG, "DO_THE_BACKING_SOURCE_REQUEST", "IP:%s--PORT:%d", IP.c_str(), port );
     int local_fd = tcp_connect( IP.c_str(),port );
     if( local_fd == -1 )
     {
-        log_module(LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","TCP_CONNECT FAILED:%s",LOG_LOCATION);
+        log_module( LOG_ERROR,"DO_THE_BACKING_SOURCE_REQUEST","TCP_CONNECT FAILED ");
         return false;
     }
     
@@ -2442,63 +2730,102 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
     EV_ASYNC_DATA *async_data = new EV_ASYNC_DATA;
     if(  async_data == NULL )
     {
-         log_module(LOG_INFO,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+         log_module( LOG_ERROR,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED");
          return false;
     }
 
     std::ostringstream OSS_imitated_request;
-    OSS_imitated_request<<"GET "<<req_info.hostname<<"/"
-                           <<"channel="<<req_info.channel
-                           <<"&type="<<req_info.type
-                           <<"&token="<<req_info.token<<" HTTP/1.1\r\n\r\n";
+    OSS_imitated_request<<"GET "<<simple_rosehttp_header.server_path<<"/"
+                           <<"channel="<<channel
+                           <<"&type="<<simple_rosehttp_header.url_args["type"]
+                           <<"&token="<<simple_rosehttp_header.url_args["token"]<<" HTTP/1.1\r\n\r\n";
     
     string str_imitated_request = OSS_imitated_request.str();
     async_data->data = new char[str_imitated_request.length()+1];
     if( async_data->data == NULL )
     {
-         log_module(LOG_ERROR,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED:%s",LOG_LOCATION);
+         delete async_data;
+         log_module( LOG_ERROR,"DO_THE_BACKING_SOURCE_REQUEST","ALLOCATE MEMORY FAILED:%s", strerror(errno) );
          return false;
     }
     
-    strcpy(async_data->data, str_imitated_request.c_str());
-    log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","IMITATED HTTP REQUEST:%s",async_data->data);
-    workthread_info_iter wi_iter = workthread_info_pool.begin();
-    if( !resource_already_in(req_info.channel,wi_iter))
+    strcpy( async_data->data, str_imitated_request.c_str() );
+    log_module( LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","IMITATED HTTP REQUEST:%s",async_data->data);
+
+    std::pair<std::set<CLIENT_ID>::iterator,bool> ret1;
+    std::pair<std::set<CLIENT_ID>::iterator,bool> ret2;
+    workthread_info_iter wi_iter = workthread_info_pool.begin();   
+    if( ! resource_already_in( channel, wi_iter ))
     {
-         log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","RESOURCE CHANNEL:%s NOT EXIST",req_info.channel.c_str());
+         log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","RESOURCE CHANNEL:%s NOT EXIST", channel.c_str());
          wi_iter = get_workthread_through_round_robin();
-         while( ev_async_pending(wi_iter->async_watcher) != 0 )
+         while( ev_async_pending( wi_iter->async_watcher ) != 0 )
          {
               wi_iter = get_workthread_through_round_robin();
          }
          
          RESOURCE_INFO resource_info;
          resource_info.IP=IP;
-         resource_info.socketfd_pool.insert( request_fd );
-         resource_info.socketfd_pool.insert( local_fd );
-         wi_iter->resource_info_pool.insert( std::make_pair(req_info.channel,resource_info) );
+         ret1 = resource_info.socketfd_pool.insert( request_fd );
+         ret2 = resource_info.socketfd_pool.insert( local_fd );
+         if( ! ret1.second || ! ret2.second )
+         {
+            log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "RUNTIME ERROR OCCURRED:SET INSERT FAILED" );
+            DELETE_ASYNC_DATA();
+            return false;
+         }
+         std::pair<std::map<CHANNEL,RESOURCE_INFO>::iterator,bool> ret = 
+         wi_iter->resource_info_pool.insert( std::make_pair( channel, resource_info ) );
+         if( ! ret.second )
+         {
+            log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "RUNTIME ERROR OCCURRED:MAP INSERT FAILED" );
+            DELETE_ASYNC_DATA();
+            return false;
+         }
     }
     else
     {
-         log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","RESOURCE CHANNEL:%s EXIST",req_info.channel.c_str());
-         backing_resource_iter br_iter = wi_iter->resource_info_pool.find( req_info.channel );
-         br_iter->second.socketfd_pool.insert( request_fd );
-         br_iter->second.socketfd_pool.insert( local_fd );
+         log_module(LOG_DEBUG,"DO_THE_BACKING_SOURCE_REQUEST","RESOURCE CHANNEL:%s EXIST", channel.c_str());
+         backing_resource_iter br_iter = wi_iter->resource_info_pool.find( channel );
+         if( br_iter == wi_iter->resource_info_pool.end() )
+         {
+            log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "CHANNEL %s DOESN'T EXIST", channel.c_str() );
+            DELETE_ASYNC_DATA();
+            return false;
+         }
+         
+         ret1 = br_iter->second.socketfd_pool.insert( request_fd );
+         ret2 = br_iter->second.socketfd_pool.insert( local_fd );
+         if( ! ret1.second || ! ret2.second )
+         {
+            log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "RUNTIME ERROR OCCURRED:SET INSERT FAILED" );
+            DELETE_ASYNC_DATA();
+            return false;
+         }
     }
 
-    
-    sdk_set_nonblocking( local_fd );
-    sdk_set_keepalive( local_fd );
-    sdk_set_tcpnodelay( local_fd );    
-    async_data->client_fd = local_fd;
-    async_data->request_fd = request_fd;
-    async_data->client_type = BACKER;
-    wi_iter->async_watcher->data = (void *) async_data;
-    log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND START" );
-    ev_async_send( wi_iter->workthread_loop,wi_iter->async_watcher );
-    log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND DONE" );
+    if( ev_async_pending( wi_iter->async_watcher ) == 0 )
+    {
+        sdk_set_nonblocking( local_fd );
+        sdk_set_keepalive( local_fd );
+        sdk_set_tcpnodelay( local_fd );    
+        async_data->client_fd = local_fd;
+        async_data->request_fd = request_fd;
+        async_data->client_type = BACKER;
+        wi_iter->async_watcher->data = (void *) async_data;
+        log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND START" );
+        ev_async_send( wi_iter->workthread_loop, wi_iter->async_watcher );
+        log_module( LOG_DEBUG,"DO_THE_BACKING_RESOURCE_REQUEST","EV_ASYNC_SEND DONE" );
+    }
+    else
+    {
+        log_module( LOG_ERROR, "DO_THE_BACKING_SOURCE_REQUEST", "EV_ASYNC_PENDING ERROR");
+        DELETE_ASYNC_DATA();
+        return false;
+    }
     return true;
 }
+
 
 
 
@@ -2508,7 +2835,7 @@ bool do_the_backing_source_request(struct ev_loop * main_event_loop,ssize_t requ
 #@desc:
 providing one asynchronous event loop for handling clients's connection request
 */
-void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG & config )
+void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd, CONFIG & config )
 {
     //if run_as_daemon is true,then make this streaming server run as daemon
     if( config.run_as_daemon )
@@ -2519,12 +2846,12 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
     struct ev_loop *main_event_loop = EV_DEFAULT;
     struct ev_io *listen_watcher = NULL;
     //firstly set the max open files limit
-    struct rlimit rt;
+    /*struct rlimit rt;
     rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
-    if ( setrlimit(RLIMIT_NOFILE, &rt) == -1 ) 
+    if ( setrlimit( RLIMIT_NOFILE, &rt ) == -1 ) 
     {
         log_module(LOG_ERROR,"SERVE_FOREVER","SETRLIMIT FAILED:%s",strerror(errno));
-    }
+    }*/
     
     //initialize the logger for logging
     logging_init( config.log_file.c_str(),config.log_level );
@@ -2604,20 +2931,19 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd,CONFIG &
     close( streamer_listen_fd );
     close( state_server_fd );
     logging_deinit();
-    if( main_event_loop && listen_watcher )
-    {
-        ev_io_stop( main_event_loop, listen_watcher );
-    }
-    else if( main_event_loop )
+
+    if( main_event_loop )
     {
         free(main_event_loop);
         main_event_loop = NULL;
     }
-    else if( listen_watcher )
+
+    if( listen_watcher )
     {
         delete listen_watcher;
         listen_watcher = NULL;
     }
+    
     free_workthread_info_pool();
     LOG_DONE( "SERVE_FOREVER" );
 }

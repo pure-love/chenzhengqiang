@@ -13,12 +13,12 @@
 
 #include"common.h"
 #include"state_server.h"
+#include"netutility.h"
 #include"streamer.h"
-#include"streamerutility.h"
 #include"system_info.h"
 #include"logging.h"
 #include"parson.h"
-
+#include"rosehttp.h"
 
 
 system_info SI;
@@ -100,7 +100,7 @@ void accept_request_cb( struct ev_loop * state_server_loop, struct ev_io *listen
     log_module( LOG_DEBUG,"STATE SERVER","CLIENT %s:%d CONNECTED SOCK FD IS:%d", 
                                 inet_ntoa( client_addr.sin_addr), ntohs(client_addr.sin_port), client_fd );
     //register the socket io events for reading
-    struct ev_io * receive_request_watcher = (struct ev_io *) malloc(sizeof(struct ev_io) );
+    struct ev_io * receive_request_watcher = new struct ev_io;
     
     if( receive_request_watcher == NULL )
     {
@@ -117,7 +117,7 @@ void accept_request_cb( struct ev_loop * state_server_loop, struct ev_io *listen
 }
 
 
-void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_request_watcher, int revents )
+void receive_cb( struct ev_loop *state_server_loop, struct ev_io * receive_request_watcher, int revents )
 {
     #define DO_STATE_SERVER_RECEIVE_CLEAN() \
     ev_io_stop( state_server_loop,receive_request_watcher );\
@@ -134,16 +134,17 @@ void receive_cb(struct ev_loop *state_server_loop, struct ev_io * receive_reques
 
     //HTTP_REQUEST_INFO req_info;
     char http_request[1024];
-    int received_bytes = read_http_header( receive_request_watcher->fd,http_request,sizeof(http_request) );
+    memset( http_request, 0, sizeof( http_request ));
+    int received_bytes = read_rosehttp_header( receive_request_watcher->fd,http_request,sizeof(http_request) );
     if( received_bytes <= 0 )
     {     
           if( received_bytes == 0 )
           {
               log_module( LOG_INFO,"STATE SERVER","RECEIVE_CB ERROR:READ 0 BYTE CLIENT DISCONNECTED" );
           }
-          else if( received_bytes == -1 )
+          else if( received_bytes == LENGTH_OVERFLOW )
           {
-              log_module( LOG_ERROR, "STATE SERVER","RECEIVE_CB ERROR--READ_HTTP_HEADER:BUFFER SIZE IS TOO SMALL");
+              log_module( LOG_ERROR, "STATE SERVER", "REQUESTED HTTP HEADER IS TOO LONG" );
           }
           close( receive_request_watcher->fd );
           DO_STATE_SERVER_RECEIVE_CLEAN();

@@ -6,7 +6,8 @@
 #ifndef _STREAMING_SERVER_H_
 #define _STREAMING_SERVER_H
 #include "common.h"
-#include "streamerutility.h"
+#include "netutility.h"
+#include "rosehttp.h"
 #include<pthread.h>
 using std::string;
 
@@ -48,9 +49,9 @@ void send_backing_source_request_cb(struct ev_loop *, struct ev_io *, int);
 void receive_stream_cb(struct ev_loop * main_event_loop, struct  ev_io *camera_watcher, int revents );
 void workthread_idle_cb(struct ev_loop * workthread_loop, struct ev_idle *idle_watcher, int revents);
 bool dispatch_workthread_ok( const std::string & channel );
-bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_request_watcher, HTTP_REQUEST_INFO & req_info );
-bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive_request_watcher, HTTP_REQUEST_INFO & req_info);
-bool do_the_backing_source_request( struct ev_loop *,ssize_t request_fd, HTTP_REQUEST_INFO & req_info );
+bool do_camera_request( struct ev_loop* main_event_loop, struct ev_io *receive_request_watcher, const std::string & channel );
+bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive_request_watcher, SIMPLE_ROSEHTTP_HEADER & req_info);
+bool do_the_backing_source_request( struct ev_loop *,ssize_t request_fd, SIMPLE_ROSEHTTP_HEADER & req_info );
 void attach_camera_info_to_workthread( const string & channel );
 void parse_flv_stream( const uint8_t* flv_stream, uint32_t received_bytes );
 size_t get_all_online_viewers();

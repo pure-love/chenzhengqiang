@@ -163,7 +163,7 @@ void log_module(int level, const char *module, const char *format, ...)
 
 static void log_impl(int level, const char *module, const char * format, va_list valist)
 {
-    char timeBuffer[24]; /* "YYYY-MM-DD HH:MM:SS" */
+    char timeBuffer[50]; /* "YYYY-MM-DD HH:MM:SS" */
     time_t curtime;
     struct tm *loctime;
     pthread_mutex_lock(&mutex);
@@ -181,11 +181,11 @@ static void log_impl(int level, const char *module, const char * format, va_list
     /* Convert it to local time representation. */
     loctime = localtime( &curtime );
     /* Print it out in a nice format. */
-    strftime (timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
+    strftime ( timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
     
-    fprintf(logFP, "%s %-15s : %-8s : ", timeBuffer, module ? module:"<Unknown>", LOG_LEVEL_DESC[level] );
+    fprintf( logFP, "%s %-15s : %-8s : ", timeBuffer, module , LOG_LEVEL_DESC[level] );
 
-    vfprintf(logFP, format, valist);
+    vfprintf( logFP, format, valist );
 
     if (strchr(format, '\n') == NULL)
     {
