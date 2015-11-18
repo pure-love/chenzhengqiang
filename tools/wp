@@ -1,0 +1,28 @@
+#/bin/bash
+#start date:2015/11/8
+#author:chenzhengqiang
+#desc:for creating the basic directories of the entire project
+
+if [ ! -e "src" ];then
+	mkdir src
+fi
+
+if [ ! -e "include" ];then
+	mkdir include
+fi
+
+if [ ! -e "unit" ];then
+	mkdir unit
+fi
+
+if [ ! -e "tools" ];then
+	mkdir tools
+fi
+
+if [ ! -e "lib"];then
+	mkdir lib
+fi
+
+if [ ! -e "README" ];then
+	touch README
+fi
