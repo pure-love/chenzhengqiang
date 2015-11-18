@@ -39,7 +39,7 @@ static const size_t WORKTHREADS_SIZE=8;
 //specify the fragment size
 static const size_t FRAGMENT_SIZE = 1024;
 //specify the size of cached flv tag in queue
-static const size_t CACHED_TAGS_LIMIT = 99;
+static const size_t CACHED_TAGS_LIMIT = 79;
 //notify workthread entry related
 static struct ev_loop *NOTIFY_SERVER_LOOP=NULL;
 static struct ev_async *NOTIFY_ASYNC_WATCHER=NULL;
@@ -154,6 +154,7 @@ struct RESOURCE_INFO
      std::string IP;
      std::set<CLIENT_ID> socketfd_pool;
 };
+
 
 struct WORKTHREAD_INFO
 {
@@ -282,23 +283,16 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
         CAMERAS_PTR  camera_ptr = new CAMERAS;
         if( camera_ptr == NULL )
         {
-            log_module( LOG_ERROR,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CAMERAS" );
+            log_module( LOG_ERROR,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CAMERAS:%s", strerror( errno ) );
             return NULL;
         }
 
-        if( receive_request_watcher->data == NULL )
-        {
-            log_module( LOG_ERROR,"NEW_CAMERAS","RECEIVE_REQUEST_WATCHER->DATA == NULL" );
-            delete camera_ptr;
-            camera_ptr = NULL;
-            return NULL;
-        }
         
         //CAMERAS_PTR INITIALIZATION START
         camera_ptr->camera_watcher = new struct ev_io;
         if( camera_ptr->camera_watcher == NULL )
         {
-             log_module( LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO" );
+             log_module( LOG_ERROR, "NEW_CAMERAS", "ALLOCATE MEMORY FAILED WHEN EXECUTE NEW STRUCT EV_IO" );
              delete camera_ptr;
              camera_ptr = NULL;
              return NULL;
@@ -307,7 +301,7 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
         camera_ptr->reply_watcher = new struct ev_io;
         if( camera_ptr->reply_watcher == NULL )
         {
-             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED:REPLY_WATCHER=NULL");
+             log_module( LOG_ERROR, "NEW_CAMERAS", "ALLOCATE MEMORY FAILED:REPLY_WATCHER=NULL:%s", strerror( errno ) );
              delete camera_ptr->camera_watcher;
              camera_ptr->camera_watcher = NULL;
              delete camera_ptr;
@@ -318,7 +312,7 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
         char *cstr_channel = new char[channel.length()+1];
         if( cstr_channel == NULL )
         {
-             log_module(LOG_INFO,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[...]");
+             log_module( LOG_ERROR,"NEW_CAMERAS","ALLOCATE MEMORY FAILED WHEN EXECUTE NEW CHAR[...]:%s", strerror(errno) );
              delete camera_ptr->camera_watcher;
              camera_ptr->camera_watcher = NULL;
              delete camera_ptr->reply_watcher;
@@ -330,6 +324,16 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
 
         //you can not use the memset to initialize this struct
         //it will cause the segment default in run time
+	std::string peer_ip = get_peer_info( receive_request_watcher->fd, 0 );
+	if( peer_ip.empty() )
+	{
+	    strcpy( camera_ptr->IP, "unknown ip");
+	}
+	else
+	{
+	    strncpy( camera_ptr->IP, peer_ip.c_str(), INET_ADDRSTRLEN );
+	}
+
         camera_ptr->camera_watcher->data = (void *)cstr_channel;
         camera_ptr->camera_watcher->fd = receive_request_watcher->fd;
         strcpy(cstr_channel,channel.c_str());
@@ -876,8 +880,8 @@ void do_channel_notify( const std::string & channel , const int flag )
              notify_data->flag = flag;
              NOTIFY_ASYNC_WATCHER->data = (void *)notify_data;
              ev_async_send( NOTIFY_SERVER_LOOP, NOTIFY_ASYNC_WATCHER );
-             log_module( LOG_DEBUG, "DO_CHANNEL_NOTIFY", "+++++SENT THE ONLINE MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s DONE+++++",
-                                                        channel.c_str() );
+             log_module( LOG_DEBUG, "DO_CHANNEL_NOTIFY", "+++++SENT THE %s MESSAGE TO NOTIFY WORKTHREAD RELATED TO CHANNEL %s DONE+++++",
+                                                        (flag==ONLINE)?"ONLINE":"OFFLINE",channel.c_str() );
       }
       else
       {
@@ -2105,7 +2109,7 @@ void accept_cb( struct ev_loop * main_event_loop, struct ev_io * listen_watcher,
         return;
     }
     
-    
+    receive_request_watcher->data = NULL;   
     if( loglevel_is_enabled( LOG_INFO ))
     {
         std::string peer_info = get_peer_info( client_fd );
@@ -2215,7 +2219,7 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
     }
     
     request[received_bytes]='\0';
-    log_module(LOG_DEBUG,"RECEIVE_REQUEST_CB","HTTP REQUEST HEADER:%s", request );
+    log_module( LOG_DEBUG,"RECEIVE_REQUEST_CB","HTTP REQUEST HEADER:%s", request );
 
     SIMPLE_ROSEHTTP_HEADER simple_rosehttp_header;
     int ret = parse_simple_rosehttp_header( request, strlen( request ), simple_rosehttp_header );

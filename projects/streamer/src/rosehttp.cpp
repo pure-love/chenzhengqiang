@@ -11,7 +11,8 @@
 #include "rosehttp.h"
 #include "common.h"
 #include "logging.h"
-
+#include <iostream>
+using namespace std;
 static const char * SIMPLE_ROSEHTTP_REPLY[]=
 {   
     "HTTP/1.1 200 OK\r\n\r\n",
@@ -129,23 +130,27 @@ int parse_simple_rosehttp_header( const char *cstr_http_header, size_t http_head
     {
         return STREAM_FORMAT_ERROR;
     }
-    
     std::string string_http_header( cstr_http_header );
-    if( ( string_http_header.find("get")  == std::string::npos && string_http_header.find("GET") == std::string::npos )
+    if(
+     ( 
+	( string_http_header.find("get")  == std::string::npos && string_http_header.find("GET") == std::string::npos  )
+	&& 
+	( string_http_header.find("post") == std::string::npos && string_http_header.find("POST") == std::string::npos )
+     )	
      ||( string_http_header.find("http/") == std::string::npos && string_http_header.find("HTTP/") == std::string::npos )
      )
      
     {
         return STREAM_FORMAT_ERROR;
     }
-    
+
     size_t prev_pos=0,cur_pos=0;
     cur_pos = string_http_header.find_first_of(' ',prev_pos);
     if( cur_pos == std::string::npos )
     {
         return STREAM_FORMAT_ERROR;
     }
-    
+
     simple_rosehttp_header.method = string_http_header.substr( prev_pos,cur_pos );
     std::string::iterator iter = simple_rosehttp_header.method.begin();
     while( iter != simple_rosehttp_header.method.end() )
@@ -161,7 +166,7 @@ int parse_simple_rosehttp_header( const char *cstr_http_header, size_t http_head
         return STREAM_FORMAT_ERROR;    
     }
     
-    simple_rosehttp_header.server_path = string_http_header.substr( prev_pos, cur_pos-prev_pos );
+    simple_rosehttp_header.server_path = string_http_header.substr( prev_pos+1, cur_pos-prev_pos-1 );
     prev_pos = cur_pos+1;
 
     cur_pos = string_http_header.find_first_of( '=',prev_pos);
@@ -197,6 +202,7 @@ int parse_simple_rosehttp_header( const char *cstr_http_header, size_t http_head
     {
         return STREAM_FORMAT_ERROR;
     }
+
     simple_rosehttp_header.http_version = string_http_header.substr( prev_pos+1, cur_pos-prev_pos );
     return OK;
 }
@@ -209,6 +215,7 @@ int rosehttp_reply_with_status( const int status, int sock_fd )
     {
         case 200:
             http_status = HTTP_STATUS_200;
+	    break;
         case 400:
             http_status = HTTP_STATUS_400;
             break;
@@ -217,11 +224,13 @@ int rosehttp_reply_with_status( const int status, int sock_fd )
             break;
         case 404:
             http_status = HTTP_STATUS_404;
+	    break;
         case 500:
             http_status = HTTP_STATUS_500;
             break;
         case 501:
             http_status = HTTP_STATUS_501;
+	    break;
         case 503:
             http_status = HTTP_STATUS_503;
             break;

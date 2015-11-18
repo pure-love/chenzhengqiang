@@ -39,11 +39,12 @@ bool system_info::compute_cpu_occupy()
     CPU_INFO cpu_info;
     char line[LINE_SIZE];
 
-    proc_cpu_handler = fopen (_proc_cpu.c_str(), "r" );
+    proc_cpu_handler = fopen ( _proc_cpu.c_str(), "r" );
     if( proc_cpu_handler == NULL )
     {
         return false;
     }
+
     fgets (line, sizeof(line), proc_cpu_handler);
     sscanf (line, "%s %lf %lf %lf %lf %lf %lf %lf",
             cpu_info.heading, &cpu_info.user_mod, &cpu_info.nice_mod,&cpu_info.system_mod,

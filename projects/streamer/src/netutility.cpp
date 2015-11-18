@@ -291,19 +291,19 @@ void handle_cmd_options( int ARGC, char * * ARGV, struct CMD_OPTIONS & cmd_optio
     {
         if((*ARGV)[0]=='-')
         {
-            if( strcmp( *ARGV,"-v") == 0 || strcmp(*ARGV,"--version") == 0 )
+            if( strcmp( *ARGV, "-v" ) == 0 || strcmp( *ARGV, "--version" ) == 0 )
             {
                 cmd_options.need_print_version = true;
             }
-            else if( strcmp(*ARGV,"-h") ==0 || strcmp(*ARGV,"--help") == 0 )
+            else if( strcmp( *ARGV, "-h" ) ==0 || strcmp( *ARGV, "--help" ) == 0 )
             {
                 cmd_options.need_print_help = true;
             }
-            else if( strcmp(*ARGV,"-d") == 0 || strcmp(*ARGV,"--daemon") == 0 )
+            else if( strcmp( *ARGV, "-d" ) == 0 || strcmp( *ARGV, "--daemon" ) == 0 )
             {
                 cmd_options.run_as_daemon = true;
             }
-            else if( strcmp(*ARGV,"-f") == 0 || strcmp(*ARGV,"--config-file") == 0 )
+            else if( strcmp( *ARGV, "-f" ) == 0 || strcmp( *ARGV, "--config-file" ) == 0 )
             {
                 ++ARGV;
                 if( *ARGV == NULL )
@@ -311,7 +311,7 @@ void handle_cmd_options( int ARGC, char * * ARGV, struct CMD_OPTIONS & cmd_optio
                     std::cerr<<"You must enter the config file when you specify the -f or --log-file option"<<std::endl;
                     print_error();
                 }
-                cmd_options.config_file.assign(*ARGV);
+                cmd_options.config_file.assign( *ARGV );
             }
         }
         ++ARGV;
@@ -332,14 +332,13 @@ void handle_cmd_options( int ARGC, char * * ARGV, struct CMD_OPTIONS & cmd_optio
 void read_config( const char * config_file, CONFIG & config )
 {
     std::ifstream ifile(config_file);
-    if( !ifile )
+    if( ! ifile )
     {
          std::cerr<<"FAILED TO OPEN FILE:"<<config_file<<std::endl;
          exit(EXIT_FAILURE);
     }
     
     std::string line;
-    std::string heading,key, value;
     bool is_streamer = false;
     bool is_state = false;
     config.log_level = -1; 
@@ -347,11 +346,12 @@ void read_config( const char * config_file, CONFIG & config )
     config.state_port = -1;
     config.run_as_daemon = -1;
     
-    while(getline(ifile,line))
+    while( getline(ifile,line) )
     {
-         key="";
-         value="";
-         heading="";
+	 std::string key;
+	 std::string value;
+	 std::string heading;
+
          if( line.empty() )
          continue;
          std::string::const_iterator line_iter = line.begin();
@@ -372,7 +372,7 @@ void read_config( const char * config_file, CONFIG & config )
                   
                   while(*line_iter !=']')
                   {
-                       heading.push_back(*line_iter);
+                       heading.push_back( *line_iter );
                        ++line_iter;
                   }
                   if(heading == "streamer")
@@ -401,6 +401,7 @@ void read_config( const char * config_file, CONFIG & config )
                         key.push_back(*line_iter);
                          ++line_iter;
                    }
+
                    if( line_iter == line.end() )
                    break;
                    
@@ -417,10 +418,11 @@ void read_config( const char * config_file, CONFIG & config )
                    {
                        if( *line_iter == ' ' )
                        break; 
-                       value.push_back(*line_iter);
+                       value.push_back( *line_iter );
                        ++line_iter;
                    }
-                   if(key == "log-dir")
+
+                   if( key == "log-dir")
                    {
                        config.log_file=value;
                    }
@@ -440,7 +442,7 @@ void read_config( const char * config_file, CONFIG & config )
                    {
                        config.notify_server_file=value; 
                    }
-                   else if(key.compare("daemon") == 0)
+                   else if( key.compare("daemon") == 0)
                    {
                       config.run_as_daemon = atoi(value.c_str());
                    }
@@ -470,7 +472,10 @@ void read_config( const char * config_file, CONFIG & config )
               }
            ++line_iter;   
          }
-         line="";
+	 
+	 string().swap( heading );
+	 string().swap( key );
+	 string().swap( value );
     }
     if( config.log_file.empty()   || config.streamer_ip.empty() || config.lock_file.empty() || 
         config.state_ip.empty()  || config.log_level == -1       || 
@@ -878,12 +883,15 @@ int sdk_get_rcvbuf(int sd)
     return size;
 }
 
-int sdk_set_rcvlowat(int sd, int recvlow)
+
+
+int sdk_set_rcvlowat( int sd, int recvlow )
 {
     return setsockopt(sd, SOL_SOCKET, SO_RCVLOWAT,&recvlow, sizeof(recvlow));
 }
 
-std::string get_peer_info( int sock_fd )
+
+std::string get_peer_info( int sock_fd , int flag )
 {
     std::ostringstream OSS_peer_info;
     if( sock_fd < 0 )    
@@ -893,7 +901,25 @@ std::string get_peer_info( int sock_fd )
     int ret = getpeername( sock_fd, (struct sockaddr *)&peer_addr, &sock_len );
     if( ret != 0 )
     return OSS_peer_info.str();
-    OSS_peer_info<<inet_ntoa( peer_addr.sin_addr)<<":"<<htons(peer_addr.sin_port);
+
+    char *ip = inet_ntoa( peer_addr.sin_addr );
+    int port = htons( peer_addr.sin_port );
+
+    if( flag == 0 )
+    {
+	OSS_peer_info<<ip;
+    }
+    else if( flag == 1 )
+    {
+	OSS_peer_info<<port;
+    }
+    else if( flag == 2 )
+    {
+	OSS_peer_info<<ip<<":"<<port;
+    }
+
     return OSS_peer_info.str();
 }
+
+
 

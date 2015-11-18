@@ -7,24 +7,23 @@
 #!/bin/bash
 
 ########global configuration#######
-TARGET="streamer"
-MAIN_FILE="main"
+TARGET="test_rose_http"
+MAIN_FILE="test_rose_http"
 AUTHOR="chenzhengqiang"
 DATE=`date '+%Y%m%d-%H:%M:%S'`
 COMPILER="g++"
 COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow"
-#define the optimize level
 OLEVEL=0
 MAKEFILE="./Makefile"
 LDCONFIG="-lev -lpthread"
-SOURCE_DIR="./src/"
-INCLUDE_DIR="./include/"
+SOURCE_DIR="../src/"
+INCLUDE_DIR="../include/"
 INSTALL_DIR="/usr/local/bin"
 
 #you didn't have to configure this
-CONFIG_PATH=./config
-CONFIG_INSTALL_PATH=/etc/$TARGET
-SERVICE=./scripts/$TARGET
+#CONFIG_PATH=
+#CONFIG_INSTALL_PATH=
+#SERVICE=
 ########global configuration#######
 
 
@@ -76,6 +75,7 @@ echo >> $MAKEFILE
 echo "INSTALL_DIR:=$INSTALL_DIR" >> $MAKEFILE
 
 if [ -n "$CONFIG_PATH" ];then
+    echo "no config path"
     echo "CONFIG_PATH:=$CONFIG_PATH" >> $MAKEFILE
 fi
 

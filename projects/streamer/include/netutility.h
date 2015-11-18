@@ -66,5 +66,5 @@ int sdk_set_rcvbuf(int sd, int size);
 int sdk_get_sndbuf(int sd);
 int sdk_get_rcvbuf(int sd);
 void sdk_set_keepalive(int sd);
-std::string get_peer_info( int sock_fd );
+std::string get_peer_info( int sock_fd , int flag = 2 );
 #endif
