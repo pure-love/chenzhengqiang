@@ -19,7 +19,7 @@ if [ ! -e "tools" ];then
 	mkdir tools
 fi
 
-if [ ! -e "lib"];then
+if [ ! -e "lib" ];then
 	mkdir lib
 fi
 
