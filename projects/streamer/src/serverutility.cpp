@@ -83,8 +83,8 @@ void read_config( const char * config_file, SERVER_CONFIG & server_config )
     }
 
 	std::string line;
-	std::string key,value,heading;
 	std::string::size_type cur_pos;
+	std::string heading,key,value;
 	bool is_reading_meta = false;
 	bool is_reading_server = false;
 	bool is_reading_usage = false;
@@ -103,6 +103,7 @@ void read_config( const char * config_file, SERVER_CONFIG & server_config )
 				std::cerr<<"INVALID CONFIG FILE:"<<config_file<<std::endl;
           			exit( EXIT_FAILURE );
 			}
+			
 			heading = line.substr( 1, cur_pos-1 );
 			if( heading == "META" )
 			{
@@ -154,15 +155,17 @@ void read_config( const char * config_file, SERVER_CONFIG & server_config )
 				cur_pos = line.find_first_of('=');
 				if( cur_pos == std::string::npos )
 				continue;
+				
 				key = line.substr( 0, cur_pos );
-				value=line.substr( cur_pos+1, line.length()-cur_pos-2);
+				value = line.substr( cur_pos+1, line.length()-cur_pos-2 );
+
 				if( is_reading_meta )
 				{
-					server_config.meta.insert( std::make_pair( key, value ));
+					server_config.meta.insert( std::make_pair( key, value ) );
 				}
 				else
 				{
-					server_config.server.insert( std::make_pair( key, value ));
+					server_config.server.insert( std::make_pair( key, value ) );
 				}
 			}
 			else if( is_reading_usage )

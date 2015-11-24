@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20151123-17:20:23
+#generate date:20151124-10:18:26
 
 
 INCLUDE_DIR:=./include/
@@ -34,7 +34,7 @@ $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< $(CFLAGS) $(LDCONFIG)
 
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
+	-rm -f *.o *.a *.so *core* $(TARGET) *.tar.gz *.cppe
 
 install:
 	-rm -f $(INSTALL_DIR)/$(TARGET)

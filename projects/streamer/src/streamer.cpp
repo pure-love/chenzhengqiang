@@ -297,7 +297,8 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
              camera_ptr = NULL;
              return NULL;
         }
-        
+
+	 camera_ptr->camera_watcher->active = 0;
         camera_ptr->reply_watcher = new struct ev_io;
         if( camera_ptr->reply_watcher == NULL )
         {
@@ -309,6 +310,7 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
              return NULL;
         }
 
+	 camera_ptr->reply_watcher->active = 0;
         char *cstr_channel = new char[channel.length()+1];
         if( cstr_channel == NULL )
         {
@@ -388,7 +390,8 @@ VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher )
             viewer_info_ptr = NULL;
             return NULL;
        }
-       
+
+	viewer_info_ptr->viewer_watcher->active = 0;
        viewer_info_ptr->send_first = true;
        viewer_info_ptr->register_viewer_callback_first = true;
        viewer_info_ptr->send_key_frame_first = true;
@@ -665,7 +668,7 @@ static void viewer_queue_push( VIEWER_QUEUE & viewer_queue, FLV_TAG_FRAME & flv_
     (viewer_queue.flv_tags[viewer_queue.rear])->TAG = new uint8_t[flv_tag.data_size];
     if(  ( viewer_queue.flv_tags[viewer_queue.rear])->TAG == NULL  )
     {
-        log_module(LOG_ERROR,"VIEWER_QUEUE_PUSH","Allocate Memory Failed:%s",LOG_LOCATION);
+        log_module( LOG_ERROR, "VIEWER_QUEUE_PUSH", "Allocate Memory Failed:%s", LOG_LOCATION);
         exit(EXIT_FAILURE);
     }
     memcpy((viewer_queue.flv_tags[viewer_queue.rear])->TAG, flv_tag.TAG, flv_tag.data_size);
@@ -944,11 +947,15 @@ void delete_camera( struct ev_loop * workthread_loop, struct  ev_io *camera_watc
             while( vi_iter != cir_iter->second->viewer_info_pool.end() )
             {
                 if( vi_iter->second->viewer_watcher != NULL )
-                {
-                    ev_io_stop( workthread_loop, vi_iter->second->viewer_watcher );
-                    close( vi_iter->second->viewer_watcher->fd  );
-                    delete vi_iter->second->viewer_watcher;
-                    vi_iter->second->viewer_watcher = NULL;
+                {	
+			log_module( LOG_DEBUG, "DELETE_CAMERA", "VIEWER WATCHER'S ACTIVE:%d", 
+						vi_iter->second->viewer_watcher->active );
+			
+			close( vi_iter->second->viewer_watcher->fd );
+			if( vi_iter->second->viewer_watcher->active == 1 )		
+                        ev_io_stop( workthread_loop, vi_iter->second->viewer_watcher );
+			delete vi_iter->second->viewer_watcher;
+			vi_iter->second->viewer_watcher = NULL;
                 }
                 
                 delete_viewer_queue( vi_iter->second->viewer_queue );
@@ -1008,6 +1015,7 @@ void delete_camera( struct ev_loop * workthread_loop, struct  ev_io *camera_watc
 }
 
 
+
 /*
 #@desc:receiving the stream pushed from the camera
 */
@@ -1015,7 +1023,12 @@ void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_
 {
     //usefull macros for deleting channel when camera has stoped to push stream
     //meanwhile delete all the viewers
+
+    log_module( LOG_DEBUG, "RECEIVE_STREAM_CB", "CAMERA WATCHER AVTIVE:%d", camera_watcher->active );
     (void)workthread_loop;
+    if( camera_watcher->active != 1 )
+    return;
+
     uint8_t tag_type;
     bool is_key_frame = false;
     bool tag_is_sequence_header = false;
@@ -1050,7 +1063,6 @@ void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_
         delete_camera( workthread_loop, camera_watcher, wi_iter, ci_iter );
         return;
     }
-
 
 
     //just initialize once for the capability's sake
@@ -1305,8 +1317,10 @@ void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_
                  if( vi_iter->second->register_viewer_callback_first )
                  {
                       vi_iter->second->register_viewer_callback_first = false;
-                      ev_io_init(vi_iter->second->viewer_watcher,send_tags_cb,
-                      vi_iter->second->client_fd,EV_WRITE);
+                      ev_io_init( vi_iter->second->viewer_watcher, send_tags_cb,
+                      vi_iter->second->client_fd, EV_WRITE );
+			  log_module( LOG_DEBUG, "RECEIVE_STREAM_CB", "VIEWER WATCHER ACTIVE WHEN INIT FIRST:%d", 
+			  	vi_iter->second->viewer_watcher->active );		  
                  }
                  
                  if( viewer_queue_empty( vi_iter->second->viewer_queue ))
@@ -1320,11 +1334,11 @@ void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_
 		      if( loglevel_is_enabled( LOG_DEBUG ))
 		      {
 			  std::string peer_info = get_peer_info( vi_iter->second->client_fd );  
-			log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","THE %s'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
+			  log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","THE %s'S VIEWER QUEUE IS FULL--NETWORK CONGESTION HAPPENED",
 				                                  peer_info.c_str());
 		      }
 
-                      drop_frame( vi_iter->second->viewer_queue );
+                    drop_frame( vi_iter->second->viewer_queue );
                  }
                  
                  viewer_queue_push( vi_iter->second->viewer_queue, flv_tag );
@@ -1332,13 +1346,15 @@ void receive_stream_cb( struct ev_loop * workthread_loop, struct  ev_io *camera_
                  {
                       need_start_viewer_callback = false;
                       ev_io_start( workthread_loop, vi_iter->second->viewer_watcher );
+		         log_module( LOG_DEBUG, "RECEIVE_STREAM_CB", "VIEWER WATCHER ACTIVE WHEN START:%d", 
+			  						vi_iter->second->viewer_watcher->active );			  
                  }
                  
-		 if( loglevel_is_enabled( LOG_DEBUG ))
+		 if( loglevel_is_enabled( LOG_DEBUG ) )
 		 {
 		     std::string peer_info = get_peer_info( vi_iter->second->client_fd ); 
-                     log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s'S VIEWER QUEUE",
-                                                                peer_info.c_str() );
+                   log_module( LOG_DEBUG,"RECEIVE_STREAM_CB","ALREADY PUSH THE FLV TAG FRAME INTO %s'S VIEWER QUEUE",
+                                                                				  peer_info.c_str() );
 		 }
                  ++vi_iter;
             }
@@ -1379,7 +1395,8 @@ void delete_viewer( struct ev_loop * workthread_loop, struct  ev_io *viewer_watc
             log_module( LOG_DEBUG, "DELETE_VIEWER", "VIEWER %s OFFLINE", peer_info.c_str() );
         }
         
-        close( viewer_watcher->fd );
+	close( viewer_watcher->fd );
+	if( viewer_watcher->active == 1 )
         ev_io_stop( workthread_loop, viewer_watcher );
         delete viewer_watcher;
         viewer_watcher = NULL;
@@ -1392,7 +1409,7 @@ void delete_viewer( struct ev_loop * workthread_loop, struct  ev_io *viewer_watc
         log_module( LOG_DEBUG, "DELETE_VIEWER", "ERASE VIEWER FROM VIEWER CONTAINER RELATED TO CHANNEL:%s START", cir_iter->first.c_str() );
         cir_iter->second->viewer_info_pool.erase( vir_iter );
         log_module( LOG_DEBUG, "DELETE_VIEWER", "ERASE VIEWER DONE RELATED TO CHANNEL:%s, THERE ARE(IS) REMAIN %u VIEWER(S)", 
-            cir_iter->first.c_str(), cir_iter->second->viewer_info_pool.size() );
+            					     cir_iter->first.c_str(), cir_iter->second->viewer_info_pool.size() );
     }
     else
     {
@@ -1411,15 +1428,19 @@ void send_tags_cb( struct ev_loop * workthread_loop, struct  ev_io *viewer_watch
 {
     #define STOP_SEND_TAGS() \
     close( viewer_watcher->fd );\
+    if( viewer_watcher->active == 1 )\
     ev_io_stop( workthread_loop, viewer_watcher );\
     delete viewer_watcher;\
     viewer_watcher = NULL;\
     return;
-		
+    
+    if( viewer_watcher->active != 1 )
+    return;
+
     if( EV_ERROR & revents )
     {
         log_module( LOG_ERROR, "SEND_TAGS_CB", "EV_ERROR %s", LOG_LOCATION );
-	 STOP_SEND_TAGS();
+	STOP_SEND_TAGS();
     }
     	
     int sent_bytes = -1;
@@ -1429,7 +1450,7 @@ void send_tags_cb( struct ev_loop * workthread_loop, struct  ev_io *viewer_watch
     if( wi_iter == workthread_info_pool.end() )
     {
         log_module( LOG_ERROR,"SEND_TAGS_CB","REACH THE END OF WORKTHREAD_INFO_POOL UNKNOWN ERROR OCCURRED");
-	 STOP_SEND_TAGS();
+	STOP_SEND_TAGS();
     }
 
     viewer_info_iter vi_iter;
@@ -1587,8 +1608,9 @@ void send_tags_cb( struct ev_loop * workthread_loop, struct  ev_io *viewer_watch
     FLV_TAG_FRAME *flv_tag=NULL;
     if( viewer_queue_empty( vi_iter->second->viewer_queue ) )
     {
-        log_module(LOG_DEBUG,"SEND_TAGS_CB","THE VIEWER QUEUE IS EMPTY,JUST STOP THE LIBEV IO EVENT FOR VIEWER");
-        ev_io_stop(workthread_loop,viewer_watcher);
+        log_module( LOG_DEBUG, "SEND_TAGS_CB", "THE VIEWER QUEUE IS EMPTY,JUST STOP THE LIBEV IO EVENT FOR VIEWER" );
+        ev_io_stop( workthread_loop, viewer_watcher );
+	log_module( LOG_DEBUG, "SEND_TAGS_CB", "VIEWER WATCHER ACTIVE WHEN STOP:%d", viewer_watcher->active );
         return;
     }
     else
@@ -1731,7 +1753,8 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
               async_watcher->data = NULL;
               return;
         }
-
+	
+	pull_stream_watcher->active = 0;
         struct ev_io *send_backing_resource_watcher = new struct ev_io;
         if( send_backing_resource_watcher == NULL )
         {
@@ -1757,7 +1780,8 @@ void async_read_cb( struct ev_loop *workthread_loop, struct ev_async *async_watc
               async_watcher->data = NULL;
               return;
         }
-
+	
+	push_stream_watcher->active = 0;
         char *imitated_request = new char[strlen(async_data->data)+1];
         if( imitated_request == NULL )
         {
@@ -1810,7 +1834,7 @@ void reply_200OK_cb(struct ev_loop * workthread_loop, struct  ev_io *reply_watch
      }
      const char *http_200_ok = "HTTP/1.1 200 OK\r\n\r\n";
      write_specify_size2( reply_watcher->fd,http_200_ok, strlen(http_200_ok) );
-     ev_io_stop(workthread_loop,reply_watcher);
+     ev_io_stop( workthread_loop, reply_watcher );
      delete reply_watcher;
      reply_watcher = NULL;
 }
@@ -1844,8 +1868,10 @@ void pull_stream_cb(struct ev_loop * workthread_loop, struct  ev_io *pull_stream
     }\
     (Y)->second.socketfd_pool.clear();\
     (X)->resource_info_pool.erase(Y);\
-    ev_io_stop(workthread_loop,pull_stream_watcher);\
-    ev_io_stop(workthread_loop,push_stream_watcher);\
+    if( pull_stream_watcher->active == 1)\
+    ev_io_stop( workthread_loop, pull_stream_watcher );\
+    if( push_stream_watcher->active == 1 )\
+    ev_io_stop( workthread_loop, push_stream_watcher );\
     delete static_cast<struct ev_io *>(pull_stream_watcher->data);\
     pull_stream_watcher->data = NULL;\
     delete pull_stream_watcher;\
@@ -2243,6 +2269,7 @@ void accept_cb( struct ev_loop * main_event_loop, struct ev_io * listen_watcher,
         return;
     }
     
+    receive_request_watcher->active = 0;
     receive_request_watcher->data = NULL;   
     if( loglevel_is_enabled( LOG_INFO ))
     {
@@ -2576,7 +2603,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
                 return false;
             }
             
-            log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","FIND THE CHANNEL:%s--ID:%u",ci_iter->first.c_str(),wi_iter->thread_id );
+            log_module( LOG_DEBUG, "DO_VIEWER_REQUEST","FIND THE CHANNEL:%s--ID:%u",ci_iter->first.c_str(),wi_iter->thread_id );
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find( receive_request_watcher->fd );
             if( vi_iter == ci_iter->second->viewer_info_pool.end() )
             {

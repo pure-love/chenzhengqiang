@@ -1,15 +1,13 @@
-
-
 #!/bin/bash
 
 service="streamer"
 service_pid=`ps -ef | grep $service | head -n 1 | awk '{print $2}'`
 
 if [ -n "$service_pid" ];then
-    kill -9 $service_pid
+    `kill -9 $service_pid 2>&1 > /dev/null`
 fi
 
-ret=`valgrind -v --tool=memcheck --leak-check=full --show-leak-kinds=all --log-file=/chenzhengqiang/streamer/streamer.leak.log $service`
+ret=`valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --log-file=/chenzhengqiang/streamer/streamer.leak.log $service`
 
 if [ $? -ne 0 ];then
     echo "run $service with valgrind failed,please check if install the valgrind or if kill the $service properly"

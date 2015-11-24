@@ -103,7 +103,7 @@ echo -e "\t\$(CC) -o \$@ -c \$< \$(CFLAGS) \$(LDCONFIG)" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "clean:" >> $MAKEFILE
-echo -e "\t-rm -f *.o *.a *.so *.log *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE
+echo -e "\t-rm -f *.o *.a *.so *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "install:" >> $MAKEFILE
