@@ -15,6 +15,7 @@
 #include "streamer.h"
 #include "state_server.h"
 #include "netutility.h"
+#include "serverutility.h"
 #include "logging.h"
 #include <sys/resource.h>
 
@@ -79,7 +80,6 @@ struct VIEWER_QUEUE
 //every signle viewer own a viewer queue
 typedef struct
 {
-    char channel[MAX_CHANNEL_SIZE];
     ssize_t client_fd;
     bool send_first; //specify that if it's the first time to send tags to viewer
     bool register_viewer_callback_first;
@@ -365,7 +365,7 @@ CAMERAS_PTR new_cameras( struct ev_io * receive_request_watcher, const std::stri
 #@returns:VIEWER_INFO_PTR
 #@desc:new viewer_info_ptr and initialize it
 */
-VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher, const std::string & channel )
+VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher )
 {
        if( receive_request_watcher == NULL || receive_request_watcher->fd < 0 )
        {
@@ -389,7 +389,6 @@ VIEWER_INFO_PTR new_viewer_info( struct ev_io * receive_request_watcher, const s
             return NULL;
        }
        
-       strncpy( viewer_info_ptr->channel, channel.c_str(), MAX_CHANNEL_SIZE );
        viewer_info_ptr->send_first = true;
        viewer_info_ptr->register_viewer_callback_first = true;
        viewer_info_ptr->send_key_frame_first = true;
@@ -512,7 +511,7 @@ workthread_info_iter get_workthread_info_item(pthread_t thread_id)
 # notice that,the client_id here is socket fd
 */
 
-static inline viewer_info_iter get_viewer_info_item(camera_info_reference_iter cir_iter, const CLIENT_ID & client_id )
+static inline viewer_info_iter get_viewer_info_item( camera_info_reference_iter cir_iter, const CLIENT_ID & client_id )
 {
     return cir_iter->second->viewer_info_pool.find(client_id);
 }
@@ -520,29 +519,31 @@ static inline viewer_info_iter get_viewer_info_item(camera_info_reference_iter c
 
 
 /*
-#@args:
-#@returns:
 #@desc:find the viewer info's iterator according to the client_id
 # notice that,the client_id here is socket fd
 */
-viewer_info_iter get_viewer_info_item( const CLIENT_ID & client_id )
+int get_viewer_info_item( workthread_info_reference_iter wir_iter, camera_info_reference_iter cir_iter,
+							 viewer_info_reference_iter vir_iter, const CLIENT_ID & client_id )
 {
-    workthread_info_iter wi_iter = workthread_info_pool.begin();
-    while( wi_iter != workthread_info_pool.end() )
+    if( client_id < 0 )
     {
-        camera_info_iter ci_iter = wi_iter->camera_info_pool.begin();
-        while( ci_iter != wi_iter->camera_info_pool.end() )
-        {
-            viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find(client_id);
-            if( vi_iter != ci_iter->second->viewer_info_pool.end())
-            {
-                return vi_iter;
-            }
-            ++ci_iter;
-        }
-        ++wi_iter;
+    	 log_module( LOG_ERROR, "GET_VIEWER_INFO_ITEM", "INVALID ARGUMENT RELATED CLIENT ID:%d", client_id );
+	 return -1;		 
     }
-    return viewer_info_iter();
+	
+    cir_iter = wir_iter->camera_info_pool.begin();
+    while( cir_iter != wir_iter->camera_info_pool.end() )
+    {
+     	 vir_iter = cir_iter->second->viewer_info_pool.find( client_id );
+        if( vir_iter != cir_iter->second->viewer_info_pool.end() )
+        {
+             return OK;
+        }
+        ++cir_iter;
+    }
+
+    log_module( LOG_INFO, "GET_VIEWER_INFO_ITEM", "GET VIEWER INFO ITEM FAILED RELATED TO CLIENT ID:%d", client_id );			
+    return -1;		  
 }
 
 
@@ -675,27 +676,6 @@ static void viewer_queue_push( VIEWER_QUEUE & viewer_queue, FLV_TAG_FRAME & flv_
 
 
 /*
-#@args:the "host" stands  for the hostname
-# and the "service" stands for our streaming server's name which registered in /etc/services
-#@returns:return a socket descriptor for listening
-#@desc:obtain the socket descriptor through function TCP_LISTEN which described in streamerutility.cpp
-*/
-int register_streamer_server( const char *host,const char *service)
-{
-    LOG_START("REGISTER_STREAMER_SERVER");
-    int listen_fd;
-    listen_fd = tcp_listen(host,service);
-    if( listen_fd == -1 )
-    {
-        log_module(LOG_ERROR,"REGISTER_STREAMER_SERVER","TCP_LISTEN");
-    }
-    LOG_DONE("REGISTER_STREAMER_SERVER");
-    return listen_fd;
-}
-
-
-
-/*
 #@args:"workthreads_size" specify the size of work threads
 #@returns:no returns
 #@desc:create the work thread in a loop,meanwhile saving them to the pool
@@ -707,8 +687,61 @@ struct WORKTHREAD_LOOP_INFO
     size_t type;
 };
 
+void get_notify_servers( const char * config_file,std::map<std::string, int> & notify_server_pool )
+{
+      std::ifstream ifile(config_file);
+      if( !ifile )
+     {
+           log_module( LOG_ERROR,"GET_NOTIFY_SERVERS","FAILED TO OPEN FILE:%s--%s",config_file, strerror(errno) );
+           return;
+     }
+	  
+     std::string line;
+     std::string IP;
+     std::string PORT;
+     while(getline(ifile,line))
+     {
+          IP="";
+          PORT="";
+          if(line.empty())
+          continue;
+          std::string::const_iterator line_iter = line.begin();
+          while( line_iter != line.end() )
+          {
+               if( *line_iter == '#' )
+               break;
+               while( *line_iter == ' ' && line_iter != line.end() )
+               {
+                     ++line_iter;
+               }
+               if( line_iter == line.end() )
+               break;
+               while( *line_iter !=':' && line_iter != line.end() )
+               {
+                   IP.push_back(*line_iter);
+                   ++line_iter;
+               }
+               if( line_iter == line.end() )
+               break;
+               ++line_iter;
+               while( line_iter != line.end() && *line_iter == ' ')
+               {
+                   ++line_iter;
+               }
+               while( line_iter != line.end() )
+               {
+                    if( *line_iter == ' ' )
+                    break;    
+                    PORT.push_back(*line_iter);
+                    ++line_iter;
+               }
+               notify_server_pool.insert( std::make_pair(IP,atol(PORT.c_str())) );
+               break;
+          }
+     }
+}
 
-bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
+bool init_workthread_info_pool( size_t workthreads_size )
 {
     LOG_START( "INIT_WORKTHREAD_INFO_POOL" );
     ssize_t ret;
@@ -722,7 +755,7 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
 
         //make the workthread detached to main thread
         pthread_attr_init(&thread_attr);
-        pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
+        pthread_attr_setdetachstate( &thread_attr, PTHREAD_CREATE_DETACHED );
         
         WORKTHREAD_INFO workthread_info;
         workthread_loop_info = new WORKTHREAD_LOOP_INFO;
@@ -738,7 +771,7 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         {
             delete workthread_loop_info;
             workthread_loop_info = NULL;
-            log_module(LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","EV_LOOP_NEW FAILD");
+            log_module( LOG_ERROR,"INIT_WORKTHREAD_INFO_POOL","EV_LOOP_NEW FAILD");
             return false;
         }
 
@@ -760,7 +793,7 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
         ret = pthread_create( &thread_id,&thread_attr,workthread_entry, (void *)workthread_loop_info);
         if(  ret != 0 )
         {
-            log_module( LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",strerror(errno));
+            log_module( LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s", strerror(errno));
             return false;
         }
         workthread_info.thread_id = thread_id;
@@ -774,14 +807,14 @@ bool init_workthread_info_pool( CONFIG & config, size_t workthreads_size )
     pthread_attr_init( &thread_attr );
     pthread_attr_setdetachstate( &thread_attr, PTHREAD_CREATE_DETACHED );
 
-    ret = pthread_create( &thread_id, &thread_attr, notify_server_entry, (void *)config.notify_server_file.c_str() );
+    ret = pthread_create( &thread_id, &thread_attr, notify_server_entry, NULL );
     if(  ret != 0 )
     {
-          log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s",LOG_LOCATION);
+          log_module(LOG_ERROR,"INIT_WORKTHREAD_POOL","PTHREAD_CREATE FAILED:%s", strerror( errno ));
           return false;
     }
     
-    log_module(LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","INIT THE STREAMER'S NOTIFY SERVER ENTRY--DONE");
+    log_module( LOG_DEBUG,"INIT_WORKTHREAD_INFO_POOL","INIT THE STREAMER'S NOTIFY SERVER ENTRY--DONE");
     LOG_DONE("INIT_WORKTHREAD_INFO_POOL");
     return true;
 }
@@ -1376,26 +1409,39 @@ void delete_viewer( struct ev_loop * workthread_loop, struct  ev_io *viewer_watc
 */
 void send_tags_cb( struct ev_loop * workthread_loop, struct  ev_io *viewer_watcher, int revents )
 {
-    
+    #define STOP_SEND_TAGS() \
+    close( viewer_watcher->fd );\
+    ev_io_stop( workthread_loop, viewer_watcher );\
+    delete viewer_watcher;\
+    viewer_watcher = NULL;\
+    return;
+		
     if( EV_ERROR & revents )
     {
-        log_module(LOG_INFO,"SEND_TAGS_CB","EV_ERROR %s",LOG_LOCATION);
-        return;
+        log_module( LOG_ERROR, "SEND_TAGS_CB", "EV_ERROR %s", LOG_LOCATION );
+	 STOP_SEND_TAGS();
     }
-
+    	
     int sent_bytes = -1;
     size_t total_bytes = -1;
-    workthread_info_iter wi_iter = get_workthread_info_item(pthread_self());
+    workthread_info_iter wi_iter = get_workthread_info_item( pthread_self() );
+	
     if( wi_iter == workthread_info_pool.end() )
     {
-        log_module(LOG_DEBUG,"SEND_TAGS_CB","REACH THE END OF WORKTHREAD_INFO_POOL UNKNOWN ERROR OCCURRED");
-        return;
+        log_module( LOG_ERROR,"SEND_TAGS_CB","REACH THE END OF WORKTHREAD_INFO_POOL UNKNOWN ERROR OCCURRED");
+	 STOP_SEND_TAGS();
     }
 
-    viewer_info_iter vi_iter = get_viewer_info_item( viewer_watcher->fd );
-    std::string channel( vi_iter->second->channel );
-    camera_info_iter ci_iter = get_channel_info_item( wi_iter, channel );
-
+    viewer_info_iter vi_iter;
+    camera_info_iter ci_iter;
+	
+    int ret = get_viewer_info_item( wi_iter, ci_iter, vi_iter , viewer_watcher->fd );
+    if( ret != OK )
+    {
+    	log_module( LOG_ERROR, "SEND_TAGS_CB", "GET VIEWER INFO ITEM THROUGH SOCKET FD:%d FAILED", viewer_watcher->fd );
+	STOP_SEND_TAGS();	
+    }
+	
     if(  vi_iter->second->send_first )
     {
         //send_first indicates send the flv header,avc tag,aac tag,script tag for once
@@ -1963,7 +2009,7 @@ void read_channel_status_cb( struct ev_loop *workthread_loop, struct ev_async *a
     std::map<std::string, int> notify_servers;
     //obtain the servers' address wrtten in config file
     
-    read_config2( NOTIFY_SERVER_CONFIG_FILE, notify_servers );
+    get_notify_servers( NOTIFY_SERVER_CONFIG_FILE, notify_servers );
     std::map<std::string, int>::iterator it = notify_servers.begin();
     int conn_fd;
 
@@ -2005,6 +2051,94 @@ void read_channel_status_cb( struct ev_loop *workthread_loop, struct ev_async *a
      async_watcher->data = NULL;
 }
 
+
+void get_src_info( const std::string & src, string & IP, int & PORT)
+{
+    std::string host;
+    std::string port="";
+    char sep = ':';
+    std::string::const_iterator str_iter = src.begin();
+    while( str_iter != src.end() && *str_iter != sep )
+    {
+        host.push_back(*str_iter);
+        ++str_iter;
+    }
+    if( str_iter != src.end() )
+    {
+        ++str_iter;
+        while( str_iter != src.end() )
+        {
+            port.push_back(*str_iter);
+            ++str_iter;
+        }
+    }
+    if(port.empty())
+    {
+        PORT=80;
+    }
+    else
+    {
+        PORT = atol(port.c_str());
+    }
+    IP=host;
+}
+
+
+void print_help( void )
+{
+    printf("\rUsage:streamer [OPTION]...[OPTION]...\n");
+    printf("\rStartup the streaming server or list information about it:version,help info etc.\n");
+    printf("\rMandatory arguments to long options are mandatory for short options too.\n");
+    printf("\r%-20s%s","  -f, --config-file","specify the config file\n");
+    printf("\r%-20s%s","  -h, --help","display help and exit\n");
+    printf("\r%-20s%s","  -v, --version","display version and exit\n");
+    printf("\r\nExample:\n");
+    printf("\rstreamer  //startup this streaming server through default config file\n");
+    printf("\rstreamer -h\n");
+    printf("\rstreamer -v\n");
+    printf("\rstreamer --config-file /etc/streamer/streamer.conf\n");
+    exit( EXIT_SUCCESS );
+}
+
+
+void print_error( void )
+{
+    std::cerr<<"\r\nShort for options,you must enter at least one like the following:"<<std::endl;
+    std::cerr<<"\r:streamer -h  or  ./streamer -v"<<std::endl;
+    std::cerr<<"\r:streamer -f <config_file>";
+    exit(EXIT_FAILURE);
+}
+
+
+void print_version( struct SERVER_CONFIG & server_config )
+{
+    printf("\rStreamer Version:%s\n", server_config.meta["version"].c_str() );
+    printf("\rCopyright (C) %s.\n", server_config.meta["copyright"].c_str() );
+    printf("Started on %s  with gcc 4.47 in CentOS 6.6.Written By %s.\n",
+		    server_config.meta["start-date"].c_str(),
+		    server_config.meta["author"].c_str() );
+    exit( EXIT_SUCCESS );
+}
+
+void print_welcome( int port )
+{
+    char heading[1024];
+    snprintf(heading,1024,"\n" \
+                          "\r    *\n"\
+                          "\r  *   *  *      *     *  *     *     *  *       *\n" \
+                          "\r *        *     *    *    *    *    *   *       *\n"\
+                          "\r   *       *    *   *      *   *   *     *      *\n"\
+                          "\r      *      * * * *        * * * *       * *  *\n"\
+                          "\r  *   *       *   *          *   *             *\n"\
+                          "\r    *                                         *\n"\
+                          "\r                                             *"\
+                          "\n\nsoftware version 1.7.1, Copyleft (c) 2015 SWWY\n" \
+                          "this streaming server started on March 26 2015  with gcc 4.4.7 in CentOS\n" \
+                          "programed by chenzhengqiang,based on http protocol, which registered at port:%d\n\n" \
+                          "now streaming server start listening :......\n\n\n\n\n", port );
+
+    std::cout<<heading<<std::endl;
+}
 
 /*
 *@args:
@@ -2281,7 +2415,7 @@ void receive_request_cb( struct ev_loop * main_event_loop, struct  ev_io *receiv
     {
         //http "GET" method indicates viewer's request
         log_module(LOG_INFO,"RECEIVE_REQUEST_CB","RECEIVE THE VIEWER'S REQUEST--CHANNEL:%s", channel.c_str());
-        bool ok = do_viewer_request( main_event_loop,receive_request_watcher, simple_rosehttp_header );
+        bool ok = do_viewer_request( main_event_loop, receive_request_watcher, simple_rosehttp_header );
         if( ! ok )
         {
              log_module( LOG_ERROR, "RECEIVE_REQUEST_CB","DO_VIEWER_REQUEST FAILED" );
@@ -2446,10 +2580,10 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             viewer_info_iter vi_iter = ci_iter->second->viewer_info_pool.find( receive_request_watcher->fd );
             if( vi_iter == ci_iter->second->viewer_info_pool.end() )
             {
-                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info( receive_request_watcher, channel );
+                VIEWER_INFO_PTR viewer_info_ptr = new_viewer_info( receive_request_watcher );
                 if( viewer_info_ptr == NULL )
                 {
-                    log_module( LOG_INFO,"DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION );
+                    log_module( LOG_ERROR, "DO_VIEWER_REQUEST","ALLOCATE MEMORY FAILED:VIEWER_INFO_PTR:%s",LOG_LOCATION );
                     return false;
                 }
                 
@@ -2477,7 +2611,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             }
             else
             {
-                 log_module(LOG_INFO,"DO_VIEWER_REQUEST","SYSTEM ERROR:SYSTEM GENERATE ThE SOCKET FD TAHT WAS ALREADY IN USE");
+                 log_module( LOG_ERROR, "DO_VIEWER_REQUEST","SYSTEM ERROR:SYSTEM GENERATE ThE SOCKET FD TAHT WAS ALREADY IN USE");
                  rosehttp_reply_with_status( 500, receive_request_watcher->fd );
                  close( receive_request_watcher->fd );
                  return false;
@@ -2502,7 +2636,7 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             //also check if the channels' amount overtop the limit
             if( get_channel_list().size() > CHANNELS_LIMIT )
             {
-                  log_module( LOG_INFO,"DO_VIEWER_REQUEST","BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER" );
+                  log_module( LOG_INFO, "DO_VIEWER_REQUEST", "BACKING RESOURCE'S REQUEST:OVERTOP THE CHANNNELS' LIMIT,SEND 503 TO VIEWER" );
                   rosehttp_reply_with_status( 503, receive_request_watcher->fd  );
                   close( receive_request_watcher->fd );
                   return false;
@@ -2513,14 +2647,14 @@ bool do_viewer_request( struct ev_loop * main_event_loop, struct ev_io * receive
             bool ok = do_the_backing_source_request( main_event_loop,receive_request_watcher->fd, simple_rosehttp_header );
             if( ! ok )
             {
-                 log_module( LOG_ERROR,"DO_VIEWER_REQUEST","DO THE BACKING RESOURCE REQUEST FAILED" );
+                 log_module( LOG_ERROR, "DO_VIEWER_REQUEST", "DO THE BACKING RESOURCE REQUEST FAILED" );
                  rosehttp_reply_with_status( 500, receive_request_watcher->fd );
                  close( receive_request_watcher->fd );
                  log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","SENDING THE BACKING-SOURCE REQUEST:FAILED" );
             }
             else
             {
-                  log_module( LOG_DEBUG,"DO_VIEWER_REQUEST","SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED" );
+                  log_module( LOG_DEBUG, "DO_VIEWER_REQUEST", "SENDING THE BACKING-SOURCE REQUEST:SUCCEEDED" );
             }
             return ok;
         }
@@ -2839,33 +2973,30 @@ bool do_the_backing_source_request( struct ev_loop * main_event_loop,ssize_t req
 #@desc:
 providing one asynchronous event loop for handling clients's connection request
 */
-void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd, CONFIG & config )
+void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd, SERVER_CONFIG & server_config )
 {
     //if run_as_daemon is true,then make this streaming server run as daemon
-    if( config.run_as_daemon )
+    
+    if( server_config.server["daemon"] == "yes" )
     {
         daemon(0,0);
     }
+    else
+    {
+	    print_welcome( atoi( server_config.server["bind-port"].c_str() ) );
+    }	
 
     struct ev_loop *main_event_loop = EV_DEFAULT;
     struct ev_io *listen_watcher = NULL;
-    //firstly set the max open files limit
-    /*struct rlimit rt;
-    rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
-    if ( setrlimit( RLIMIT_NOFILE, &rt ) == -1 ) 
-    {
-        log_module(LOG_ERROR,"SERVE_FOREVER","SETRLIMIT FAILED:%s",strerror(errno));
-    }*/
     
-    //initialize the logger for logging
-    logging_init( config.log_file.c_str(),config.log_level );
+    logging_init( server_config.server["log-file"].c_str(), atoi(server_config.server["log-level"].c_str()));
     log_module( LOG_DEBUG, "SERVE_FOREVER",  "LISTEN SOCKET FD:%d", streamer_listen_fd );
     
     //you have to ignore the PIPE's signal when client close the socket
     struct sigaction sa;
     sa.sa_handler = SIG_IGN;//just ignore the sigpipe
     sa.sa_flags = 0;
-    if( sigemptyset(&sa.sa_mask) == -1 ||sigaction( SIGPIPE, &sa, 0 ) == -1 )
+    if( sigemptyset( &sa.sa_mask ) == -1 ||sigaction( SIGPIPE, &sa, 0 ) == -1 )
     { 
         log_module(LOG_ERROR,"SERVE_FOREVER","FAILED TO IGNORE SIGPIPE SIGNAL");
         goto STREAMER_EXIT;
@@ -2875,45 +3006,34 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd, CONFIG 
     listen_watcher= new ev_io;
     if( listen_watcher == NULL )
     {
-        log_module(LOG_ERROR,"SERVE_FOREVER","ALLOCATE MEMORY FAILED:%s WHEN EXECUTE NEW EV_IO",LOG_LOCATION);
+        log_module( LOG_ERROR,"SERVE_FOREVER","ALLOCATE MEMORY FAILED:%s WHEN EXECUTE NEW EV_IO",LOG_LOCATION);
         goto STREAMER_EXIT;
     }
     else
     {
-        if( config.notify_server_file.empty() || config.notify_server_file.length() > 50 )
+        if( server_config.server["notify-server-file"].empty() || server_config.server["notify-server-file"].length() > 50 )
         {
             log_module( LOG_ERROR, "SERVE_FOREVER","NOTIFY SERVER CONFIG FILE IS EMPTY OR THE NAME IS TOO LONG" );
             goto STREAMER_EXIT;
         }
         
-        strncpy( NOTIFY_SERVER_CONFIG_FILE,config.notify_server_file.c_str(),sizeof( NOTIFY_SERVER_CONFIG_FILE ) );
+        strncpy( NOTIFY_SERVER_CONFIG_FILE,server_config.server["notify-server-file"].c_str(),sizeof( NOTIFY_SERVER_CONFIG_FILE ) );
         //and now initialize the workthread pool.pool size is specified with global "WORKTHREADS_SIZE"
-        if( ! init_workthread_info_pool( config,WORKTHREADS_SIZE ) )
+        if( ! init_workthread_info_pool( WORKTHREADS_SIZE ) )
         {
             log_module( LOG_ERROR,"SERVE_FOREVER","INIT_WORKTHREAD_INFO_POOL FAILED");
             goto STREAMER_EXIT;
         }
         
-        sdk_set_tcpnodelay( streamer_listen_fd );
-        sdk_set_nonblocking( streamer_listen_fd );
-        sdk_set_keepalive( streamer_listen_fd );
-
-        sdk_set_tcpnodelay( state_server_fd );
-        sdk_set_nonblocking( state_server_fd );
         
-
         //meanwhile startup the state server
         bool state_ok = startup_state_server( state_server_fd );
         if( state_ok )
         {
              ev_io_init( listen_watcher, accept_cb, streamer_listen_fd, EV_READ );
              ev_io_start( main_event_loop, listen_watcher );
-             if( !config.run_as_daemon  )
-             {
-                  print_welcome( config );
-             }
              
-             if( loglevel_is_enabled( LOG_DEBUG ) )
+            if( loglevel_is_enabled( LOG_DEBUG ) )
             {
                 uint32_t DEFAULT_RECV_BUF_SIZE;
                 uint32_t DEFAULT_SEND_BUF_SIZE;

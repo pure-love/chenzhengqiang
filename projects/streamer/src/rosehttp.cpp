@@ -11,8 +11,8 @@
 #include "rosehttp.h"
 #include "common.h"
 #include "logging.h"
-#include <iostream>
-using namespace std;
+
+
 static const char * SIMPLE_ROSEHTTP_REPLY[]=
 {   
     "HTTP/1.1 200 OK\r\n\r\n",
