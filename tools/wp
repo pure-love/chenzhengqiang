@@ -3,6 +3,35 @@
 #author:chenzhengqiang
 #desc:for creating the basic directories of the entire project
 
+function write_readme(){
+	echo "#@Author:chenzhengqiang" >> README
+	echo "#@Start date:`date '+%Y/%m/%d %H:%M:%S'`" >> README
+	echo "#@Modified date:" >> README
+	echo >> README
+	echo >> README
+	echo "Copyright" >> README
+	echo "---------" >> README
+	echo >> README
+	echo "#write the copyright information here" >> README
+	echo >> README
+	echo "Requirements" >> README
+	echo "------------" >> README
+	echo "#write the requirements of this software here" >> README
+	echo >> README
+	echo "Build instructions" >> README
+	echo "------------------" >> README
+	echo "#write the detailed build instructions here" >> README
+	echo >> README
+	echo "Structure" >> README
+	echo "---------" >> README
+	echo "#write the structure of project here" >> README
+	echo >> README
+	echo "Usage" >> README
+	echo "-----" >> README
+	echo "#write the usage of software here" >> README
+}
+
+function create_all_basic_files(){
 if [ ! -e "src" ];then
 	mkdir src
 fi
@@ -25,4 +54,8 @@ fi
 
 if [ ! -e "README" ];then
 	touch README
+	write_readme;	
 fi
+}
+
+create_all_basic_files;
