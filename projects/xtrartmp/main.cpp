@@ -11,6 +11,9 @@
 #include "xtrartmp.h"
 #include "netutil.h"
 #include "serverutil.h"
+#include <iostream>
+using std::cerr;
+using std::endl;
 
 using namespace czq;
 
@@ -31,25 +34,26 @@ int main( int ARGC, char ** ARGV )
 		ServerUtil::readConfig( DEFAULT_CONFIG_FILE, serverConfig );
     }
 
+    XtraRtmp xtraRtmp(serverConfig);
     if ( cmdOptions.needPrintHelp )
     {
-		XtraRtmp::printHelp();
+		xtraRtmp.printHelp();
     }
 
     if ( cmdOptions.needPrintVersion )
     {
-		XtraRtmp::printVersion( serverConfig );
+		xtraRtmp.printVersion();
     }
 
     int listenFd = NetUtil::registerTcpServer( serverConfig.server["bind-address"].c_str(), atoi(serverConfig.server["bind-port"].c_str()));
 	if ( listenFd > 0 )
 	{	
-		XtraRtmp xtraRtmp(listenFd, serverConfig);
+		xtraRtmp.registerServer(listenFd);
 		xtraRtmp.serveForever();
 	}
 	else
 	{
-		ServerUtil::errorQuit("register tcp server failed,please check the configure file");
+		cerr<<"register tcp server failed,please check the config file carefully"<<endl;
 	}
     return 0;
 }	

@@ -52,7 +52,7 @@ namespace czq
                 			++ARGV;
                 			if ( *ARGV == NULL )
                 			{
-                    			std::cerr<<"You must enter the config file when you specify the -f or --log-file option"<<std::endl;
+                    			std::cerr<<"You must enter the config file when you specify the -f or --config-file option"<<std::endl;
                     			exit( EXIT_FAILURE );
                 			}
                 			cmdOptions.configFile.assign( *ARGV );
@@ -60,110 +60,108 @@ namespace czq
         		}
         		++ARGV;
     		}
+	}
 
-}
-
-
-void read_config( const char * configFile, SERVER_CONFIG & server_config )
-{
-	std::ifstream ifile( configFile );
-	if( ! ifile )
+	void ServerUtil::readConfig( const char * configFile, ServerConfig & serverConfig )
 	{
-          std::cerr<<"FAILED TO OPEN CONFIG FILE:"<<configFile<<" ERROR:"<<strerror(errno)<<std::endl;
-          exit( EXIT_FAILURE );
-    }
-
-	std::string line;
-	std::string::size_type cur_pos;
-	std::string heading,key,value;
-	bool is_reading_meta = false;
-	bool is_reading_server = false;
-	bool is_reading_usage = false;
-	server_config.usage="\r";
-	
-	while( getline( ifile, line ) )
-	{
-		if( line.empty() )
-		continue;
-		if( line[0] == '#' )
-		continue;
-		if( line[0] == '[')
+		std::ifstream ifile( configFile );
+		if( ! ifile )
 		{
-			if( ( cur_pos = line.find_last_of(']') ) == std::string::npos )
+          		std::cerr<<"FAILED TO OPEN CONFIG FILE:"<<configFile<<" ERROR:"<<strerror(errno)<<std::endl;
+          		exit( EXIT_FAILURE );
+    		}
+
+		std::string line;
+		std::string::size_type curPos;
+		std::string heading,key,value;
+		bool isReadingMeta = false;
+		bool isReadingServer = false;
+		bool isReadingUsage = false;
+		serverConfig.usage="\r";
+	
+		while( getline( ifile, line ) )
+		{
+			if( line.empty() )
+			continue;
+			if( line[0] == '#' )
+			continue;
+			if( line[0] == '[')
+			{
+				if( ( curPos = line.find_last_of(']') ) == std::string::npos )
+				{
+					std::cerr<<"INVALID CONFIG FILE:"<<configFile<<std::endl;
+          				exit( EXIT_FAILURE );
+				}
+			
+				heading = line.substr( 1, curPos-1 );
+				if( heading == "META" )
+				{
+					if( isReadingServer )
+					{
+						isReadingServer = false;
+					}
+					else if( isReadingUsage )
+					{
+						isReadingUsage = false;
+					}
+				
+					isReadingMeta = true;
+				}
+				else if( heading == "SERVER" )
+				{
+					if( isReadingMeta )
+					{
+						isReadingMeta =false;
+					}
+					else if( isReadingUsage )
+					{
+						isReadingUsage = false;
+					}
+					isReadingServer = true;
+				}
+				else if( heading == "USAGE" )
+				{
+					if( isReadingMeta )
+					{
+						isReadingMeta = false;
+					}
+					else if( isReadingServer )
+					{
+						isReadingServer = false;
+					}
+					isReadingUsage = true;
+				}
+			}
+			else if( line[0] == ' ' )
 			{
 				std::cerr<<"INVALID CONFIG FILE:"<<configFile<<std::endl;
           			exit( EXIT_FAILURE );
 			}
-			
-			heading = line.substr( 1, cur_pos-1 );
-			if( heading == "META" )
+			else
 			{
-				if( is_reading_server )
+				if( isReadingMeta || isReadingServer )
 				{
-					is_reading_server = false;
-				}
-				else if( is_reading_usage )
-				{
-					is_reading_usage = false;
-				}
+					curPos = line.find_first_of('=');
+					if( curPos == std::string::npos )
+					continue;
 				
-				is_reading_meta = true;
-			}
-			else if( heading == "SERVER" )
-			{
-				if( is_reading_meta )
-				{
-					is_reading_meta =false;
-				}
-				else if( is_reading_usage )
-				{
-					is_reading_usage = false;
-				}
-				is_reading_server = true;
-			}
-			else if( heading == "USAGE" )
-			{
-				if( is_reading_meta )
-				{
-					is_reading_meta = false;
-				}
-				else if( is_reading_server )
-				{
-					is_reading_server = false;
-				}
-				is_reading_usage = true;
-			}
-		}
-		else if( line[0] == ' ' )
-		{
-			std::cerr<<"INVALID CONFIG FILE:"<<configFile<<std::endl;
-          		exit( EXIT_FAILURE );
-		}
-		else
-		{
-			if( is_reading_meta || is_reading_server )
-			{
-				cur_pos = line.find_first_of('=');
-				if( cur_pos == std::string::npos )
-				continue;
-				
-				key = line.substr( 0, cur_pos );
-				value = line.substr( cur_pos+1, line.length()-cur_pos-2 );
+					key = line.substr( 0, curPos );
+					value = line.substr( curPos+1, line.length()-curPos-2 );
 
-				if( is_reading_meta )
-				{
-					server_config.meta.insert( std::make_pair( key, value ) );
+					if( isReadingMeta )
+					{
+						serverConfig.meta.insert( std::make_pair( key, value ) );
+					}
+					else
+					{
+						serverConfig.server.insert( std::make_pair( key, value ) );
+					}
 				}
-				else
+				else if( isReadingUsage )
 				{
-					server_config.server.insert( std::make_pair( key, value ) );
+					serverConfig.usage+=line+"\n\r";
 				}
-			}
-			else if( is_reading_usage )
-			{
-				server_config.usage+=line+"\n\r";
 			}
 		}
 	}
-}
 };
