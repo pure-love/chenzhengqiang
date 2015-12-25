@@ -24,7 +24,6 @@ namespace czq
 	void ServerUtil::handleCmdOptions( int ARGC, char * * ARGV, CmdOptions & cmdOptions )
 	{
     		(void)ARGC;
-    		cmdOptions.needPrint = false;
     		cmdOptions.needPrintHelp = false;
 		cmdOptions.needPrintVersion = false;
     		cmdOptions.runAsDaemon = false;

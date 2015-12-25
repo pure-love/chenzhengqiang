@@ -10,8 +10,8 @@
 
 #ifndef _CZQ_XTRARTMP_H_
 #define _CZQ_XTRARTMP_H_
+#include"serverutil.h"
 //write the function prototypes or the declaration of variables here
-struct ServerConfig;
 namespace czq
 {
 	class XtraRtmp
@@ -22,13 +22,12 @@ namespace czq
 			void printVersion();
 			void registerServer( int listenFd );
 			void serveForever();
-			void
 		private:
 			XtraRtmp( const XtraRtmp &){}
-			XtraRtmp & operator=(const XtraRtmp &){}
+			XtraRtmp & operator=(const XtraRtmp &){ return *this;}
 		private:
 			int listenFd_;
-			const ServerConfig serverConfig_;
+			ServerConfig serverConfig_;
 	};
 };
 #endif

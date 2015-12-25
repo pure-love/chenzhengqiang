@@ -39,7 +39,7 @@ namespace czq
         		return SYSTEM_ERROR;
     		}
 
-    		if (listen(listen_fd, LISTENQ) < 0)
+    		if (listen(listen_fd, 10) < 0)
     		{
         		return SYSTEM_ERROR;
     		}

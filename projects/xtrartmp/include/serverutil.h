@@ -23,7 +23,7 @@ namespace czq
 	
 	struct CmdOptions
 	{
-		bool runAsAaemon;
+		bool runAsDaemon;
 		bool needPrintHelp;
 		bool needPrintVersion;
 		std::string configFile;	
