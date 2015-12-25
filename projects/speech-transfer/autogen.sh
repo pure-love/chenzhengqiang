@@ -8,19 +8,23 @@
 
 ########global configuration#######
 TARGET="transfer"
-OBJS="main"
-SOURCE_DIR="./src/"
-INCLUDE_DIR="./include/"
-CONFIG_PATH=./config
-CONFIG_INSTALL_PATH=/etc/streamer
-SERVICE=./scripts/streamer
-MAKEFILE="./Makefile"
+MAIN_FILE="main"
+AUTHOR="chenzhengqiang"
+DATE=`date '+%Y%m%d-%H:%M:%S'`
 COMPILER="g++"
 COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow"
-DEPS="-lpthread -lcrypto -lopus"
-INSTALL_DIR=/usr/local/bin
-AUTHOR=chenzhengqiang
-DATE=`date '+%Y%m%d-%H:%M:%S'`
+#define the optimize level
+OLEVEL=0
+MAKEFILE="./Makefile"
+LDCONFIG="-lpthread -lcrypto -lopus"
+SOURCE_DIR="./src/"
+INCLUDE_DIR="./include/"
+INSTALL_DIR="/usr/local/bin"
+
+#you didn't have to configure this
+CONFIG_PATH=./config
+CONFIG_INSTALL_PATH=/etc/$TARGET
+SERVICE=./scripts/$TARGET
 ########global configuration#######
 
 
@@ -55,46 +59,69 @@ echo >> $MAKEFILE
 
 echo "TARGET:=$TARGET" >> $MAKEFILE
 echo "CC:=$COMPILER" >> $MAKEFILE
-echo "CFLAGS:=$COMPILER_FLAGS -I\$(INCLUDE_DIR) $DEPS" >> $MAKEFILE
+echo "OLEVEL=-O$OLEVEL" >> $MAKEFILE
+echo "CFLAGS:=\$(OLEVEL) $COMPILER_FLAGS" >> $MAKEFILE
+echo "LDCONFIG:=-I\$(INCLUDE_DIR) $LDCONFIG" >> $MAKEFILE
 
+OBJS=
 for cpp_file in `ls $SOURCE_DIR` 
 do
 	obj=${cpp_file%%.*}
 	OBJS="$obj $OBJS"	
 done
 
+OBJS="$MAIN_FILE $OBJS"
 echo "OBJS:=$OBJS" >> $MAKEFILE
 echo "OBJS:=\$(foreach obj,\$(OBJS),\$(obj).o)" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "INSTALL_DIR:=$INSTALL_DIR" >> $MAKEFILE
-echo "CONFIG_PATH:=$CONFIG_PATH" >> $MAKEFILE
-echo "SERVICE:=$SERVICE" >> $MAKEFILE
-echo "CONFIG_INSTALL_PATH:=$CONFIG_INSTALL_PATH" >> $MAKEFILE
+
+if [ -n "$CONFIG_PATH" ];then
+    echo "CONFIG_PATH:=$CONFIG_PATH" >> $MAKEFILE
+fi
+
+if [ -n "$SERVICE" ];then
+    echo "SERVICE:=$SERVICE" >> $MAKEFILE
+fi
+
+if [ -n "$CONFIG_INSTALL_PATH" ];then
+    echo "CONFIG_INSTALL_PATH:=$CONFIG_INSTALL_PATH" >> $MAKEFILE
+fi
+
 echo "TAR_NAME=\$(TARGET)-\$(shell date '+%Y%m%d')" >> $MAKEFILE
+echo >> $MAKEFILE
 echo ".PHONEY=clean" >> $MAKEFILE
 echo ".PHONEY=install" >> $MAKEFILE
 echo ".PHONEY=test" >> $MAKEFILE
 echo ".PHONEY=tar" >> $MAKEFILE
+echo >> $MAKEFILE
 
 echo "all:\$(TARGET)" >> $MAKEFILE
 echo "\$(TARGET):\$(OBJS)" >> $MAKEFILE
-echo -e "\t\$(CC) -o \$@ \$^ \$(CFLAGS)" >> $MAKEFILE
+echo -e "\t\$(CC) -o \$@ \$^ \$(CFLAGS) \$(LDCONFIG)" >> $MAKEFILE
 echo "\$(OBJS):%.o:%.\$(SUFFIX)" >> $MAKEFILE
-echo -e "\t\$(CC) -o \$@ -c \$< -I\$(INCLUDE_DIR) \$(CFLAGS)" >> $MAKEFILE
+echo -e "\t\$(CC) -o \$@ -c \$< \$(CFLAGS) \$(LDCONFIG)" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "clean:" >> $MAKEFILE
-echo -e "\t-rm -f *.o *.a *.so *.log *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE
+echo -e "\t-rm -f *.o *.a *.so *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "install:" >> $MAKEFILE
 echo -e "\t-rm -f \$(INSTALL_DIR)/\$(TARGET)" >> $MAKEFILE
 echo -e "\t-mv \$(TARGET) \$(INSTALL_DIR)" >> $MAKEFILE
-echo -e "\t-cp -f \$(SERVICE) /etc/init.d/\$(TARGET)" >> $MAKEFILE
-echo -e "\t-rm -rf \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
-echo -e "\t-mkdir \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
-echo -e "\t-cp -f \$(CONFIG_PATH)/* \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
+
+if [ -n "$SERVICE" ];then
+    echo -e "\t-cp -f \$(SERVICE) /etc/init.d/\$(TARGET)" >> $MAKEFILE
+fi
+
+if [ -n "$CONFIG_PATH" ];then
+    echo -e "\t-rm -rf \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
+    echo -e "\t-mkdir \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
+    echo -e "\t-cp -f \$(CONFIG_PATH)/* \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE
+fi
+
 echo >> $MAKEFILE
 
 echo "test:" >> $MAKEFILE

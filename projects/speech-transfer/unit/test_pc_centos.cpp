@@ -3,8 +3,8 @@
 #include "aes.h"
 #include "opus.h"
 
-#define REMOTE_IP "127.0.0.1"
-#define REMOTE_PORT 54320
+#define REMOTE_IP "192.168.1.11"
+#define REMOTE_PORT 54321
 
 #define LOCAL_IP "0.0.0.0"
 #define LOCAL_PORT 12380

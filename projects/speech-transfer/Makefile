@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20151105-09:13:36
+#generate date:20151130-17:55:29
 
 
 INCLUDE_DIR:=./include/
@@ -11,27 +11,31 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=transfer
 CC:=g++
-CFLAGS:=-g -W -Wall -Werror -Wshadow -I$(INCLUDE_DIR) -lpthread -lcrypto -lopus
-OBJS:=transfer speech_mix  signalling rtp  opus netutility logging aes main
+OLEVEL=-O0
+CFLAGS:=$(OLEVEL) -g -W -Wall -Werror -Wshadow
+LDCONFIG:=-I$(INCLUDE_DIR) -lpthread -lcrypto -lopus
+OBJS:=main transfer speech_mix signalling rtp opus netutility logging aes 
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
 CONFIG_PATH:=./config
-SERVICE:=./scripts/streamer
-CONFIG_INSTALL_PATH:=/etc/streamer
+SERVICE:=./scripts/transfer
+CONFIG_INSTALL_PATH:=/etc/transfer
 TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
+
 .PHONEY=clean
 .PHONEY=install
 .PHONEY=test
 .PHONEY=tar
+
 all:$(TARGET)
 $(TARGET):$(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDCONFIG)
 $(OBJS):%.o:%.$(SUFFIX)
-	$(CC) -o $@ -c $< -I$(INCLUDE_DIR) $(CFLAGS)
+	$(CC) -o $@ -c $< $(CFLAGS) $(LDCONFIG)
 
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
+	-rm -f *.o *.a *.so *core* $(TARGET) *.tar.gz *.cppe
 
 install:
 	-rm -f $(INSTALL_DIR)/$(TARGET)

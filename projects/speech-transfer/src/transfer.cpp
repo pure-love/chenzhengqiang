@@ -166,6 +166,8 @@ void broadcast_speech_message( int sock_fd, const uint8_t *rtp_packet,size_t siz
                                                              const std::string &C_ID, chat_room_referrence_iter cr_iter  )
 {
 
+    #define MSG_MODULE_BROADCAST "BROADCAST_SPEECH_MESSAGE"
+    
     client_iter c_iter = cr_iter->second.begin();
     int ret = 0;
     while( c_iter != cr_iter->second.end() )
@@ -176,8 +178,8 @@ void broadcast_speech_message( int sock_fd, const uint8_t *rtp_packet,size_t siz
             continue;
         }
         
-        log_module( LOG_DEBUG,"BROADCAST_SPEECH_MESSAGE","%s SEND SPEECH MESSAGE TO ID:%s SEND BYTES:%d",
-                                            C_ID.c_str(),c_iter->first.c_str(), size);
+        log_module( LOG_DEBUG,MSG_MODULE_BROADCAST,"%s SEND SPEECH MESSAGE TO ID:%s SEND BYTES:%d",
+                                            C_ID.c_str(), c_iter->first.c_str(), size );
         
         ret = sendto( sock_fd,rtp_packet,size, 0,
                            (struct sockaddr *)&(c_iter->second.conn_addr), 
@@ -185,7 +187,7 @@ void broadcast_speech_message( int sock_fd, const uint8_t *rtp_packet,size_t siz
         
         if( ret == -1 )
         {
-             log_module(LOG_INFO,"BROADCAST_SPEECH_MESSAGE","ERROR OCCURRED WHEN SEND MESSAGE TO:IP=%s PORT=%d"\
+             log_module(LOG_INFO,MSG_MODULE_BROADCAST,"ERROR OCCURRED WHEN SEND MESSAGE TO:IP=%s PORT=%d"\
                                "ERROR INFORMATION:%s",c_iter->first.c_str(),c_iter->second.conn_port,strerror(errno));                  
         }
         ++c_iter;
@@ -203,7 +205,8 @@ void broadcast_speech_message( int sock_fd, const uint8_t *rtp_packet,size_t siz
 */
 void init_opus_encoder()
 {
-        log_module( LOG_DEBUG, "INIT_OPUS_ENCODER", "++++++++++START++++++++++" );  
+        #define MSG_MODULE_ENCODER "INIT_OPUS_ENCODER"
+        log_module( LOG_DEBUG, MSG_MODULE_ENCODER , "++++++++++START++++++++++" );  
         OPUS_ENC_INFO opus_enc_info;
         opus_enc_info.application = OPUS_APPLICATION_VOIP;
         opus_enc_info.bandwidth = OPUS_AUTO;
@@ -219,10 +222,10 @@ void init_opus_encoder()
         if( OPUS_ENCODER == NULL )
         {
             
-            log_module( LOG_DEBUG, "INIT_OPUS_ENCODER", "++++++++++DONE++++++++++");  
+            log_module( LOG_DEBUG, MSG_MODULE_ENCODER , "++++++++++DONE++++++++++");  
             abort();
         }
-        log_module( LOG_DEBUG, "INIT_OPUS_ENCODER", "++++++++++DONE++++++++++"); 
+        log_module( LOG_DEBUG, MSG_MODULE_ENCODER , "++++++++++DONE++++++++++"); 
 }
 
 
@@ -235,7 +238,8 @@ void init_opus_encoder()
 */
 void init_opus_decoder()
 {
-    log_module( LOG_DEBUG, "INIT_OPUS_DECODER", "++++++++++START++++++++++");  
+    #define MSG_MODULE_DECODER "INIT_OPUS_DECODER"
+    log_module( LOG_DEBUG, MSG_MODULE_DECODER , "++++++++++START++++++++++");  
     OPUS_DEC_INFO opus_dec_info;
     opus_dec_info.channels=CHANNELS;
     opus_dec_info.sample_rate = SAMPLE_RATE;
@@ -247,10 +251,10 @@ void init_opus_decoder()
 
     if( OPUS_DECODER == NULL )
     {
-         log_module( LOG_DEBUG, "INIT_OPUS_DECODER", "++++++++++DONE++++++++++");  
+         log_module( LOG_DEBUG, MSG_MODULE_DECODER , "++++++++++DONE++++++++++");  
          abort();
     }
-    log_module( LOG_DEBUG, "INIT_OPUS_DECODER", "++++++++++DONE++++++++++"); 
+    log_module( LOG_DEBUG, MSG_MODULE_DECODER , "++++++++++DONE++++++++++"); 
 }
 
 
@@ -261,6 +265,7 @@ void init_opus_decoder()
 */
 void serve_forever( ssize_t sock_fd, const CONFIG & config )
 {
+    #define MSG_MODULE_SERVE "SERVE_FOREVER"
     //if run_as_daemon is true,then make this speech transfer server run as daemon
     if( config.run_as_daemon )
     {
@@ -278,7 +283,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
     rt.rlim_max = rt.rlim_cur = MAX_OPEN_FDS;
     if ( setrlimit( RLIMIT_NOFILE, &rt ) == -1 ) 
     {
-        log_module(LOG_ERROR,"SERVE_FOREVER","SETRLIMIT FAILED:%s",strerror(errno));
+        log_module( LOG_ERROR, MSG_MODULE_SERVE, "SETRLIMIT FAILED:%s",strerror(errno));
     }
     
     //you have to ignore the PIPE's signal when client close the socket
@@ -288,7 +293,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
     if( sigemptyset( &sa.sa_mask ) == -1 ||sigaction( SIGPIPE, &sa, 0 ) == -1 )
     { 
         logging_deinit();  
-        log_module(LOG_ERROR,"SERVE_FOREVER","FAILED TO IGNORE SIGPIPE SIGNAL:%s", strerror( errno ) );
+        log_module(LOG_ERROR, MSG_MODULE_SERVE ,"FAILED TO IGNORE SIGPIPE SIGNAL:%s", strerror( errno ) );
     }
 
     sdk_set_nonblocking( sock_fd );
@@ -304,7 +309,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
     
     if( config.ev_loop == DEFAULT || config.ev_loop == EPOLL )
     {
-         log_module(LOG_DEBUG,"SERVE_FOREVER","+++++EPOLL CONFIGURED,TRANSFER SERVER RUN EPOLL EVENT LOOP+++++");
+         log_module(LOG_DEBUG, MSG_MODULE_SERVE ,"+++++EPOLL CONFIGURED,TRANSFER SERVER RUN EPOLL EVENT LOOP+++++");
          int epoll_fd, events;
          struct epoll_event epoll_ev;
          struct epoll_event epoll_events[1024];
@@ -314,7 +319,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
          
          if( epoll_ctl( epoll_fd, EPOLL_CTL_ADD, sock_fd, &epoll_ev ) < 0 ) 
         {
-             log_module( LOG_ERROR, "SERVE_FOREVER","EPOLL_CTL_ADD ERROR FOR:FD=%d", sock_fd );
+             log_module( LOG_ERROR,MSG_MODULE_SERVE ,"EPOLL_CTL_ADD ERROR FOR:FD=%d", sock_fd );
              goto BYEBYE;
         }
 
@@ -323,7 +328,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
              events = epoll_wait( epoll_fd, epoll_events, sizeof( epoll_events ), -1 );
              if ( events == -1 )
              {
-                 log_module( LOG_ERROR,"SERVE_FOREVER","EPOLL_WAIT FAILED:%s", strerror(errno) );
+                 log_module( LOG_ERROR, MSG_MODULE_SERVE ,"EPOLL_WAIT FAILED:%s", strerror(errno) );
                  break;
              }
              
@@ -331,9 +336,9 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
              {
                  if ( epoll_events[event].data.fd == sock_fd && ( epoll_events[event].events & EPOLLIN ) ) 
                  {
-                      log_module( LOG_DEBUG, "SERVE_FOREVER","UDP SOCK FD:%d CAN READ !NOW GO TO HANDLE_UDP_MSG ROUTINE",sock_fd );
+                      log_module( LOG_DEBUG, MSG_MODULE_SERVE ,"UDP SOCK FD:%d CAN READ !NOW GO TO HANDLE_UDP_MSG ROUTINE",sock_fd );
                       handle_udp_msg( sock_fd );
-                      log_module( LOG_DEBUG, "SERVE_FOREVER","HANDLE_UDP_MSG ROUTINE DONE,RETURN BACK TO MAIN EVENT LOOP");
+                      log_module( LOG_DEBUG, MSG_MODULE_SERVE,"HANDLE_UDP_MSG ROUTINE DONE,RETURN BACK TO MAIN EVENT LOOP");
                  } 
              }
         }
@@ -341,7 +346,7 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
     }
     else if( config.ev_loop == SELECT )
     {
-          log_module( LOG_DEBUG,"SERVE_FOREVER","SELECT CONFIGURED,SERVER STARTUP SELECT EVENT LOOP");
+          log_module( LOG_DEBUG, MSG_MODULE_SERVE,"SELECT CONFIGURED,SERVER STARTUP SELECT EVENT LOOP");
           fd_set udp_read_fds;
           FD_ZERO( &udp_read_fds );
           FD_SET( sock_fd, &udp_read_fds );
@@ -350,15 +355,15 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
                 int ret = select( sock_fd+1, &udp_read_fds, NULL, NULL, NULL );
                 if(  ret ==-1 )
                 {
-                    log_module( LOG_ERROR, "SERVE_FOREVER", "SELECT FAILED:%s", strerror( errno ) );
+                    log_module( LOG_ERROR, MSG_MODULE_SERVE , "SELECT FAILED:%s", strerror( errno ) );
                     goto BYEBYE;
                 }
                 
                 if( FD_ISSET( sock_fd, &udp_read_fds ) )
                 {
-                      log_module( LOG_DEBUG, "SERVE_FOREVER","UDP SOCK FD:%d CAN READ !NOW GO TO HANDLE_UDP_MSG ROUTINE",sock_fd );
+                      log_module( LOG_DEBUG, MSG_MODULE_SERVE ,"UDP SOCK FD:%d CAN READ !NOW GO TO HANDLE_UDP_MSG ROUTINE",sock_fd );
                       handle_udp_msg( sock_fd );
-                      log_module( LOG_DEBUG, "SERVE_FOREVER","HANDLE_UDP_MSG ROUTINE DONE,RETURN BACK TO MAIN EVENT LOOP" );
+                      log_module( LOG_DEBUG, MSG_MODULE_SERVE ,"HANDLE_UDP_MSG ROUTINE DONE,RETURN BACK TO MAIN EVENT LOOP" );
                 }
           }
     }
@@ -380,15 +385,15 @@ void serve_forever( ssize_t sock_fd, const CONFIG & config )
 */
 void handle_udp_msg( int sock_fd )
 {   
-     #define MSG_MODULE_1 "HANDLE_UDP_MSG"
+     #define MSG_MODULE_HANDLE "HANDLE_UDP_MSG"
      
-     log_module( LOG_DEBUG,MSG_MODULE_1,"+++++++++++++++++START++++++++++++++++++++" );
+     log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"+++++++++++++++++START++++++++++++++++++++" );
      
      ssize_t received_bytes;
      uint8_t *rtp_packet = new uint8_t[SIGNALLING_BUFFER_SIZE];
      if( rtp_packet == NULL )
      {
-        log_module( LOG_ERROR, MSG_MODULE_1, "ALLOCATE MEMORY FAILED RELATED TO new uint8_t[SIGNALLING_BUFFER_SIZE]");
+        log_module( LOG_ERROR, MSG_MODULE_HANDLE, "ALLOCATE MEMORY FAILED RELATED TO new uint8_t[SIGNALLING_BUFFER_SIZE]");
         return;
      }
      
@@ -402,7 +407,7 @@ void handle_udp_msg( int sock_fd )
          {
              continue;
          }
-         log_module( LOG_INFO,MSG_MODULE_1," RECVFROM FAILED:%s",strerror(errno) );
+         log_module( LOG_INFO,MSG_MODULE_HANDLE," RECVFROM FAILED:%s",strerror(errno) );
          break;
      }
      
@@ -420,7 +425,7 @@ void handle_udp_msg( int sock_fd )
          OSS_ID<<IP<<":"<<PORT;
          std::string C_ID=OSS_ID.str();
          
-         log_module( LOG_INFO, MSG_MODULE_1, "RECEIVE MESSAGE FROM ID:%s RECEIVED_BYTES:%d",
+         log_module( LOG_INFO, MSG_MODULE_HANDLE, "RECEIVE MESSAGE FROM ID:%s RECEIVED_BYTES:%d",
                           C_ID.c_str(),received_bytes );
          
          RTP_HEADER rtp_header;
@@ -428,13 +433,13 @@ void handle_udp_msg( int sock_fd )
          
          if( ret == -1 )
          {
-             log_module( LOG_INFO, MSG_MODULE_1, "RTP_PACKET_HEADER_PARSE FAILED RELATED TO ID:%s", C_ID.c_str() );
+             log_module( LOG_INFO, MSG_MODULE_HANDLE, "RTP_PACKET_HEADER_PARSE FAILED RELATED TO ID:%s", C_ID.c_str() );
              delete [] rtp_packet;
              rtp_packet = NULL;
              return;
          }
          
-         log_module( LOG_DEBUG,MSG_MODULE_1,"RECEIVED RTP PACKET:PAYLOAD TYPE:%d SEQUENCE NO:%d "\
+         log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"RECEIVED RTP PACKET:PAYLOAD TYPE:%d SEQUENCE NO:%d "\
                                                                     "TIMESTAMP:%u SSRC:%u RELATED TO ID:%s",
                                                                     rtp_header.payload_type,rtp_header.sequence_no,
                                                                     rtp_header.timestamp,rtp_header.ssrc, C_ID.c_str() );
@@ -443,33 +448,33 @@ void handle_udp_msg( int sock_fd )
          {
              if( rtp_header.payload_type != OPUS_RTP_PAYLOAD_TYPE )
              {
-                 log_module( LOG_INFO,MSG_MODULE_1,"INVALID RTP PLAYLOAD TYPE:%d RELATED TO ID:%s",
+                 log_module( LOG_INFO,MSG_MODULE_HANDLE,"INVALID RTP PLAYLOAD TYPE:%d RELATED TO ID:%s",
                                                                          rtp_header.payload_type, C_ID.c_str() );
              }
              else
              {
 
-                log_module(  LOG_DEBUG, MSG_MODULE_1, "SPEAKER SEND THE OPUS RTP PACKET DETECTED RELATED TO ID:%s", C_ID.c_str() );
+                log_module(  LOG_DEBUG, MSG_MODULE_HANDLE, "SPEAKER SEND THE OPUS RTP PACKET DETECTED RELATED TO ID:%s", C_ID.c_str() );
                 chat_room_iter cr_iter;
                 if( client_already_in( C_ID,cr_iter ) )
                 {
-                    log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s ALREADY CONNECTED", C_ID.c_str() );
+                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s ALREADY CONNECTED", C_ID.c_str() );
                     std::map<ID,std::map<uint32_t, RTP_PACKET> >::iterator sorpp_iter = SPEAKERS_OPUS_RTP_PACKETS_POOL.find( C_ID );
                     if( sorpp_iter == SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
                     {
-                        log_module( LOG_DEBUG, MSG_MODULE_1, "SPEAKER %s IS THE FIRST TIME OF SENDING OPUS RTP PACKET,ALLOCATE A OPUS RTP PACKETS POOL FOR MIX'S SAKE", C_ID.c_str() );
+                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "SPEAKER %s IS THE FIRST TIME OF SENDING OPUS RTP PACKET,ALLOCATE A OPUS RTP PACKETS POOL FOR MIX'S SAKE", C_ID.c_str() );
                         std::map<uint32_t, RTP_PACKET> rtp_packets_pool;
                         rtp_packets_pool.insert( std::make_pair( rtp_header.timestamp, rtp_packet ) );
                         SPEAKERS_OPUS_RTP_PACKETS_POOL.insert( std::make_pair( C_ID, rtp_packets_pool ) );
                     }
                     else
                     {
-                        log_module( LOG_DEBUG, MSG_MODULE_1, "SENDER %s ALREADY HAVE OPUS RTP PACKETS POOL, JUST PUSK BACK THE RTP PACKET", C_ID.c_str() );
+                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "SENDER %s ALREADY HAVE OPUS RTP PACKETS POOL, JUST PUSK BACK THE RTP PACKET", C_ID.c_str() );
                         sorpp_iter->second.insert( std::make_pair(rtp_header.timestamp,rtp_packet) );
                     }
                     
                     //just broadcast this speech message to all clients in chatroom,including the camera
-                    log_module( LOG_DEBUG, MSG_MODULE_1, "BROADCAST SPEECH MESSAGE START" );
+                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "BROADCAST SPEECH MESSAGE START" );
                     
                     if( the_first_calculate )
                     {
@@ -491,7 +496,7 @@ void handle_udp_msg( int sock_fd )
                 else
                 {
                     //it might be hotile attack,just ignore it 
-                    log_module( LOG_DEBUG, MSG_MODULE_1, "IT MIGHT BE HOTILE ATTACK OR NOT JOIN THE SPEECH CHANNEL YET RELATED TO ID:%s",
+                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "IT MIGHT BE HOTILE ATTACK OR NOT JOIN THE SPEECH CHANNEL YET RELATED TO ID:%s",
                                                                                 C_ID.c_str() );
                     delete [] rtp_packet;
                     rtp_packet = NULL;
@@ -503,7 +508,7 @@ void handle_udp_msg( int sock_fd )
              if( ( size_t )( received_bytes-rtp_header.offset -RTP_HEADER_SIZE) != FIXED_AES_ENCRYPT_SIZE )
              {
                  
-                 log_module( LOG_INFO, MSG_MODULE_1, "INVALID AES ENCRYPTED LENGTH:%d IT SHOULD BE %d RELATED TO ID:%s",
+                 log_module( LOG_INFO, MSG_MODULE_HANDLE, "INVALID AES ENCRYPTED LENGTH:%d IT SHOULD BE %d RELATED TO ID:%s",
                                   received_bytes-rtp_header.offset, FIXED_AES_ENCRYPT_SIZE, C_ID.c_str() );
              }
              else
@@ -514,37 +519,37 @@ void handle_udp_msg( int sock_fd )
                                          received_bytes-rtp_header.offset-RTP_HEADER_SIZE,client_request );
                 if( !parse_ok )
                 { 
-                    log_module( LOG_INFO,MSG_MODULE_1,"PARSE_CLIENT_REQUEST FAILED RELATED TO ID:%s", C_ID.c_str() );
+                    log_module( LOG_INFO,MSG_MODULE_HANDLE,"PARSE_CLIENT_REQUEST FAILED RELATED TO ID:%s", C_ID.c_str() );
                 }
                 else
                 {
-                    log_module( LOG_DEBUG, MSG_MODULE_1,"PARSE_CLIENT_REQUEST OK RELATED TO ID:%s", C_ID.c_str() );
+                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE,"PARSE_CLIENT_REQUEST OK RELATED TO ID:%s", C_ID.c_str() );
                     if( client_request.type == PC )
                     {
-                        log_module( LOG_DEBUG, MSG_MODULE_1, "THIS IS PC 'S REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "THIS IS PC 'S REQUEST RELATED TO ID:%s", C_ID.c_str() );
                         if( speech_channel_exists( client_request.channel ) )
                         {
-                            log_module( LOG_DEBUG, MSG_MODULE_1,"REQUESTED SPEECH CHANNEL %s EXISTS RELATED TO ID:%s",
+                            log_module( LOG_DEBUG, MSG_MODULE_HANDLE,"REQUESTED SPEECH CHANNEL %s EXISTS RELATED TO ID:%s",
                                                                                       client_request.channel.c_str(), C_ID.c_str() );
                             chat_room_iter cr_iter = get_chat_room_iter(client_request.channel);
                             if( client_request.action == JOIN )
                             {
-                                log_module( LOG_DEBUG, MSG_MODULE_1, "THIS IS PC'S JOIN REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "THIS IS PC'S JOIN REQUEST RELATED TO ID:%s", C_ID.c_str() );
                                 if( client_already_in( C_ID ) )
                                 {
-                                    log_module( LOG_DEBUG, MSG_MODULE_1, "REPEATED JOIN REQUEST CAUGHT FROM ID:", C_ID.c_str() );
+                                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "REPEATED JOIN REQUEST CAUGHT FROM ID:", C_ID.c_str() );
                                 }
                                 else
                                 {
                                     
-                                    log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s WANT JOIN THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str());
+                                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s WANT JOIN THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str());
                                     std::pair<std::map<ID,CONN_CLIENT>::iterator, bool> insert_client = cr_iter->second.insert( std::make_pair( C_ID, conn_client ) );
                                     
                                     if( insert_client.second )
                                     {
                                         REPLY_RTP_HEADER.timestamp = (uint32_t) htonl( time( NULL ) );
-                                        log_module( LOG_DEBUG, MSG_MODULE_1, "THE INITIAL HOST ORDER TIMESTAMP IS:%u", ntohl( REPLY_RTP_HEADER.timestamp )  );
-                                        log_module( LOG_DEBUG, MSG_MODULE_1, "THE INITIAL NETWORK ORDER TIMESTAMP IS:%u", REPLY_RTP_HEADER.timestamp  );
+                                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "THE INITIAL HOST ORDER TIMESTAMP IS:%u", ntohl( REPLY_RTP_HEADER.timestamp )  );
+                                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "THE INITIAL NETWORK ORDER TIMESTAMP IS:%u", REPLY_RTP_HEADER.timestamp  );
 
                                         uint8_t rtp_reply[12];
                                         rtp_packet_encapsulate( rtp_reply,RTP_HEADER_LEAST_SIZE, 0 ,0, REPLY_RTP_HEADER );
@@ -555,35 +560,35 @@ void handle_udp_msg( int sock_fd )
                                             (struct sockaddr *)&conn_client.conn_addr, sizeof(conn_client.conn_addr) );
                                         sendto( sock_fd, rtp_reply, sizeof( rtp_reply ),0,
                                             (struct sockaddr *)&conn_client.conn_addr,sizeof(conn_client.conn_addr) );
-                                        log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s JOIN THE SPEECH CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str());
+                                        log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s JOIN THE SPEECH CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str());
                                         
                                    }
                                    else
                                    {
-                                        log_module( LOG_ERROR, MSG_MODULE_1, "CLIENT %s JOIN THE SPEECH CHANNEL:%s  FAILED", 
+                                        log_module( LOG_ERROR, MSG_MODULE_HANDLE, "CLIENT %s JOIN THE SPEECH CHANNEL:%s  FAILED", 
                                                                                                       C_ID.c_str(), client_request.channel.c_str() );
                                    }
                                 }
                             }
                             else if( client_request.action == LEAVE )
                             {
-                                log_module( LOG_DEBUG, MSG_MODULE_1, "THIS IS PC'S LEAVE REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "THIS IS PC'S LEAVE REQUEST RELATED TO ID:%s", C_ID.c_str() );
                                 if( !client_already_in( C_ID ) )
                                 {
-                                    log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s CAN NOT QUIT THE SPEECH CHANNEL:%s UNLESS JOIN IT",IP,client_request.channel.c_str());
+                                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s CAN NOT QUIT THE SPEECH CHANNEL:%s UNLESS JOIN IT",IP,client_request.channel.c_str());
                                  
                                 }
                                 else
                                 {
-                                    log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s WANT LEAVE THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str());
+                                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s WANT LEAVE THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str());
                                     cr_iter->second.erase( C_ID );
-                                    log_module( LOG_DEBUG, MSG_MODULE_1, "CLIENT %s LEAVE THE SPEECH CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str());
+                                    log_module( LOG_DEBUG, MSG_MODULE_HANDLE, "CLIENT %s LEAVE THE SPEECH CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str());
                                 }
                             }
                         }
                         else
                         { 
-                            log_module( LOG_INFO, MSG_MODULE_1, "CLIENT %s CAN NOT ACCESS THE NOT EXISTENT SPEECH CHANNEL %s",C_ID.c_str(),client_request.channel.c_str());
+                            log_module( LOG_INFO, MSG_MODULE_HANDLE, "CLIENT %s CAN NOT ACCESS THE NOT EXISTENT SPEECH CHANNEL %s",C_ID.c_str(),client_request.channel.c_str());
                         }
                     }
                     else if( client_request.type == CAMERA )
@@ -593,8 +598,8 @@ void handle_udp_msg( int sock_fd )
                             chat_room_iter cr_iter = get_chat_room_iter( client_request.channel );
                             if(client_request.action == CREATE )
                             {
-                                log_module( LOG_DEBUG,MSG_MODULE_1,"THIS IS CAMERA'S CREATE REQUEST RELATED TO ID:%s", C_ID.c_str() );
-                                log_module( LOG_DEBUG,MSG_MODULE_1,
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"THIS IS CAMERA'S CREATE REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE,
                                 "RECEIVED THE REPEATED CREATE REQUEST FROM %s ,JUST REPLY 0",C_ID.c_str() );
 
                                 struct SERVER_REPLY server_reply;
@@ -607,11 +612,11 @@ void handle_udp_msg( int sock_fd )
                             else if( client_request.action == CANCEL )
                             {
                                 //just cancel the speech channel
-                                log_module( LOG_DEBUG,MSG_MODULE_1,"THIS IS CAMERA'S CANCEL REQUEST RELATED TO ID:%s", C_ID.c_str() );
-                                log_module( LOG_DEBUG,MSG_MODULE_1,"CAMERA %s WANT CANCEL THE SPEECH CHANNEL:%s",IP,client_request.channel.c_str());
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"THIS IS CAMERA'S CANCEL REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"CAMERA %s WANT CANCEL THE SPEECH CHANNEL:%s",IP,client_request.channel.c_str());
                                 cr_iter->second.clear();
                                 CHAT_ROOM.erase( cr_iter );
-                                log_module( LOG_INFO,MSG_MODULE_1,"CAMERA CANCEL THE CHANNEL SUCCEDED RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_INFO,MSG_MODULE_HANDLE,"CAMERA CANCEL THE CHANNEL SUCCEDED RELATED TO ID:%s", C_ID.c_str() );
 
                                 struct SERVER_REPLY server_reply;
                                 server_reply.start = REPLY_FLAG;
@@ -625,8 +630,8 @@ void handle_udp_msg( int sock_fd )
                         {
                             if( client_request.action == CANCEL )
                             {
-                                log_module( LOG_DEBUG,MSG_MODULE_1,"THIS IS CAMERA'S CANCEL REQUEST RELATED TO ID:%s", C_ID.c_str() );
-                                log_module( LOG_INFO,MSG_MODULE_1,"INVALID CLIENT REQUEST,CAN NOT CANCEL THE CHANNEL:%s THAT NOT EXISTS"\
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"THIS IS CAMERA'S CANCEL REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_INFO,MSG_MODULE_HANDLE,"INVALID CLIENT REQUEST,CAN NOT CANCEL THE CHANNEL:%s THAT NOT EXISTS"\
                                                                                       " RELATED TO ID:%s",
                                                                                       client_request.channel.c_str(), C_ID.c_str() );
                              
@@ -634,8 +639,8 @@ void handle_udp_msg( int sock_fd )
                             else if( client_request.action  == CREATE )
                             {
                                 //just create the speech channel
-                                log_module( LOG_DEBUG,MSG_MODULE_1, "THIS IS CAMERA'S CREATE REQUEST RELATED TO ID:%s", C_ID.c_str() );
-                                log_module( LOG_DEBUG,MSG_MODULE_1, "CAMERA %s WANT CREATE THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str() );
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE, "THIS IS CAMERA'S CREATE REQUEST RELATED TO ID:%s", C_ID.c_str() );
+                                log_module( LOG_DEBUG,MSG_MODULE_HANDLE, "CAMERA %s WANT CREATE THE SPEECH CHANNEL:%s",C_ID.c_str(),client_request.channel.c_str() );
                                 CLIENTS clients;
                                 std::pair< std::map<ID,CONN_CLIENT>::iterator,bool> insert_client = clients.insert( std::make_pair( C_ID,conn_client ) );
                                 struct SERVER_REPLY server_reply;
@@ -648,12 +653,12 @@ void handle_udp_msg( int sock_fd )
                                     if( insert_channel.second )
                                     {
                                         server_reply.status = 0;
-                                        log_module( LOG_DEBUG,MSG_MODULE_1,"CAMERA %s CREATE THE CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str() );
+                                        log_module( LOG_DEBUG,MSG_MODULE_HANDLE,"CAMERA %s CREATE THE CHANNEL %s SUCCEDED",C_ID.c_str(),client_request.channel.c_str() );
                                     }
                                     else
                                     {
                                         server_reply.status = 1;
-                                        log_module( LOG_ERROR,MSG_MODULE_1,"CAMERA %s CREATE THE CHANNEL %s FAILED",C_ID.c_str(),client_request.channel.c_str() );
+                                        log_module( LOG_ERROR,MSG_MODULE_HANDLE,"CAMERA %s CREATE THE CHANNEL %s FAILED",C_ID.c_str(),client_request.channel.c_str() );
                                     }
 
                                     
@@ -661,7 +666,7 @@ void handle_udp_msg( int sock_fd )
                                 else
                                 {
                                      server_reply.status = 1;
-                                     log_module( LOG_ERROR,MSG_MODULE_1,"INSERT CONNECTED CLIENT FAILED RELATED TO ID:%s CHANNEL:%s",C_ID.c_str(), client_request.channel.c_str() );
+                                     log_module( LOG_ERROR,MSG_MODULE_HANDLE,"INSERT CONNECTED CLIENT FAILED RELATED TO ID:%s CHANNEL:%s",C_ID.c_str(), client_request.channel.c_str() );
                                 }
                                 
                                 sendto( sock_fd,&server_reply,sizeof(server_reply),0,
@@ -680,7 +685,7 @@ void handle_udp_msg( int sock_fd )
      {
         delete [] rtp_packet;
         rtp_packet = NULL;
-        log_module( LOG_ERROR, MSG_MODULE_1, "RECVFROM ERROR:%s", strerror(errno) );
+        log_module( LOG_ERROR, MSG_MODULE_HANDLE, "RECVFROM ERROR:%s", strerror(errno) );
      }
      log_module(LOG_DEBUG,"HANDLE_UDP_MSG","+++++++++++++++++DONE++++++++++++++++++++");
 }
@@ -690,16 +695,17 @@ void handle_udp_msg( int sock_fd )
 //each field saved in "CLIENT_REQUEST"
 bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & client_request )
 {
+    #define MSG_MODULE_PARSE "PARSE_CLIENT_REQUEST"
     if( size != FIXED_AES_DECRYPT_SIZE )
     {
-        log_module( LOG_ERROR,"PARSE_CLIENT_REQUEST","INVALID CLIENT REQUEST FOR BAD ENCRYPT SIZE:%d", (int) size);
+        log_module( LOG_ERROR, MSG_MODULE_PARSE ,"INVALID CLIENT REQUEST FOR BAD ENCRYPT SIZE:%d", (int) size);
         return false;
     }
     
     unsigned char decrypt_string[FIXED_AES_DECRYPT_SIZE];
     obtain_aes_decrypt_string( decrypt_string, packet );
     std::string request( (char *)decrypt_string );
-    log_module( LOG_DEBUG,"PARSE_CLIENT_REQUEST","CLIENT REQUEST:%s", request.c_str() );
+    log_module( LOG_DEBUG, MSG_MODULE_PARSE , "CLIENT REQUEST:%s", request.c_str() );
     std::string::iterator it = request.begin();
     std::vector<std::string> keys;
     std::string key;
@@ -722,7 +728,7 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
 
     if( keys.size() < 4 )
     {
-         log_module( LOG_ERROR,"PARSE_CLIENT_REQUEST","KEYS.SIZE() < 4:INVALID CLIENT REQUEST" );
+         log_module( LOG_ERROR, MSG_MODULE_PARSE ,"KEYS.SIZE() < 4:INVALID CLIENT REQUEST" );
          return false;
     }
 
@@ -736,7 +742,7 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
     }
     else
     {
-         log_module( LOG_INFO,"PARSE_CLIENT_REQUEST","INVALID CLIENT REQUEST:BAD TYPE");
+         log_module( LOG_INFO, MSG_MODULE_PARSE ,"INVALID CLIENT REQUEST:BAD TYPE");
          return false;
     }
     
@@ -751,7 +757,7 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
     }
     else
     {
-        log_module( LOG_ERROR,"PARSE_CLIENT_REQUEST","INVALID CLIENT REQUEST:BAD ACTION %s",keys[1].c_str());
+        log_module( LOG_ERROR, MSG_MODULE_PARSE ,"INVALID CLIENT REQUEST:BAD ACTION %s",keys[1].c_str());
         return false;
     }
     
@@ -773,9 +779,9 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
 */
 void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
 {
-    #define MSG_MODULE6 "DO_MIX_AND_BROADCAST"
+    #define MSG_MODULE_MIX "DO_MIX_AND_BROADCAST"
     
-    log_module( LOG_DEBUG, MSG_MODULE6, "MULTI-SPEECH MIX USING THE SIMPLE WAY");
+    log_module( LOG_DEBUG, MSG_MODULE_MIX , "MULTI-SPEECH MIX USING THE SIMPLE WAY");
     do_mix_and_broadcast_S( udp_sock_fd, crr_iter );
 }
 
@@ -790,19 +796,19 @@ void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter )
 */
 void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter )
 {
-    #define MSG_MODULE_5 "DO_MIX_AND_BROADCAST_C"
+    #define MSG_MODULE_C "DO_MIX_AND_BROADCAST_C"
     
-    log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++START++++++++++");
+    log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++START++++++++++");
     if ( SPEAKERS_OPUS_RTP_PACKETS_POOL.empty() )
     {
-        log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++DONE++++++++++");
+        log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++DONE++++++++++");
         return;
     }
 
     SORPP_ITER sorpp_iter = SPEAKERS_OPUS_RTP_PACKETS_POOL.begin();
     if( SPEAKERS_OPUS_RTP_PACKETS_POOL.size() == 1 )
     {
-        log_module( LOG_DEBUG, MSG_MODULE_5, "THERE IS ONLY ONE SPEAKER, JUST BROADCAST ALL OPUS RTP PACKETS TO OTHERS RELATED TO %s", 
+        log_module( LOG_DEBUG, MSG_MODULE_C, "THERE IS ONLY ONE SPEAKER, JUST BROADCAST ALL OPUS RTP PACKETS TO OTHERS RELATED TO %s", 
                                                                      sorpp_iter->first.c_str() );
         
         //just broadcast the rtp packet from single speaker
@@ -819,20 +825,20 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
             }
             else
             {
-                log_module( LOG_ERROR, MSG_MODULE_5, "RTP PACKET POINTER DETECTED IS NULL RELATED TO ID:%s", 
+                log_module( LOG_ERROR, MSG_MODULE_C, "RTP PACKET POINTER DETECTED IS NULL RELATED TO ID:%s", 
                                   sorpp_iter->first.c_str() );
             }
             ++rp_iter;
         }
         
         sorpp_iter->second.clear();
-        log_module( LOG_DEBUG, MSG_MODULE_5, "THERE IS ONLY ONE SPEAKER, BROADCAST ALL OPUS RTP PACKETS DONE RELATED TO %s", 
+        log_module( LOG_DEBUG, MSG_MODULE_C, "THERE IS ONLY ONE SPEAKER, BROADCAST ALL OPUS RTP PACKETS DONE RELATED TO %s", 
                                                                      sorpp_iter->first.c_str() );
     }
     else
     {
          
-       log_module( LOG_DEBUG, MSG_MODULE_5, "THERE ARE MORE THAN ONE SPEAKER,JUST MERGE THESE BUFFERS TO ONE BUFFER AND MIX");
+       log_module( LOG_DEBUG, MSG_MODULE_C, "THERE ARE MORE THAN ONE SPEAKER,JUST MERGE THESE BUFFERS TO ONE BUFFER AND MIX");
        std::vector<SPEAKER_RTP_PACKET> merged_rtp_packets_pool;
        std::vector<SPEAKER_RTP_PACKET> tmp_rtp_packets_pool;
        SPEAKER_RTP_PACKET speaker_rtp_packet; 
@@ -840,9 +846,9 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
        SORPP_ITER next_sorpp_iter = ++sorpp_iter;
        
        std::map<uint32_t, RTP_PACKET>::iterator curr_rp_iter = curr_sorpp_iter->second.begin();
-       log_module( LOG_DEBUG, MSG_MODULE_5, "THE FIRST OPUS RTP PACKETS BUFFER RELATED TO %s", curr_sorpp_iter->first.c_str() );
+       log_module( LOG_DEBUG, MSG_MODULE_C, "THE FIRST OPUS RTP PACKETS BUFFER RELATED TO %s", curr_sorpp_iter->first.c_str() );
        std::map<uint32_t, RTP_PACKET>::iterator next_rp_iter = next_sorpp_iter->second.begin();
-       log_module( LOG_DEBUG, MSG_MODULE_5, "THE SECOND OPUS RTP PACKETS BUFFER RELATED TO %s", next_sorpp_iter->first.c_str() ); 
+       log_module( LOG_DEBUG, MSG_MODULE_C, "THE SECOND OPUS RTP PACKETS BUFFER RELATED TO %s", next_sorpp_iter->first.c_str() ); 
        
        while( curr_rp_iter != curr_sorpp_iter->second.end() 
                  &&
@@ -887,7 +893,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
        ++next_sorpp_iter;
        while( next_sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
        {
-            log_module( LOG_DEBUG, MSG_MODULE_5, "THE LATER OPUS RTP PACKETS BUFFER RELATED TO %s", next_sorpp_iter->first.c_str() );
+            log_module( LOG_DEBUG, MSG_MODULE_C, "THE LATER OPUS RTP PACKETS BUFFER RELATED TO %s", next_sorpp_iter->first.c_str() );
             next_rp_iter = next_sorpp_iter->second.begin();
             std::vector<SPEAKER_RTP_PACKET>::iterator srp_iter = merged_rtp_packets_pool.begin();
             while( next_rp_iter != next_sorpp_iter->second.end() 
@@ -935,23 +941,23 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
             ++next_sorpp_iter;
        }
 
-       log_module( LOG_DEBUG, MSG_MODULE_5, "ALL SPEAKERS' RTP PACKETS BUFFER MERGED DONE" );
+       log_module( LOG_DEBUG, MSG_MODULE_C, "ALL SPEAKERS' RTP PACKETS BUFFER MERGED DONE" );
        if( loglevel_is_enabled( LOG_DEBUG ) )
        {
-            log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++PRINT ALL SPEAKERS INFO START++++++++++" );
+            log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++PRINT ALL SPEAKERS INFO START++++++++++" );
             std::vector<SPEAKER_RTP_PACKET>::iterator mrpp_iter = merged_rtp_packets_pool.begin();
             
             while( mrpp_iter != merged_rtp_packets_pool.end() )
             {
-                log_module( LOG_DEBUG, MSG_MODULE_5, "SPEAKER ID:%s SPEAKER TIME:%u", 
+                log_module( LOG_DEBUG, MSG_MODULE_C, "SPEAKER ID:%s SPEAKER TIME:%u", 
                                                                               mrpp_iter->C_ID.c_str(), mrpp_iter->speak_time );
                 ++mrpp_iter;
             }
             
-            log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++PRINT ALL SPEAKERS INFO DONE++++++++++" );
+            log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++PRINT ALL SPEAKERS INFO DONE++++++++++" );
        }
 
-       log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++DO MIX AND BROADCAST START++++++++++" ); 
+       log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++DO MIX AND BROADCAST START++++++++++" ); 
        std::vector<SPEAKER_RTP_PACKET>::iterator mrpp_iter = merged_rtp_packets_pool.begin();
        std::vector<SPEAKER_RTP_PACKET>::iterator curr_mrpp_iter;
        std::vector<SPEAKER_RTP_PACKET>::iterator next_mrpp_iter;
@@ -968,7 +974,6 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
        {
             curr_mrpp_iter = mrpp_iter;
             next_mrpp_iter=++mrpp_iter;
-            
             if( next_mrpp_iter == merged_rtp_packets_pool.end() )
             {
                 if( already_mixed )
@@ -988,7 +993,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
                     }
                     else
                     {
-                        log_module( LOG_ERROR, MSG_MODULE_5, "ENCODE PCM STREAM FAILED RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
+                        log_module( LOG_ERROR, MSG_MODULE_C, "ENCODE PCM STREAM FAILED RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
                     }
                 }
                 break;
@@ -1021,7 +1026,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
                     }
                     else
                     {
-                        log_module( LOG_ERROR, MSG_MODULE_5, "ENCODE PCM STREAM FAILED RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
+                        log_module( LOG_ERROR, MSG_MODULE_C, "ENCODE PCM STREAM FAILED RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
                     }
                 }
                 already_mixed = false;
@@ -1033,10 +1038,10 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
                 {
                     decode_bytes = decode_opus_stream( OPUS_DECODER,curr_mrpp_iter->rtp_packet+RTP_HEADER_SIZE+12,
                                                                                  40,decoded_pcm_buffer1, 320 );
-                    log_module( LOG_DEBUG, MSG_MODULE_5, "DECODE %d BYTES RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
+                    log_module( LOG_DEBUG, MSG_MODULE_C, "DECODE %d BYTES RELATED TO %s", curr_mrpp_iter->C_ID.c_str() );
                     decode_bytes = decode_opus_stream( OPUS_DECODER, next_mrpp_iter->rtp_packet+RTP_HEADER_SIZE+12,
                                                                                  40, decoded_pcm_buffer2, 320 );
-                    log_module( LOG_DEBUG, MSG_MODULE_5, "DECODE %d BYTES RELATED TO %s", next_mrpp_iter->C_ID.c_str() );
+                    log_module( LOG_DEBUG, MSG_MODULE_C, "DECODE %d BYTES RELATED TO %s", next_mrpp_iter->C_ID.c_str() );
                     
                     generate_speech_mix( (char *)decoded_pcm_buffer1, (char *)decoded_pcm_buffer2, (char *)mixed_pcm_buffer, 640 );
                     memset( decoded_pcm_buffer2, 0, sizeof( decoded_pcm_buffer2 ) );
@@ -1050,7 +1055,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
                 {
                     decode_bytes = decode_opus_stream( OPUS_DECODER, next_mrpp_iter->rtp_packet+RTP_HEADER_SIZE+12,
                                                                                  40, decoded_pcm_buffer2, 320 );
-                    log_module( LOG_DEBUG, MSG_MODULE_5, "DECODE %d BYTES RELATED TO %s", next_mrpp_iter->C_ID.c_str() );
+                    log_module( LOG_DEBUG, MSG_MODULE_C, "DECODE %d BYTES RELATED TO %s", next_mrpp_iter->C_ID.c_str() );
                     
                     generate_speech_mix( ( char * ) decoded_pcm_buffer2, ( char * ) mixed_pcm_buffer, ( char * )decoded_pcm_buffer1, 640 );
                     memcpy( mixed_pcm_buffer, decoded_pcm_buffer1, sizeof(mixed_pcm_buffer) );
@@ -1065,7 +1070,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
        }
        
        merged_rtp_packets_pool.clear();
-       log_module( LOG_DEBUG, MSG_MODULE_5, "++++++++++DO MIX AND BROADCAST DONE++++++++++" ); 
+       log_module( LOG_DEBUG, MSG_MODULE_C, "++++++++++DO MIX AND BROADCAST DONE++++++++++" ); 
     }
     
     SPEAKERS_OPUS_RTP_PACKETS_POOL.clear();
@@ -1076,7 +1081,7 @@ void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter
 /*
 *@args:the udp_sock_fd indicates the udp server's file descriptor
        the crr_iter specify the C++ 's iterator of global CHAT_ROOM
-*@desc:    
+*@desc:mix the multi-stream using the simple way    
 */
 void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter )
 {
@@ -1085,6 +1090,7 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
     log_module( LOG_DEBUG, MSG_MODULE_S, "++++++++++START++++++++++");
     if ( SPEAKERS_OPUS_RTP_PACKETS_POOL.empty() )
     {
+        log_module( LOG_DEBUG, MSG_MODULE_S, "THE SPEAKERS OPUS RTP PACKETS POOL IS EMPTY" );
         log_module( LOG_DEBUG, MSG_MODULE_S, "++++++++++DONE++++++++++");
         return;
     }
@@ -1128,11 +1134,12 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
 
         if( loglevel_is_enabled( LOG_DEBUG ) )
         {
-            while( sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
+            SORPP_ITER tmp_sorpp_iter = sorpp_iter;
+            while( tmp_sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
             {
                 log_module( LOG_DEBUG, MSG_MODULE_S, "SPEAKER:%s TOTAL RTP PACKETS:%u",
-                                                                              sorpp_iter->first.c_str(), sorpp_iter->second.size() );
-                ++sorpp_iter;
+                                                                              tmp_sorpp_iter->first.c_str(), tmp_sorpp_iter->second.size() );
+                ++tmp_sorpp_iter;
             }
         }
         
@@ -1142,7 +1149,7 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
         {   
              if( sorpp_iter->second.size() > MAX_BUFFER_SIZE )
              {
-                MAX_BUFFER_SIZE = sorpp_iter->second.size();
+                 MAX_BUFFER_SIZE = sorpp_iter->second.size();
              }
              ++sorpp_iter;
         }
@@ -1153,26 +1160,32 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
         while( true )
         {
             sorpp_iter = SPEAKERS_OPUS_RTP_PACKETS_POOL.begin();
+	     std::string speaker="127.0.0.1:12345";	
             while( sorpp_iter != SPEAKERS_OPUS_RTP_PACKETS_POOL.end() )
             {   
                  if( ! sorpp_iter->second.empty() )
                  {
+                 	 if( sorpp_iter->second.size() == 1 )
+                     speaker = sorpp_iter->first;
+					 
                      std::map<uint32_t, RTP_PACKET>::iterator iter = sorpp_iter->second.begin();
                      RTP_PACKETS_POOL.push_back( iter->second );
                      sorpp_iter->second.erase( iter );
+			 log_module(LOG_DEBUG, MSG_MODULE_S, "%s'S RTP PACKET(S) IS(ARE)  %u now",sorpp_iter->first.c_str(),sorpp_iter->second.size());		 
                  }
                 ++sorpp_iter;
             }
 
-            log_module( LOG_DEBUG, MSG_MODULE_S, " MULTI PCM STREAM MIX+++++START+++++:%d",COUNT );
+            log_module( LOG_DEBUG, MSG_MODULE_S, "MULTI PCM STREAM MIX+++++START+++++:%d",COUNT );
             if( ! RTP_PACKETS_POOL.empty() )
             {
                 if( RTP_PACKETS_POOL.size() == 1 )
                 {
-                    log_module( LOG_DEBUG, MSG_MODULE_S, "THERE IS ONLY ONE OPUS RTP PACKET IN PACKETS POOL,JUST BROADCAST");
+                    log_module( LOG_DEBUG, MSG_MODULE_S, "THERE IS ONLY ONE OPUS RTP PACKET IN PACKETS POOL,JUST BROADCAST");	
                     broadcast_speech_message( udp_sock_fd, RTP_PACKETS_POOL[0]+RTP_HEADER_SIZE, 
                                                                 OPUS_RTP_BUFFER_SIZE,
-                                                                sorpp_iter->first, crr_iter );
+                                                                speaker, crr_iter );
+					
                     delete [] RTP_PACKETS_POOL[0];
                     RTP_PACKETS_POOL[0] = NULL;
                     log_module( LOG_DEBUG, MSG_MODULE_S, " MULTI PCM STREAM MIX+++++DONE+++++:%d",COUNT );
@@ -1205,14 +1218,15 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
                     {
                         decode_bytes = decode_opus_stream( OPUS_DECODER, *rpp_iter+RTP_HEADER_SIZE+12,
                                                                                  40, decoded_pcm_buffer1, 320 );
+                        delete [] *rpp_iter;
+                        
                         if( decode_bytes <=0 )
-                        {
-                            log_module( LOG_ERROR, MSG_MODULE_S, "DECODE OPUS STREAM FAILED");
+                        {    
+                            log_module( LOG_ERROR, MSG_MODULE_S, "DECODE OPUS STREAM FAILED" );
                             ++rpp_iter;
                             continue;
                         }
 
-                        delete [] *rpp_iter;
                         log_module( LOG_DEBUG, MSG_MODULE_S, "DECODE %d BYTES ", decode_bytes );
                         generate_speech_mix( ( char * ) decoded_pcm_buffer1, ( char * ) mixed_pcm_buffer, ( char * )decoded_pcm_buffer2, 640 );
                         memcpy( mixed_pcm_buffer, decoded_pcm_buffer2, sizeof( mixed_pcm_buffer ));
@@ -1223,14 +1237,12 @@ void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter
                                                                          MIN_FRAME_SAMP, encoded_opus_buffer, MAX_PACKET );
                     if( encode_bytes > 0 )
                     {
-                        
                         REPLY_RTP_HEADER.timestamp = (uint32_t) time( NULL ); 
                         rtp_packet_encapsulate( rtp_packet,RTP_HEADER_LEAST_SIZE+encode_bytes,
                                                            encoded_opus_buffer, encode_bytes , REPLY_RTP_HEADER );
                         broadcast_speech_message( udp_sock_fd, rtp_packet, OPUS_RTP_BUFFER_SIZE,
                                                                     "MIX", crr_iter );
                         memset( mixed_pcm_buffer, 0, sizeof( mixed_pcm_buffer ) );
-                        
                     }
                     else
                     {
