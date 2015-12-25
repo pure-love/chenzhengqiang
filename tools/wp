@@ -31,6 +31,111 @@ function write_readme(){
 	echo "#write the usage of software here" >> README
 }
 
+function create_autogen_script(){
+	touch autogen.sh
+	chmod u+rwx autogen.sh
+    echo "#file name:autogen.sh" >> autogen.sh
+	echo "#author:chenzhengqiang" >> autogen.sh
+	echo "#start date:`date '+%Y/%m/%d %H:%M:%S'`" >> autogen.sh
+	echo "#modified date:" >> autogen.sh
+	echo "#desc:auto generate the Makefile" >> autogen.sh
+	echo "#!/bin/bash" >> autogen.sh
+	echo "#########global configuration#######" >> autogen.sh
+	echo 'TARGET="write the target of compiler here"' >> autogen.sh
+	echo "MAIN_FILE=main" >> autogen.sh
+	echo "AUTHOR=chenzhengqiang" >> autogen.sh
+	echo "DATE=\`date '+%Y/%m/%d %H:%M:%S'\`" >> autogen.sh
+	echo "COMPILER=g++" >> autogen.sh
+	echo "COMPILER_FLAGS=\"-g -W -Wall -Werror -Wshadow\"" >> autogen.sh
+	echo "#define the optimize level" >> autogen.sh
+	echo "OLEVEL=0" >> autogen.sh
+	echo 'MAKEFILE=./Makefile' >> autogen.sh
+	echo 'LDCONFIG="write the load config your program need here:e.g. -lpthread -lmath"' >> autogen.sh
+	echo "SOURCE_DIR=./src" >> autogen.sh
+	echo "INCLUDE_DIR=./include" >> autogen.sh
+	echo "INSTALL_DIR=/usr/local/bin" >> autogen.sh
+	echo "#you didn't have to configure this" >> autogen.sh
+	echo "CONFIG_PATH=" >> autogen.sh
+	echo "CONFIG_INSTALL_PATH=" >> autogen.sh
+	echo "SERVICE=" >> autogen.sh
+	echo "#########global configuration#######" >> autogen.sh
+	echo "\`rm -rf \$MAKEFILE\`" >> autogen.sh
+	echo "\`touch \$MAKEFILE\`" >> autogen.sh
+	echo 'echo "#author:$AUTHOR" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "#generate date:$DATE" >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+
+	echo "echo 'INCLUDE_DIR:=\$INCLUDE_DIR' >> \$MAKEFILE" >> autogen.sh
+	echo "echo 'SOURCE_DIR:=\$SOURCE_DIR' >> \$MAKEFILE" >> autogen.sh
+	echo "echo >> \$MAKEFILE" >> autogen.sh
+
+	echo "if [ -z \"\$COMPILER\" ];then" >> autogen.sh
+	echo "    echo 'SUFFIX:=cpp' >> \$MAKEFILE" >> autogen.sh
+	echo "elif [ \"\$COMPILER\" == \"g++\" ];then" >> autogen.sh
+	echo "    echo 'SUFFIX:=cpp' >> \$MAKEFILE" >> autogen.sh
+	echo "elif [ \"\$COMPILER\" == \"gcc\" ];then" >> autogen.sh
+	echo "    echo 'SUFFIX:=c' >> \$MAKEFILE" >> autogen.sh
+	echo "else" >> autogen.sh 
+	echo "    echo plese check the autogen\'s configuration" >> autogen.sh
+	echo "exit 99" >> autogen.sh
+	echo "fi" >> autogen.sh
+    echo 'echo "vpath %.h \$(INCLUDE_DIR)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "vpath %.\$(SUFFIX) \$(SOURCE_DIR)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+
+	echo 'echo "TARGET:=$TARGET" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "CC:=$COMPILER" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "OLEVEL=$OLEVEL" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "LDCONFIG:=$LDCONFIG" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "CFLAGS:=-O$OLEVEL -pg -g -W -Wall -I\$(INCLUDE_DIR) $LDCONFIG" >> $MAKEFILE' >> autogen.sh
+
+	echo 'for cpp_file in `ls $SOURCE_DIR`' >> autogen.sh 
+	echo 'do' >> autogen.sh
+	echo '    obj=${cpp_file%%.*}' >> autogen.sh
+	echo '    OBJS="$obj $OBJS"' >> autogen.sh	
+	echo 'done' >> autogen.sh
+
+	echo 'echo "OBJS:=$OBJS" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "OBJS:=\$(foreach obj,\$(OBJS),\$(obj).o)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+
+	echo 'echo "INSTALL_DIR:=$INSTALL_DIR" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "CONFIG_PATH:=$CONFIG_PATH" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "SERVICE:=$SERVICE" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "CONFIG_INSTALL_PATH:=$CONFIG_INSTALL_PATH" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "TAR_NAME=\$(TARGET)-\$(shell date "+%Y%m%d")" >> $MAKEFILE' >> autogen.sh
+	echo 'echo ".PHONEY=clean" >> $MAKEFILE' >> autogen.sh
+	echo 'echo ".PHONEY=install" >> $MAKEFILE' >> autogen.sh
+    echo 'echo ".PHONEY=test" >> $MAKEFILE' >> autogen.sh
+	echo 'echo ".PHONEY=tar" >> $MAKEFILE' >> autogen.sh
+
+	echo 'echo "all:\$(TARGET)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "\$(TARGET):\$(OBJS)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t\$(CC) -o \$@ \$^ \$(CFLAGS)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "\$(OBJS):%.o:%.\$(SUFFIX)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t\$(CC) -o \$@ -c \$< \$(CFLAGS)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+	echo 'echo "clean:" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-rm -f *.o *.a *.so *.log *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE' >> autogen.sh
+
+    echo 'echo >> $MAKEFILE' >> autogen.sh
+
+	echo 'echo "install:" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-mv \$(TARGET) \$(INSTALL_DIR)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-cp -f \$(SERVICE) /etc/init.d/\$(TARGET)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-rm -rf \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-mkdir \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t-cp -f \$(CONFIG_PATH)/* \$(CONFIG_INSTALL_PATH)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo >> $MAKEFILE' >> autogen.sh
+
+	echo 'echo "test:" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\t./\$(TARGET)" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "tar:" >> $MAKEFILE' >> autogen.sh
+	echo 'echo -e "\ttar -cvzf \$(TAR_NAME).tar.gz ." >> $MAKEFILE' >> autogen.sh
+
+}
+
 function create_all_basic_files(){
 if [ ! -e "src" ];then
 	mkdir src
@@ -55,6 +160,10 @@ fi
 if [ ! -e "README" ];then
 	touch README
 	write_readme;	
+fi
+
+if [ ! -e "autogen.sh" ];then
+	create_autogen_script;
 fi
 }
 
