@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20151225-15:20:08
+#generate date:20151226-19:07:43
 
 
 INCLUDE_DIR:=./include/
@@ -13,7 +13,7 @@ TARGET:=xtrartmp
 CC:=g++
 CFLAGS:=-O0 -g -W -Wall -Werror -Wshadow
 LDCONFIG:=-I$(INCLUDE_DIR) -lev -lpthread -lev
-OBJS:=xtrartmp serverutil netutil main
+OBJS:=xtrartmp serverutil netutil logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

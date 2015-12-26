@@ -30,6 +30,7 @@
 #include<arpa/inet.h>
 #include<sys/types.h>
 #include<netdb.h>
+#include<sys/uio.h>
 #include<fcntl.h>
 #include<pthread.h>
 #include<errno.h>

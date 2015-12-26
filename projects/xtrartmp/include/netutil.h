@@ -6,13 +6,18 @@
  */
 #ifndef _CZQ_NETUTIL_H_
 #define _CZQ_NETUTIL_H_
-
+#include<string>
+using std::string;
 namespace czq
 {
 	class NetUtil
 	{
 		public:
 			static int registerTcpServer(const char *IP, int PORT );
+			static std::string getPeerInfo(int sockFd, int flag=2);
+			static void setReuseAddr(int listenFd ); 
+			static void setNonBlocking(int sockFd);
+			static int readSpecifySize2( int fd, void *buffer, size_t totalBytes);
 	};
 }
 #endif

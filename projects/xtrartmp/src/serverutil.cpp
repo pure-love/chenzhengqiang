@@ -163,4 +163,14 @@ namespace czq
 			}
 		}
 	}
+
+	void ServerUtil::generateSimpleRandomValue(unsigned char*buffer, unsigned int bufferLen)
+	{
+		int tmp=0;
+		for (unsigned int index = 0; index < bufferLen; ++index )
+		{
+			buffer[index]=index*tmp+1986 % 255;
+			tmp = buffer[index];
+		}
+	}
 };
