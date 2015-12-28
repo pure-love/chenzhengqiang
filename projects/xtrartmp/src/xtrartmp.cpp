@@ -7,6 +7,7 @@
 */
 
 #include "common.h"
+#include "errors.h"
 #include "netutil.h"
 #include "serverutil.h"
 #include "logging.h"
@@ -96,9 +97,9 @@ namespace czq
     		}
 
     		
-    		struct sockaddr_in client_addr;
+    		struct sockaddr_in clientAddr;
     		socklen_t len = sizeof( struct sockaddr_in );
-    		ssize_t connFd = accept( listenWatcher->fd, (struct sockaddr *)&client_addr, &len );
+    		ssize_t connFd = accept( listenWatcher->fd, (struct sockaddr *)&clientAddr, &len );
     		if ( connFd < 0 )
     		{
         		log_module(LOG_ERROR, "acceptCallback", "ACCEPT ERROR:%s", strerror(errno));   
@@ -140,56 +141,177 @@ namespace czq
     		return;
 
     		char c0,s0;
+		C1 c1;	
     		log_module( LOG_INFO, "shakeHandCallback", "++++++++++RTMP SHAKE HAND START++++++++++");
-    		int readBytes = NetUtil::readSpecifySize2(receiveRequestWatcher->fd, &c0, 1);
-    		if ( readBytes == 1 )
+		struct iovec iovRead[2];
+		iovRead[0].iov_base=&c0;
+		iovRead[0].iov_len=1;
+		iovRead[1].iov_base=&c1;
+		iovRead[1].iov_len=sizeof(c1);
+		int readBytes=readv(receiveRequestWatcher->fd, iovRead, 2);
+    		if ( readBytes != -1 )
     		{
-    			log_module( LOG_INFO, "shakeHandCallback", "RECEIVE THE C0 PACKET:%d", c0);
+    			log_module( LOG_INFO, "shakeHandCallback", "RECEIVE THE C0 AND C1 PACKET TOTAL BYTES:%d", readBytes);
+			log_module( LOG_INFO, "shakeHandCallback","C0 VERSION:%d C1.timestamp:%u", c0, ntohl(c1.timestamp));	
     			s0=c0;
-    			S1 s1;
+			S1 s1;	
     			s1.timestamp = htonl(0);
     			s1.zeroOrTime = htonl(0);
-    			ServerUtil::generateSimpleRandomValue(s1.randomValue,1528);
+    			ServerUtil::generateSimpleRandomValue(s1.randomValue, 1528);
     			struct iovec iovWrite[2];
     			iovWrite[0].iov_base=&s0;
 			iovWrite[0].iov_len=1;
 			iovWrite[1].iov_base=&s1;
 			iovWrite[1].iov_len=sizeof(s1);
-			int wrotenVectors=writev(receiveRequestWatcher->fd,iovWrite,2);
-			if( wrotenVectors == -1)
+			int wrotenBytes=writev(receiveRequestWatcher->fd,iovWrite,2);
+			if ( wrotenBytes == -1)
 			{
 				log_module( LOG_INFO, "shakeHandCallback", "SENT THE S0,S1 PACKET FAILED:%s", strerror(errno));
 			}
 			else
 			{
-				log_module( LOG_INFO, "shakeHandCallback", "SENT THE S0,S1 PACKET SUCCESSED. S0:%d S1.timestamp:%u",s0,s1.timestamp);
-				C1 c1;
+				log_module( LOG_INFO, "shakeHandCallback", "SENT THE S0,S1 PACKET SUCCESSED. TOTAL SENT BYTES:%d", wrotenBytes);
 				C2 c2;
-				struct iovec iovRead[2];
-				iovRead[0].iov_base=&c1;
-				iovRead[0].iov_len=sizeof(c1);
-				iovRead[1].iov_base=&c2;
-				iovRead[1].iov_len=sizeof(c2);
-				readBytes=readv(receiveRequestWatcher->fd, iovRead, 2);
-				if( readBytes == -1 )
+				readBytes=read(receiveRequestWatcher->fd, &c2, sizeof(c2));
+				if ( readBytes == -1 )
 				{
-					log_module( LOG_INFO, "shakeHandCallback", "READ THE C1,C2 PACKET FAILED:%s", strerror(errno));
+					log_module( LOG_INFO, "shakeHandCallback", "READ THE C2 PACKET FAILED:%s", strerror(errno));
 				}
 				else
 				{
-					log_module( LOG_INFO, "shakeHandCallback", "READ THE C1,C2 PACKET SUCCESSED. C1.timestamp:%u C2.S2.timestamp:%u C2.C1.timestamp:%u", 
-															     ntohl(c1.timestamp),ntohl(c2.timestamp),ntohl(c2.zeroOrTime));
+					log_module( LOG_INFO, "shakeHandCallback", "READ THE C2 PACKET SUCCESSED. TOTAL READ BYTES:%d C2.S1.timestamp:%u C2.C1.timestamp:%u", 
+															     readBytes,ntohl(c2.timestamp),ntohl(c2.zeroOrTime));
 					S2 s2;
 					s2.timestamp=c1.timestamp;
 					s2.zeroOrTime=s1.timestamp;
 					memcpy(s2.randomValue,c1.randomValue,1528);
-					write(receiveRequestWatcher->fd, &s2, sizeof(s2));
-					unsigned char createStreamRequest[2048];
+					wrotenBytes=write(receiveRequestWatcher->fd, &s2, sizeof(s2));
 					log_module( LOG_INFO, "shakeHandCallback", "++++++++++RTMP SHAKE HAND DONE++++++++++");
-					readBytes=read(receiveRequestWatcher->fd, createStreamRequest, 2048);
+					log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING START++++++++++");
+					unsigned char connectRequest[1024];
+					readBytes=read(receiveRequestWatcher->fd, connectRequest, sizeof(connectRequest));
+					if ( readBytes > 0 )
+					{
+						log_module( LOG_DEBUG, "shakeHandCallback", "READ THE RTMP CONNECT SIGNALLING %d BYTES", readBytes);
+						RtmpPacket rtmpPacket;
+						int ret = parseRtmpPacket(connectRequest, static_cast<size_t>(readBytes), rtmpPacket);
+						if (ret == OK )
+						{
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER SIZE:%u", rtmpPacket.rtmpPacketHeader.size );
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER CHUNK STREAM ID:%u", rtmpPacket.rtmpPacketHeader.chunkStreamID);
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER TIMESTAMP:%u", rtmpPacket.rtmpPacketHeader.timestamp);
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER AMF SIZE:%u", rtmpPacket.rtmpPacketHeader.AMFSize);
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER AMF TYPE:%u", rtmpPacket.rtmpPacketHeader.AMFType);
+							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER STREAM ID:%u", rtmpPacket.rtmpPacketHeader.streamID);
+
+							switch(rtmpPacket.rtmpPacketHeader.AMFType)
+							{
+								case 0x01:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
+									break;
+								case 0x02:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
+									break;
+								case 0x03:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
+									break;
+								case 0x04:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
+									break;
+								case 0x05:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
+									break;
+								case 0x06:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
+									break;
+								case 0x08:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
+									break;
+								case 0x09:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
+									break;
+								case 0x12:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF AN INVOKE WHICH DOES NOT EXPECT A REPLY");
+									break;
+								case 0x13:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPES");
+									break;
+								case 0x14:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
+									break;
+								default:
+									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF UNKNOWN");
+									break;
+							}
+						}
+						log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING DONE++++++++++");
+					}
+					else
+					{
+						log_module(LOG_ERROR, "shakeHandCallback", "ERROR OCCURRED WHEN READ:%s", strerror(errno));
+						log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
+					}
 				}
 			}
     		}
 		DO_RECEIVE_REQUEST_CB_CLEAN();
+	}
+
+	int parseRtmpPacket(unsigned char *rtmpRequest, size_t len, RtmpPacket & rtmpPacket)
+	{
+		if ( len == 0 )
+		{
+			return ARGUMENT_ERROR;
+		}
+
+		memset(&rtmpPacket.rtmpPacketHeader, 0, sizeof(rtmpPacket.rtmpPacketHeader));
+		//first parse the format which hold the high 2 bit
+		char format = rtmpRequest[0] & 0xc0;
+		switch (format)
+		{
+			case 0:
+				rtmpPacket.rtmpPacketHeader.size = 12;
+				rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[1]*256+rtmpRequest[2]*16+rtmpRequest[3];
+				rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[4]*256+rtmpRequest[5]*16+rtmpRequest[6];
+				rtmpPacket.rtmpPacketHeader.AMFType = rtmpRequest[7];
+				rtmpPacket.rtmpPacketHeader.streamID = rtmpRequest[8]*65536+rtmpRequest[9]*256
+													+rtmpRequest[10]*16+rtmpRequest[11];
+				break;
+			case 1:
+				rtmpPacket.rtmpPacketHeader.size = 8;
+				rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[1]*256+rtmpRequest[2]*16+rtmpRequest[3];
+				rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[4]*256+rtmpRequest[5]*16+rtmpRequest[6];
+				rtmpPacket.rtmpPacketHeader.AMFType = rtmpRequest[7];
+				rtmpPacket.rtmpPacketHeader.streamID=0;
+				break;
+			case 2:
+				rtmpPacket.rtmpPacketHeader.size = 4;
+				rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[1]*256+rtmpRequest[2]*16+rtmpRequest[3];
+				rtmpPacket.rtmpPacketHeader.AMFSize=0;
+				rtmpPacket.rtmpPacketHeader.AMFType=0;
+				rtmpPacket.rtmpPacketHeader.streamID=0;
+				break;
+			case 3:
+				rtmpPacket.rtmpPacketHeader.size = 1;
+				rtmpPacket.rtmpPacketHeader.timestamp=0;
+				rtmpPacket.rtmpPacketHeader.AMFSize=0;
+				rtmpPacket.rtmpPacketHeader.AMFType=0;
+				rtmpPacket.rtmpPacketHeader.streamID=0;
+				break;
+		}
+		
+		if ( rtmpPacket.rtmpPacketHeader.AMFSize != 0 )
+		{
+			rtmpPacket.rtmpPacketPayload = new unsigned char[rtmpPacket.rtmpPacketHeader.AMFSize];
+			if( rtmpPacket.rtmpPacketPayload == NULL )
+			{
+				log_module(LOG_ERROR, "parseRtmpPacket", "MEMORY ALLOCATE ERROR:%s", strerror(errno));
+				return SYSTEM_ERROR;
+			}
+			memcpy(rtmpPacket.rtmpPacketPayload, rtmpRequest+rtmpPacket.rtmpPacketHeader.size,
+											     len-rtmpPacket.rtmpPacketHeader.size);
+		}
+		rtmpPacket.rtmpPacketHeader.chunkStreamID = rtmpRequest[0] & 0x3f;
+		return OK;
 	}
 };

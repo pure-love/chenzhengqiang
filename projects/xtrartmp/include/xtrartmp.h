@@ -42,8 +42,25 @@ namespace czq
 	    unsigned int zeroOrTime;
 	    unsigned char randomValue[1528];
 	}C1,S1,C2,S2;
-	
+
+	//the RtmpPacket's rtmp header's definition
+	struct RtmpPacketHeader
+	{
+		unsigned char size;
+		unsigned char chunkStreamID;
+		unsigned int timestamp;
+		unsigned int AMFSize;
+		unsigned char AMFType;
+		unsigned int streamID;
+	};
+	//the RtmpPacket's definition
+	struct RtmpPacket
+	{
+		RtmpPacketHeader rtmpPacketHeader;
+		unsigned char *rtmpPacketPayload;
+	};
 	void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
        void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents );
+	int parseRtmpPacket(unsigned char *rtmpSignallingBuf, size_t len, RtmpPacket & rtmpPacket);    
 };
 #endif
