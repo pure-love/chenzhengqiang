@@ -61,6 +61,7 @@ namespace czq
 	};
 	void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
        void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents );
-	int parseRtmpPacket(unsigned char *rtmpSignallingBuf, size_t len, RtmpPacket & rtmpPacket);    
+	int parseRtmpPacket(unsigned char *buffer, size_t len, RtmpPacket & rtmpPacket);
+	int parseRtmpAMF(unsigned char *buffer, size_t len);
 };
 #endif

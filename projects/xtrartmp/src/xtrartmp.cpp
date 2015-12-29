@@ -238,6 +238,7 @@ namespace czq
 									break;
 								case 0x14:
 									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
+									ret = parseRtmpAMF(rtmpPacket.rtmpPacketPayload,  rtmpPacket.rtmpPacketHeader.AMFSize);
 									break;
 								default:
 									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF UNKNOWN");
@@ -313,5 +314,87 @@ namespace czq
 		}
 		rtmpPacket.rtmpPacketHeader.chunkStreamID = rtmpRequest[0] & 0x3f;
 		return OK;
+	}
+
+
+	int parseRtmpAMF(unsigned char *buffer, size_t len)
+	{
+		if (buffer == NULL || len == 0)
+		{
+			return ARGUMENT_ERROR;
+		}
+
+		size_t pos = 0;
+		bool AMFObjectAlreadyStart = false;
+		std::string coreString;
+		std::string key,value;
+		size_t stringLen,keyLen;
+		
+		while (pos <= len)
+		{
+			if ( !AMFObjectAlreadyStart )
+			{
+				switch (buffer[pos])
+				{
+					case 0x00:
+						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_NUMBER");
+						pos+=9;
+						break;
+					case 0x01:
+						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_BOOLEAN");
+						pos+=2;
+						break;
+					case 0x02:
+						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_STRING");
+						stringLen = buffer[pos+1]*16+buffer[pos+2];
+						log_module(LOG_DEBUG, "parseRtmpAMF", "STRING LEN:%u", stringLen);
+						pos += 3;
+						coreString=std::string((char *)buffer+pos,stringLen);
+						pos += stringLen;
+						log_module(LOG_DEBUG, "parseRtmpAMF", "STRING CONTENT:%s", coreString.c_str());
+						break;
+					case 0x03:
+						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:CORE_OBJECT WHICH ENDS BY 0X000009");
+						AMFObjectAlreadyStart = true;
+						log_module(LOG_DEBUG, "parseRtmpAMF", "++++++++++RTMP AMF OBJECT READ START++++++++++");
+						pos+=1; 
+						break;
+					case 0x05:
+						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:NULL");
+						pos+=1;
+						break;
+					case 0x08:
+						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:CORE_MAP");
+						pos+=5;
+						break;	
+				}
+			}
+			else
+			{
+				keyLen = buffer[pos];
+				pos+=1;
+				if (keyLen == 0 )
+				continue;	
+				key = std::string((char *)buffer+pos, keyLen);
+				pos+=keyLen;
+				if ( buffer[pos] == 0x02 )
+				{
+					log_module(LOG_DEBUG, "parseRtmpAMF", "KEY:%s LEN-->%d", key.c_str(), keyLen);
+					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:TYPE-->CORE_STRING");
+					stringLen = buffer[pos+1]*16+buffer[pos+2];
+					pos+=3;
+					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:LEN-->%u", stringLen);
+					coreString=std::string((char *)buffer+pos,stringLen);
+					pos += stringLen;
+					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:CONTENT-->%s", coreString.c_str());
+				}
+				if (pos+3 <= len && buffer[pos]==0 && buffer[pos+1]==0 && buffer[pos+2]==0x09)
+				{
+					AMFObjectAlreadyStart=false;
+					log_module(LOG_DEBUG, "parseRtmpAMF", "++++++++++RTMP AMF OBJECT READ DONE++++++++++");
+				}
+			}
+		}
+	return OK;	
 	}
 };
