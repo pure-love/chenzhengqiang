@@ -66,8 +66,8 @@ function create_autogen_script(){
 	echo 'echo >> $MAKEFILE' >> autogen.sh
 	echo 'echo >> $MAKEFILE' >> autogen.sh
 
-	echo "echo 'INCLUDE_DIR:=\$INCLUDE_DIR' >> \$MAKEFILE" >> autogen.sh
-	echo "echo 'SOURCE_DIR:=\$SOURCE_DIR' >> \$MAKEFILE" >> autogen.sh
+	echo 'echo "INCLUDE_DIR:=$INCLUDE_DIR" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "SOURCE_DIR:=$SOURCE_DIR" >> $MAKEFILE' >> autogen.sh
 	echo "echo >> \$MAKEFILE" >> autogen.sh
 
 	echo "if [ -z \"\$COMPILER\" ];then" >> autogen.sh
