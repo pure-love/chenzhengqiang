@@ -15,7 +15,6 @@ do remember me,do appreciate me,you will like me!
 
 this is my first try of using github,some of projects already uploaded.
 Just clone it,if you are interested.
->>>>>>> 227e193b3a5a240a73c290955ef68df9bb294799
 also there are some open-source projects written by others for my learning,
 either scores of projects completed by myself in company,
 like flv streaming server based on http,hls server,speech transfer server and so on
