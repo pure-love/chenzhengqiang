@@ -19,6 +19,8 @@ using std::cout;
 using std::endl;
 namespace czq
 {
+	//define the global's log facility
+	LogFacility XtraRtmp::logFacility_ = LOG_FILE;
 	XtraRtmp::XtraRtmp( const ServerConfig & serverConfig ):listenFd_(-1),serverConfig_(serverConfig),
 														mainEventLoop_(0),listenWatcher_(0),acceptWatcher_(0)
 	{
@@ -109,7 +111,7 @@ namespace czq
     		struct ev_io * receiveRequestWatcher = new struct ev_io;
     		if ( receiveRequestWatcher == NULL )
     		{
-        		log_module( LOG_ERROR, "acceptCallback", "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        		log_module(LOG_ERROR, "acceptCallback", "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
         		close( connFd );
         		return;
     		}
@@ -157,7 +159,7 @@ namespace czq
 			S1 s1;	
     			s1.timestamp = htonl(0);
     			s1.zeroOrTime = htonl(0);
-    			ServerUtil::generateSimpleRandomValue(s1.randomValue, 1528);
+    			ServerUtil::generateSimpleRandomValue(s1.randomValue, RANDOM_VALUE_SIZE);
     			struct iovec iovWrite[2];
     			iovWrite[0].iov_base=&s0;
 			iovWrite[0].iov_len=1;
@@ -184,7 +186,7 @@ namespace czq
 					S2 s2;
 					s2.timestamp=c1.timestamp;
 					s2.zeroOrTime=s1.timestamp;
-					memcpy(s2.randomValue,c1.randomValue,1528);
+					memcpy(s2.randomValue, c1.randomValue, RANDOM_VALUE_SIZE);
 					wrotenBytes=write(receiveRequestWatcher->fd, &s2, sizeof(s2));
 					log_module( LOG_INFO, "shakeHandCallback", "++++++++++RTMP SHAKE HAND DONE++++++++++");
 					log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING START++++++++++");
@@ -194,7 +196,8 @@ namespace czq
 					{
 						log_module( LOG_DEBUG, "shakeHandCallback", "READ THE RTMP CONNECT SIGNALLING %d BYTES", readBytes);
 						RtmpPacket rtmpPacket;
-						int ret = parseRtmpPacket(connectRequest, static_cast<size_t>(readBytes), rtmpPacket);
+						int ret = XtraRtmp::parseRtmpPacket(connectRequest, static_cast<size_t>(readBytes), rtmpPacket);
+						Amf0 amf0;
 						if (ret == OK )
 						{
 							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER SIZE:%u", rtmpPacket.rtmpPacketHeader.size );
@@ -238,7 +241,8 @@ namespace czq
 									break;
 								case 0x14:
 									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
-									ret = parseRtmpAMF(rtmpPacket.rtmpPacketPayload,  rtmpPacket.rtmpPacketHeader.AMFSize);
+									XtraRtmp::parseRtmpAMF0(rtmpPacket.rtmpPacketPayload,  rtmpPacket.rtmpPacketHeader.AMFSize, amf0);
+									XtraRtmp::rtmpAMF0Dump(amf0);
 									break;
 								default:
 									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF UNKNOWN");
@@ -258,7 +262,7 @@ namespace czq
 		DO_RECEIVE_REQUEST_CB_CLEAN();
 	}
 
-	int parseRtmpPacket(unsigned char *rtmpRequest, size_t len, RtmpPacket & rtmpPacket)
+	int XtraRtmp::parseRtmpPacket(unsigned char *rtmpRequest, size_t len, RtmpPacket & rtmpPacket)
 	{
 		if ( len == 0 )
 		{
@@ -304,7 +308,7 @@ namespace czq
 		if ( rtmpPacket.rtmpPacketHeader.AMFSize != 0 )
 		{
 			rtmpPacket.rtmpPacketPayload = new unsigned char[rtmpPacket.rtmpPacketHeader.AMFSize];
-			if( rtmpPacket.rtmpPacketPayload == NULL )
+			if ( rtmpPacket.rtmpPacketPayload == NULL )
 			{
 				log_module(LOG_ERROR, "parseRtmpPacket", "MEMORY ALLOCATE ERROR:%s", strerror(errno));
 				return SYSTEM_ERROR;
@@ -317,13 +321,16 @@ namespace czq
 	}
 
 
-	int parseRtmpAMF(unsigned char *buffer, size_t len)
+	void XtraRtmp::parseRtmpAMF0(unsigned char *buffer, size_t len, Amf0 & amf0)
 	{
 		if (buffer == NULL || len == 0)
 		{
-			return ARGUMENT_ERROR;
+			return;
 		}
 
+		amf0.coreBoolean = -1;
+		amf0.coreString = "";
+		amf0.coreNumber[0]=0;
 		size_t pos = 0;
 		bool AMFObjectAlreadyStart = false;
 		std::string coreString;
@@ -336,35 +343,29 @@ namespace czq
 			{
 				switch (buffer[pos])
 				{
-					case 0x00:
-						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_NUMBER");
+					case TYPE_CORE_NUMBER:
+						amf0.coreNumber[0]=1;
+						memcpy(amf0.coreNumber+1, (char *)buffer+pos+1, LEN_CORE_NUMBER);
 						pos+=9;
 						break;
-					case 0x01:
-						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_BOOLEAN");
+					case TYPE_CORE_BOOLEAN:
+						amf0.coreBoolean = (char)buffer[pos+1];
 						pos+=2;
 						break;
-					case 0x02:
-						log_module(LOG_DEBUG, "parseRtmpAMF", "OBJTYPE:CORE_STRING");
+					case TYPE_CORE_STRING:
 						stringLen = buffer[pos+1]*16+buffer[pos+2];
-						log_module(LOG_DEBUG, "parseRtmpAMF", "STRING LEN:%u", stringLen);
 						pos += 3;
-						coreString=std::string((char *)buffer+pos,stringLen);
+						amf0.coreString = std::string((char *)buffer+pos,stringLen);
 						pos += stringLen;
-						log_module(LOG_DEBUG, "parseRtmpAMF", "STRING CONTENT:%s", coreString.c_str());
 						break;
-					case 0x03:
-						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:CORE_OBJECT WHICH ENDS BY 0X000009");
+					case TYPE_CORE_OBJECT:
 						AMFObjectAlreadyStart = true;
-						log_module(LOG_DEBUG, "parseRtmpAMF", "++++++++++RTMP AMF OBJECT READ START++++++++++");
 						pos+=1; 
 						break;
-					case 0x05:
-						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:NULL");
+					case TYPE_CORE_NULL:
 						pos+=1;
 						break;
-					case 0x08:
-						log_module(LOG_DEBUG, "parseRtmpAMF","OBJTYPE:CORE_MAP");
+					case TYPE_CORE_MAP:
 						pos+=5;
 						break;	
 				}
@@ -377,24 +378,55 @@ namespace czq
 				continue;	
 				key = std::string((char *)buffer+pos, keyLen);
 				pos+=keyLen;
-				if ( buffer[pos] == 0x02 )
+				if ( buffer[pos] == TYPE_CORE_STRING )
 				{
-					log_module(LOG_DEBUG, "parseRtmpAMF", "KEY:%s LEN-->%d", key.c_str(), keyLen);
-					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:TYPE-->CORE_STRING");
 					stringLen = buffer[pos+1]*16+buffer[pos+2];
 					pos+=3;
-					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:LEN-->%u", stringLen);
 					coreString=std::string((char *)buffer+pos,stringLen);
 					pos += stringLen;
-					log_module(LOG_DEBUG, "parseRtmpAMF", "VALUE:CONTENT-->%s", coreString.c_str());
+					amf0.coreObjectOfString.insert(std::make_pair(key, coreString));
 				}
+				
 				if (pos+3 <= len && buffer[pos]==0 && buffer[pos+1]==0 && buffer[pos+2]==0x09)
 				{
 					AMFObjectAlreadyStart=false;
-					log_module(LOG_DEBUG, "parseRtmpAMF", "++++++++++RTMP AMF OBJECT READ DONE++++++++++");
 				}
 			}
 		}
-	return OK;	
+	}
+
+
+	void XtraRtmp::rtmpAMF0Dump(const Amf0 & amf0)
+	{
+		if (logFacility_ == LOG_FILE)
+		{
+			log_module(LOG_DEBUG, "rtmpAMF0Dump","+++++++++++++++START+++++++++++++++");
+			if (amf0.coreNumber[0] == 1)
+			{
+				log_module(LOG_DEBUG, "rtmpAMF0Dump", "CORE NUMBER EXISTS");
+			}
+
+			if (!amf0.coreString.empty())
+			{
+				log_module(LOG_DEBUG, "rtmpAMF0Dump", "CORE STRING:%s", amf0.coreString.c_str());	
+			}
+
+			if (amf0.coreBoolean != -1)
+			{
+				log_module(LOG_DEBUG, "rtmpAMF0Dump", "CORE BOOLEAN:%x", amf0.coreBoolean);
+			}
+			if( !amf0.coreObjectOfString.empty() )
+			{
+				std::map<std::string, std::string>::const_iterator coo_iter = amf0.coreObjectOfString.begin();
+				log_module(LOG_DEBUG, "rtmpAMF0Dump", "CORE OBJECT EXISTS,THAT THE VALUE TYPE IS CORE STRING");
+				while (coo_iter != amf0.coreObjectOfString.end())
+				{
+					log_module(LOG_DEBUG, "rtmpAMF0Dump", "KEY:%s", coo_iter->first.c_str());
+					log_module(LOG_DEBUG, "rtmpAMF0Dump", "VALUE:%s", coo_iter->second.c_str());
+					++coo_iter;
+				}
+			}
+			log_module(LOG_DEBUG, "rtmpAMF0Dump","+++++++++++++++DONE+++++++++++++++");
+		}
 	}
 };
