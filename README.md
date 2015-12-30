@@ -1,7 +1,6 @@
 DO NOT LAUGH AT MY BROKEN ENGLISH!
 
 I AM Backer,and my chinese name is chenzhengqiang.
-
 do remember me,do appreciate me,you will like me!
 
 
@@ -19,6 +18,6 @@ really nothing to say!!!
 
 
 ------------------------------------2015/12/30---------------------------------------                                              
-...how time goes fly
+...how time goes fly.
 recently I have completed the multi speech  mix in speech transfer server.
 and now I am writing the rtmp server,best wishes for me!
