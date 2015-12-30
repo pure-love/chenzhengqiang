@@ -1,5 +1,5 @@
 DO NOT LAUGH AT MY BROKEN ENGLISH!
-I AM Backer,and my chinese name is chenzhengqiang
+I AM Backer,and my chinese name is chenzhengqiang.
 do remember me,do appreciate me,you will like me!
 
 
