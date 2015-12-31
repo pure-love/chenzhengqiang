@@ -34,7 +34,7 @@ function write_readme(){
 function create_autogen_script(){
 	touch autogen.sh
 	chmod u+rwx autogen.sh
-    echo "#file name:autogen.sh" >> autogen.sh
+        echo "#file name:autogen.sh" >> autogen.sh
 	echo "#author:chenzhengqiang" >> autogen.sh
 	echo "#start date:`date '+%Y/%m/%d %H:%M:%S'`" >> autogen.sh
 	echo "#modified date:" >> autogen.sh
@@ -80,7 +80,7 @@ function create_autogen_script(){
 	echo "    echo plese check the autogen\'s configuration" >> autogen.sh
 	echo "exit 99" >> autogen.sh
 	echo "fi" >> autogen.sh
-    echo 'echo "vpath %.h \$(INCLUDE_DIR)" >> $MAKEFILE' >> autogen.sh
+        echo 'echo "vpath %.h \$(INCLUDE_DIR)" >> $MAKEFILE' >> autogen.sh
 	echo 'echo "vpath %.\$(SUFFIX) \$(SOURCE_DIR)" >> $MAKEFILE' >> autogen.sh
 	echo 'echo >> $MAKEFILE' >> autogen.sh
 
@@ -107,7 +107,7 @@ function create_autogen_script(){
 	echo 'echo "TAR_NAME=\$(TARGET)-\$(shell date "+%Y%m%d")" >> $MAKEFILE' >> autogen.sh
 	echo 'echo ".PHONEY=clean" >> $MAKEFILE' >> autogen.sh
 	echo 'echo ".PHONEY=install" >> $MAKEFILE' >> autogen.sh
-    echo 'echo ".PHONEY=test" >> $MAKEFILE' >> autogen.sh
+        echo 'echo ".PHONEY=test" >> $MAKEFILE' >> autogen.sh
 	echo 'echo ".PHONEY=tar" >> $MAKEFILE' >> autogen.sh
 
 	echo 'echo "all:\$(TARGET)" >> $MAKEFILE' >> autogen.sh
@@ -119,7 +119,7 @@ function create_autogen_script(){
 	echo 'echo "clean:" >> $MAKEFILE' >> autogen.sh
 	echo 'echo -e "\t-rm -f *.o *.a *.so *.log *core* \$(TARGET) *.tar.gz *.cppe" >> $MAKEFILE' >> autogen.sh
 
-    echo 'echo >> $MAKEFILE' >> autogen.sh
+        echo 'echo >> $MAKEFILE' >> autogen.sh
 
 	echo 'echo "install:" >> $MAKEFILE' >> autogen.sh
 	echo 'echo -e "\t-mv \$(TARGET) \$(INSTALL_DIR)" >> $MAKEFILE' >> autogen.sh
@@ -165,6 +165,7 @@ fi
 if [ ! -e "autogen.sh" ];then
 	create_autogen_script;
 fi
+
 }
 
 create_all_basic_files;
