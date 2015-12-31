@@ -19,6 +19,18 @@ using std::cout;
 using std::endl;
 namespace czq
 {
+	//define the global macro for libev's event clean
+	#define DO_EVENT_CB_CLEAN(M,W) \
+    	ev_io_stop(M, W);\
+    	delete W;\
+    	W= NULL;\
+    	return;
+
+	
+	//define the global variable for xtrartmp server's sake
+	//just simply varify the app field
+	static const std::string APP="xtrartmp";
+	
 	//define the global's log facility
 	LogFacility XtraRtmp::logFacility_ = LOG_FILE;
 	XtraRtmp::XtraRtmp( const ServerConfig & serverConfig ):listenFd_(-1),serverConfig_(serverConfig),
@@ -133,15 +145,6 @@ namespace czq
 	void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents )
 	{
 		(void)revents;
-		(void)mainEventLoop;
-		(void)receiveRequestWatcher;
-
-		#define DO_RECEIVE_REQUEST_CB_CLEAN() \
-    		ev_io_stop( mainEventLoop, receiveRequestWatcher);\
-    		delete receiveRequestWatcher;\
-    		receiveRequestWatcher= NULL;\
-    		return;
-
     		char c0,s0;
 		C1 c1;	
     		log_module( LOG_INFO, "shakeHandCallback", "++++++++++RTMP SHAKE HAND START++++++++++");
@@ -188,78 +191,23 @@ namespace czq
 					s2.zeroOrTime=s1.timestamp;
 					memcpy(s2.randomValue, c1.randomValue, RANDOM_VALUE_SIZE);
 					wrotenBytes=write(receiveRequestWatcher->fd, &s2, sizeof(s2));
+					
 					log_module( LOG_INFO, "shakeHandCallback", "++++++++++RTMP SHAKE HAND DONE++++++++++");
-					log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING START++++++++++");
-					unsigned char connectRequest[1024];
-					readBytes=read(receiveRequestWatcher->fd, connectRequest, sizeof(connectRequest));
-					if ( readBytes > 0 )
-					{
-						log_module( LOG_DEBUG, "shakeHandCallback", "READ THE RTMP CONNECT SIGNALLING %d BYTES", readBytes);
-						RtmpPacket rtmpPacket;
-						int ret = XtraRtmp::parseRtmpPacket(connectRequest, static_cast<size_t>(readBytes), rtmpPacket);
-						Amf0 amf0;
-						if (ret == OK )
-						{
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER SIZE:%u", rtmpPacket.rtmpPacketHeader.size );
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER CHUNK STREAM ID:%u", rtmpPacket.rtmpPacketHeader.chunkStreamID);
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER TIMESTAMP:%u", rtmpPacket.rtmpPacketHeader.timestamp);
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER AMF SIZE:%u", rtmpPacket.rtmpPacketHeader.AMFSize);
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER AMF TYPE:%u", rtmpPacket.rtmpPacketHeader.AMFType);
-							log_module(LOG_DEBUG, "shakeHandCallback", "RTMP HEADER STREAM ID:%u", rtmpPacket.rtmpPacketHeader.streamID);
-
-							switch(rtmpPacket.rtmpPacketHeader.AMFType)
-							{
-								case 0x01:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
-									break;
-								case 0x02:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
-									break;
-								case 0x03:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
-									break;
-								case 0x04:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
-									break;
-								case 0x05:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
-									break;
-								case 0x06:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
-									break;
-								case 0x08:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
-									break;
-								case 0x09:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
-									break;
-								case 0x12:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF AN INVOKE WHICH DOES NOT EXPECT A REPLY");
-									break;
-								case 0x13:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPES");
-									break;
-								case 0x14:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
-									XtraRtmp::parseRtmpAMF0(rtmpPacket.rtmpPacketPayload,  rtmpPacket.rtmpPacketHeader.AMFSize, amf0);
-									XtraRtmp::rtmpAMF0Dump(amf0);
-									break;
-								default:
-									log_module(LOG_DEBUG, "shakeHandCallback", "THIS IS THE RTMP MESSAGE OF UNKNOWN");
-									break;
-							}
-						}
-						log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING DONE++++++++++");
-					}
-					else
-					{
-						log_module(LOG_ERROR, "shakeHandCallback", "ERROR OCCURRED WHEN READ:%s", strerror(errno));
-						log_module( LOG_INFO, "shakeHandCallback","++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
-					}
+					struct ev_io * consultWatcher = new struct ev_io;
+    					if ( consultWatcher == NULL )
+    					{
+        					log_module(LOG_ERROR, "shakeHandCallback", "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        					DO_EVENT_CB_CLEAN(mainEventLoop,receiveRequestWatcher);
+    					}
+    
+    					consultWatcher->active = 0;
+    					consultWatcher->data = 0;   
+    					ev_io_init(  consultWatcher, consultCallback, receiveRequestWatcher->fd, EV_READ );
+    					ev_io_start( mainEventLoop, consultWatcher);
 				}
 			}
     		}
-		DO_RECEIVE_REQUEST_CB_CLEAN();
+		DO_EVENT_CB_CLEAN(mainEventLoop,receiveRequestWatcher);
 	}
 
 	int XtraRtmp::parseRtmpPacket(unsigned char *rtmpRequest, size_t len, RtmpPacket & rtmpPacket)
@@ -427,6 +375,148 @@ namespace czq
 				}
 			}
 			log_module(LOG_DEBUG, "rtmpAMF0Dump","+++++++++++++++DONE+++++++++++++++");
+		}
+	}
+
+
+
+	bool XtraRtmp::varifyRtmpAMF0(Amf0 & amf0, const std::string &app)
+	{
+		return amf0.coreObjectOfString["app"] == app;
+	}
+
+
+
+	void  consultCallback(struct ev_loop * mainEventLoop, struct ev_io * consultWatcher, int revents)
+	{
+		(void)revents;
+		#define MSG_MODULE_CONSULT "consultCallback" 
+		unsigned char consultRequest[1024];
+		int readBytes=read(consultWatcher->fd, consultRequest, sizeof(consultRequest));
+		if ( readBytes > 0 )
+		{
+			log_module( LOG_DEBUG, "consultCallback", "READ THE RTMP PACKET %d BYTES", readBytes);
+			RtmpPacket rtmpPacket;
+			int ret = XtraRtmp::parseRtmpPacket(consultRequest, static_cast<size_t>(readBytes), rtmpPacket);
+			Amf0 amf0;
+			if (ret == OK )
+			{
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER SIZE:%u", rtmpPacket.rtmpPacketHeader.size );
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER CHUNK STREAM ID:%u", rtmpPacket.rtmpPacketHeader.chunkStreamID);
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER TIMESTAMP:%u", rtmpPacket.rtmpPacketHeader.timestamp);
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER AMF SIZE:%u", rtmpPacket.rtmpPacketHeader.AMFSize);
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER AMF TYPE:%u", rtmpPacket.rtmpPacketHeader.AMFType);
+				log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "RTMP HEADER STREAM ID:%u", rtmpPacket.rtmpPacketHeader.streamID);
+
+				XtraRtmp::parseRtmpAMF0(rtmpPacket.rtmpPacketPayload,  rtmpPacket.rtmpPacketHeader.AMFSize, amf0);
+				XtraRtmp::rtmpAMF0Dump(amf0);
+				//the state machine
+				switch (rtmpPacket.rtmpPacketHeader.AMFType)
+				{
+					case RTMP_MESSAGE_CHANGE_CHUNK_SIZE:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
+						break;
+					case RTMP_MESSAGE_DROP_CHUNK:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
+						break;
+					case RTMP_MESSAGE_SEND_BOTH_READ:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
+						break;
+					case RTMP_MESSAGE_PING:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
+						break;
+					case RTMP_MESSAGE_SERVER_DOWNSTREAM:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
+						break;
+					case RTMP_MESSAGE_CLIENT_UPSTREAM:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
+						break;
+					case RTMP_MESSAGE_AUDIO:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
+						break;
+					case RTMP_MESSAGE_VIDEO:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
+						break;
+					case RTMP_MESSAGE_INVOKE_WITHOUT_REPLY:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF AN INVOKE WHICH DOES NOT EXPECT A REPLY");
+						break;
+					case RTMP_MESSAGE_SUBTYPE:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
+						break;
+					case RTMP_MESSAGE_INVOKE:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
+						handleRtmpInvokeMessage(amf0, consultCallback->fd);
+						break;
+					default:
+						log_module(LOG_DEBUG, MSG_MODULE_CONSULT, "THIS IS THE RTMP MESSAGE OF UNKNOWN");
+						break;
+					}
+				}
+				log_module( LOG_INFO, MSG_MODULE_CONSULT,"++++++++++RTMP INTERACTIVE SIGNALLING DONE++++++++++");
+			}
+			else
+			{
+				log_module(LOG_ERROR, MSG_MODULE_CONSULT, "ERROR OCCURRED WHEN READ:%s", strerror(errno));
+				log_module(LOG_INFO, MSG_MODULE_CONSULT,"++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
+			}
+		DO_EVENT_CB_CLEAN(mainEventLoop, consultWatcher);
+	}
+
+
+
+	void XtraRtmp::handleRtmpInvokeMessage(const Amf0 &amf0, int connFd)
+	{
+		#define MSG_MODULE_INVOKE "handleRtmpInvokeMessage"
+		
+		//just simply varify the app field
+		bool varifyAmf0Ok = false;
+		varifyAmf0Ok = varifyRtmpAMF0(amf0, APP);
+		if ( varifyAmf0Ok )
+		{
+			log_module(LOG_DEBUG, MSG_MODULE_INVOKE, "VARIFY AMF0 APP FIELD OK: APP IS %s", APP.c_str());
+			if (amf0.coreString == AMF_CONNECT_COMMAND)
+			{
+			}
+			else if(amf0.coreString == AMF_CREATE_STREAM_COMMAND)
+			{
+			}
+			else if(amf0.coreString == AMF_PLAY_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_PLAY2_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_DELETE_STREAM_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_RECEIVE_AUDIO_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_RECEIVE_VIDEO_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_PUBLISH_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_SEEK_COMMAND)
+			{
+				
+			}
+			else if(amf0.coreString == AMF_PAUSE_COMMAND)
+			{
+				
+			}
+		}
+		else
+		{
+			log_module(LOG_DEBUG, MSG_MODULE_INVOKE, "VARIFY AMF0 APP FIELD FAILED:INVALID APP:%s THE CORRECT APP IS:%s", 
+																	   amf0.coreObjectOfString["app"].empty() ? "empty": amf0.coreObjectOfString["app"].c_str(), APP.c_str());
 		}
 	}
 };

@@ -19,6 +19,24 @@ namespace czq
 	{
 		RANDOM_VALUE_SIZE=1528
 	};
+
+
+	//the type of rtmp message
+	enum RtmpMessage
+	{
+		RTMP_MESSAGE_CHANGE_CHUNK_SIZE=0x01,
+		RTMP_MESSAGE_DROP_CHUNK=0x02,
+		RTMP_MESSAGE_SEND_BOTH_READ=0x03,
+		RTMP_MESSAGE_PING=0x04,
+		RTMP_MESSAGE_SERVER_DOWNSTREAM=0x05,
+		RTMP_MESSAGE_CLIENT_UPSTREAM=0x06,
+		RTMP_MESSAGE_AUDIO=0x08,
+		RTMP_MESSAGE_VIDEO=0x09,
+		RTMP_MESSAGE_INVOKE_WITHOUT_REPLY=0x12,
+		RTMP_MESSAGE_SUBTYPE=0x13,
+		RTMP_MESSAGE_INVOKE=0x14		
+	};
+
 	
 	//the S0 packet for the handshake's sake
 	typedef struct CS12 
@@ -27,6 +45,7 @@ namespace czq
 	    unsigned int zeroOrTime;
 	    unsigned char randomValue[RANDOM_VALUE_SIZE];
 	}C1,S1,C2,S2;
+
 
 	//the RtmpPacket's rtmp header's definition
 	struct RtmpPacketHeader
@@ -38,6 +57,7 @@ namespace czq
 		unsigned char AMFType;
 		unsigned int streamID;
 	};
+	
 	//the RtmpPacket's definition
 	struct RtmpPacket
 	{
@@ -95,6 +115,9 @@ namespace czq
 			static int parseRtmpPacket(unsigned char *buffer, size_t len, RtmpPacket & rtmpPacket);
 			static void parseRtmpAMF0(unsigned char *buffer, size_t len, Amf0 & amf0);
 			static void rtmpAMF0Dump(const Amf0 & amf0);
+			static void handleRtmpInvokeMessage(const Amf0 &amf0, int connFd);
+			//just simply varify the amf0's app field
+			static inline bool varifyRtmpAMF0(Amf0 & amf0, const std::string &app);
 		private:
 			XtraRtmp( const XtraRtmp &){}
 			XtraRtmp & operator=(const XtraRtmp &){ return *this;}
@@ -108,8 +131,9 @@ namespace czq
 	};
 
 	
-	void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
-       void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents );
+	void  acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
+	void  shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents );
+	void  consultCallback(struct ev_loop * mainEventLoop, struct ev_io * consultWatcher, int revents);
 	
 };
 #endif
