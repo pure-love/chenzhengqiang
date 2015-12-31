@@ -34,6 +34,7 @@ namespace czq
 		public:
 		static void handleCmdOptions( int ARGC, char * * ARGV, CmdOptions & cmdOptions );
 		static void readConfig( const char * configFile, ServerConfig & serverConfig );
+		static void generateSimpleRandomValue(unsigned char*buffer, unsigned int bufferLen);
 	};
 };
 #endif

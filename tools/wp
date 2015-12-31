@@ -66,8 +66,8 @@ function create_autogen_script(){
 	echo 'echo >> $MAKEFILE' >> autogen.sh
 	echo 'echo >> $MAKEFILE' >> autogen.sh
 
-	echo "echo 'INCLUDE_DIR:=\$INCLUDE_DIR' >> \$MAKEFILE" >> autogen.sh
-	echo "echo 'SOURCE_DIR:=\$SOURCE_DIR' >> \$MAKEFILE" >> autogen.sh
+	echo 'echo "INCLUDE_DIR:=$INCLUDE_DIR" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "SOURCE_DIR:=$SOURCE_DIR" >> $MAKEFILE' >> autogen.sh
 	echo "echo >> \$MAKEFILE" >> autogen.sh
 
 	echo "if [ -z \"\$COMPILER\" ];then" >> autogen.sh
@@ -136,6 +136,98 @@ function create_autogen_script(){
 
 }
 
+
+function create_service_script(){
+	if [ ! -e "./script/service" ];then
+		`rm -rf script`
+		`mkdir script`
+		`touch script/service`
+		`chmod u+rwx script/service`
+	fi
+		
+	echo '#!/bin/bash' >> script/service
+	echo '#script name:' >> script/service
+	echo '#author:chenzhengqiang' >> script/service
+	echo "#generate date:`date '+%Y/%m/%d %H:%M:%S'`" >> script/service
+	echo '#modified date:' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo '#information about this service' >> script/service
+	echo '#service name:#you must fill the service name right here' >> script/service 
+	echo 'service=#you must fill the service name right here' >> script/service
+	echo 'args=' >> script/service
+	echo 'go=/usr/local/bin/$service $args' >> script/service
+	echo 'pid_file=/var/run/$service.pid' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo 'function start(){' >> script/service
+	echo 'pid=`pidof $service`' >> script/service
+	echo 'if [ -n "$pid" ];then' >> script/service
+	echo 'echo "Start failed,Service $service(pid $pid) Is Running."' >> script/service
+	echo 'exit 0' >> script/service
+	echo 'fi' >> script/service
+	echo 'echo -n "Starting Service $service......"' >> script/service
+	echo 'touch $pid_file' >> script/service
+	echo '$go' >> script/service
+	echo 'pid=`pidof $service`' >> script/service 
+	echo 'echo $pid > $pid_file' >> script/service
+	echo 'sleep 0.3' >> script/service
+	echo 'echo "(pid $pid)          [    OK    ]"' >> script/service
+	echo 'pid=`pidof $service`' >> script/service
+	echo 'touch $lock' >> script/service
+	echo '}' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo 'function stop(){' >> script/service
+	echo 'pid=`pidof $service`' >> script/service
+	echo 'if [ -n "$pid" ];then' >> script/service
+	echo 'echo -n "Shuting Down Service $service......"' >> script/service
+	echo 'sleep 0.3' >> script/service                                    
+    echo 'kill -9 $pid' >> script/service
+	echo 'if [ $? -eq 0 ];then' >> script/service
+	echo 'echo "                    [    OK    ]"' >> script/service
+	echo 'else' >> script/service
+	echo 'echo "(pid $pid)	  [   FAILED ]"' >> script/service
+	echo 'fi' >> script/service
+	echo 'else' >> script/service
+	echo 'echo "Error:Service $service Is Not Running."' >> script/service
+	echo 'fi' >> script/service
+	echo 'rm -rf $lock' >> script/service
+	echo 'rm -rf $pid_file' >> script/service
+	echo '}' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo 'function status(){' >> script/service
+	echo 'pid=`pidof $service`' >> script/service
+	echo 'if [ -n "$pid" ];then' >> script/service
+	echo 'echo "Service $service(pid $pid) Is Running"' >> script/service
+	echo 'else' >> script/service
+	echo 'echo "Service $service Has Stoped"' >> script/service
+	echo 'fi' >> script/service
+	echo '}' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo 'function restart(){' >> script/service
+	echo 'stop' >> script/service
+	echo 'start' >> script/service
+	echo '}' >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo >> script/service
+	echo 'case "$1" in' >> script/service
+	echo '"start") start;;' >> script/service
+	echo '"stop")  stop;;' >> script/service
+	echo '"status") status;;' >> script/service
+	echo '"restart") restart;;' >> script/service
+	echo 'esac' >> script/service
+}
+
+
 function create_all_basic_files(){
 if [ ! -e "src" ];then
 	mkdir src
@@ -166,6 +258,7 @@ if [ ! -e "autogen.sh" ];then
 	create_autogen_script;
 fi
 
+create_service_script;
 }
 
 create_all_basic_files;
