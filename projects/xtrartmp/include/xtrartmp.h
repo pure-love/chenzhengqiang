@@ -12,6 +12,7 @@
 #define _CZQ_XTRARTMP_H_
 #include<ev++.h>
 #include"serverutil.h"
+#include<vector>
 //write the function prototypes or the declaration of variables here
 namespace czq
 {
@@ -59,25 +60,13 @@ namespace czq
                     //the RtmpPacket's rtmp header's definition
 	            struct RtmpPacketHeader
 	            {
-		            unsigned char size;
+	                   unsigned char size;
 		            unsigned char chunkStreamID;
 		            unsigned int timestamp;
 		            unsigned int AMFSize;
 		            unsigned char AMFType;
 		            unsigned int streamID;
-	            };
-
-	            //the RtmpPacket's definition
-	            struct RtmpPacket
-	            {
-		            RtmpPacketHeader rtmpPacketHeader;
-		            unsigned char *rtmpPacketPayload;
-		            RtmpPacket():rtmpPacketPayload(0){}
-		            ~RtmpPacket()
-		            {
-		                if (rtmpPacketPayload != 0)
-		                delete [] rtmpPacketPayload;
-		            }
+		            
 	            };
 
 	            //define the amf field type
@@ -90,37 +79,45 @@ namespace czq
 		            TYPE_CORE_NULL = 0x05,
 		            TYPE_CORE_MAP = 0x08,
 		            LEN_CORE_STRING=2,
-		            LEN_CORE_NUMBER=8
+		            LEN_CORE_NUMBER=8,
+		            MAX_PAYLOAD_SIZE=1460
 	            };
 
+	            //the RtmpPacket's definition
+	            struct RtmpPacket
+	            {
+		            RtmpPacketHeader rtmpPacketHeader;
+		            unsigned char rtmpPacketPayload[MAX_PAYLOAD_SIZE];
+	            };
 	            
                    //the AMF0's definition
                    //ignore the coreMap object temporarily
                    struct AmfPacket
                     {
-                        //the first byte of coreNumber indicates whether the coreNumber exist
+                        std::string command;
+                        //the first byte indicates whether the transaction ID exist
                         //0->not exists
                         //1->exists
-                        unsigned char coreNumber[LEN_CORE_NUMBER+1];
-                        //-1 indicates coreBoolean not exist
-                        char coreBoolean;
-                        //empty coreString indicates coreString not exist
-                        std::string coreString;
-                        //that the type of coreObject's value is coreString
-                        std::map<std::string, std::string> coreObjectOfString;
-                        //that the type of coreObject's value is coreNumber
-                        std::map<std::string, double> coreObjectOfNumber;
+                        unsigned char transactionID[LEN_CORE_NUMBER+1];
+                        //
+                        std::map<std::string, void *>commandObject;
+                        //the rtmp's bool type
+                        char flag[2];
+                        std::string streamName;
+                        std::string publishType;
+                        int streamIDOrMilliSeconds;
+                        std::map<std::string, std::string> parameters; 
                     };
 		public:
-			static int parseRtmpPacket(unsigned char *buffer, size_t len, RtmpPacket & rtmpPacket);
+			static int parseRtmpPacket(unsigned char *buffer, size_t len, std::vector<RtmpPacket> & rtmpPacketPool);
 			static void parseRtmpAMF0(unsigned char *buffer, size_t len, AmfPacket & amf);
 			static void rtmpAMF0Dump(const AmfPacket & amfPacket);
-			static void handleRtmpInvokeMessage(AmfPacket &amfPacket, int connFd);
-			//just simply varify the amf's app field
-			static inline bool varifyRtmpAMF0(AmfPacket & amfPacket, const std::string &app);
+			static bool onRtmpInvoke(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
 		private:
 			XtraRtmp( const XtraRtmp &){}
 			XtraRtmp & operator=(const XtraRtmp &){ return *this;}
+			static void onConnect(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static int generateReply(char *reply, char *coreNumber, const char * commandObject[][2], int rows);
 		private:
 			int listenFd_;
 			ServerConfig serverConfig_;
