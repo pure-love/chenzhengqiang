@@ -69,5 +69,3 @@ fi
 `echo >> $FULL_FILE_NAME`
 `echo >> $FULL_FILE_NAME`
 `echo "#include \"${FILE_NAME%%.*}.h\"" >> $FULL_FILE_NAME`
-
-
