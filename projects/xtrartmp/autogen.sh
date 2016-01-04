@@ -16,7 +16,7 @@ COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow"
 #define the optimize level
 OLEVEL=0
 MAKEFILE="./Makefile"
-LDCONFIG="-lev -lpthread -lev"
+LDCONFIG="-lev -lpthread"
 SOURCE_DIR="./src/"
 INCLUDE_DIR="./include/"
 INSTALL_DIR="/usr/local/bin"
