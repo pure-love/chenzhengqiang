@@ -46,7 +46,7 @@ function create_autogen_script(){
 	echo "AUTHOR=chenzhengqiang" >> autogen.sh
 	echo "DATE=\`date '+%Y/%m/%d %H:%M:%S'\`" >> autogen.sh
 	echo "COMPILER=g++" >> autogen.sh
-	echo "COMPILER_FLAGS=\"-g -W -Wall -Werror -Wshadow\"" >> autogen.sh
+	echo "COMPILER_FLAGS=\"-pg -g -W -Wall -Werror -Wshadow -Wconversion -Wextra -Wunused-parameter -Wdeprecated\"" >> autogen.sh
 	echo "#define the optimize level" >> autogen.sh
 	echo "OLEVEL=0" >> autogen.sh
 	echo 'MAKEFILE=./Makefile' >> autogen.sh
