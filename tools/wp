@@ -86,9 +86,11 @@ function create_autogen_script(){
 
 	echo 'echo "TARGET:=$TARGET" >> $MAKEFILE' >> autogen.sh
 	echo 'echo "CC:=$COMPILER" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "#define the optimize level of compiler" >> $MAKEFILE' >> autogen.sh
 	echo 'echo "OLEVEL=$OLEVEL" >> $MAKEFILE' >> autogen.sh
 	echo 'echo "LDCONFIG:=$LDCONFIG" >> $MAKEFILE' >> autogen.sh
-	echo 'echo "CFLAGS:=-O$OLEVEL -pg -g -W -Wall -I\$(INCLUDE_DIR) $LDCONFIG" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow" >> $MAKEFILE' >> autogen.sh
+	echo 'echo "CFLAGS:=-O\$(OLEVEL)  -I\$(INCLUDE_DIR) \$(COMPILER_FLAGS) \$(LDCONFIG)" >> $MAKEFILE' >> autogen.sh
 
 	echo 'for cpp_file in `ls $SOURCE_DIR`' >> autogen.sh 
 	echo 'do' >> autogen.sh
