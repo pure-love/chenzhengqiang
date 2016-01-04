@@ -27,4 +27,4 @@ really nothing to say!!!
 
 recently I have completed the multi speech's mix in speech transfer server,which based on udp protocol,decode the opus audio data when there are more than one speaker into pcm meanwhile allocate a pcm buffer for each active speaker.when the buffer is full or timeout,just mix them and then broadcast them to all listeners; 
 
-Now I am writing the rtmp server,best wishes for me!
+I am now writing the rtmp server named XtraRtmp,best wishes for me!

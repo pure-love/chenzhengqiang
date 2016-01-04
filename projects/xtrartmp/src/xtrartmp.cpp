@@ -88,7 +88,7 @@ namespace czq
     			
     			Nana::born(serverConfig_.server["log-file"], atoi(serverConfig_.server["log-level"].c_str()),
     					   atoi(serverConfig_.server["flush-time"].c_str()));
-    			Nana::say(Nana::HAPPY, "serveForever",  "LISTEN SOCKET FD:%d", listenFd_);
+    			Nana::say(Nana::HAPPY, __func__,  "LISTEN SOCKET FD:%d", listenFd_);
     
     			//you have to ignore the PIPE's signal when client close the socket
     			struct sigaction sa;
@@ -117,7 +117,7 @@ namespace czq
 
 	void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents )
 	{
-		#define ToAcceptCallback "acceptCallback"
+		#define ToAcceptCallback __func__
 
     		if ( EV_ERROR & revents )
     		{
@@ -159,7 +159,7 @@ namespace czq
 
 	void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents )
 	{
-		#define ToShakeHandCallback "shakeHandCallback"
+		#define ToShakeHandCallback __func__
     		char c0,s0;
 		XtraRtmp::C1 c1;
 		if ( EV_ERROR & revents )
@@ -406,7 +406,7 @@ namespace czq
 
 	void XtraRtmp::rtmpAMF0Dump(const AmfPacket & amfPacket)
 	{
-		#define ToRtmpAmf0Dump "rtmpAMF0Dump"
+		#define ToRtmpAmf0Dump __func__
 		Nana::say(Nana::HAPPY, ToRtmpAmf0Dump,"+++++++++++++++START+++++++++++++++");
 		
 		if (!amfPacket.command.empty())
@@ -462,7 +462,7 @@ namespace czq
 
 	void  consultCallback(struct ev_loop * mainEventLoop, struct ev_io * consultWatcher, int revents)
 	{
-		#define ToConsultCallback "consultCallback"
+		#define ToConsultCallback __func__
 		if ( EV_ERROR & revents )
     		{
         		Nana::say(Nana::COMPLAIN, ToConsultCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
@@ -560,7 +560,8 @@ namespace czq
 
 	bool XtraRtmp::onRtmpInvoke(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd)
 	{
-		#define onRtmpInvoke "onRtmpInvoke"
+		#define onRtmpInvoke __func__
+		(void)connFd;
 		//just simply varify the app field
 		bool varifyAmfOk = false;
 		varifyAmfOk = true;
