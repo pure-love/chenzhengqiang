@@ -47,19 +47,27 @@ namespace czq
 		            MESSAGE_CHANGE_CHUNK_SIZE=0x01,
 		            MESSAGE_DROP_CHUNK=0x02,
 		            MESSAGE_SEND_BOTH_READ=0x03,
-		            MESSAGE_PING=0x04,
-		            MESSAGE_SERVER_DOWNSTREAM=0x05,
-		            MESSAGE_CLIENT_UPSTREAM=0x06,
+		            MESSAGE_USER_CONTROL=0x04,
+		            MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE=0x05,
+		            MESSAGE_SET_PEER_BANDWIDTH=0x06,
 		            MESSAGE_AUDIO=0x08,
 		            MESSAGE_VIDEO=0x09,
-		            MESSAGE_INVOKE_WITHOUT_REPLY=0x12,
+		            MESSAGE_AMF0_DATA=0x12,
 		            MESSAGE_SUBTYPE=0x13,
 		            MESSAGE_INVOKE=0x14		
 	             };
-	             
+
+			enum RtmpChannelType
+			{
+				CHANNEL_PING_BYTEREAD = 0x02,
+				CHANNEL_INVOKE = 0x03,
+				CHANNEL_AUDIO_VIDEO = 0x04
+			};
+			
                     //the RtmpPacket's rtmp header's definition
 	            struct RtmpPacketHeader
 	            {
+			      unsigned char flag;		
 	                   unsigned char size;
 		            unsigned char chunkStreamID;
 		            unsigned int timestamp;
@@ -117,7 +125,15 @@ namespace czq
 			XtraRtmp( const XtraRtmp &){}
 			XtraRtmp & operator=(const XtraRtmp &){ return *this;}
 			static void onConnect(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
-			static int generateReply(char *reply, char *coreNumber, const char * commandObject[][2], int rows);
+			static void onCheckbw(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onCreateStream(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onReleaseStream(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onFCPublish(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onPublish(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static size_t generateReply(unsigned char *reply, unsigned char *transactionID, const char * parameters[][2], int rows);
+			static void onRtmpReply(RtmpPacketHeader & rtmpPacketHeader, unsigned char *transactionID, const char *parameters[][2], int rows, int connFD);
+			static void onRtmpReply(const RtmpMessageType & rtmpMessageType, int connFD, size_t size=0);
+			
 		private:
 			int listenFd_;
 			ServerConfig serverConfig_;
@@ -131,6 +147,6 @@ namespace czq
 	void  acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 	void  shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents );
 	void  consultCallback(struct ev_loop * mainEventLoop, struct ev_io * consultWatcher, int revents);
-	
+	void  receiveStreamCallback(struct ev_loop * mainEventLoop, struct ev_io * receiveStreamWatcher, int revents);
 };
 #endif

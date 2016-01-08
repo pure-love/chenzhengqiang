@@ -17,7 +17,8 @@ namespace czq
 			static std::string getPeerInfo(int sockFd, int flag=2);
 			static void setReuseAddr(int listenFd ); 
 			static void setNonBlocking(int sockFd);
-			static int readSpecifySize2( int fd, void *buffer, size_t totalBytes);
+			static size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
+			static void setSndBufferSize(int sockFd, unsigned int sndBufferSize);
 	};
 }
 #endif

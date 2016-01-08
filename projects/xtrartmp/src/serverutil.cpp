@@ -169,7 +169,7 @@ namespace czq
 		int tmp=0;
 		for (unsigned int index = 0; index < bufferLen; ++index )
 		{
-			buffer[index]=index*tmp+1986 % 255;
+			buffer[index]=static_cast<unsigned char>(index*tmp+1986 % 256);
 			tmp = buffer[index];
 		}
 	}

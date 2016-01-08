@@ -25,10 +25,11 @@ namespace czq
 
     		
 		setReuseAddr(listenFd);
+		setSndBufferSize(listenFd, 65535);
 		//setNonBlocking(listenFd);
     		bzero(server_addr.sin_zero, sizeof(server_addr.sin_zero));
     		server_addr.sin_family = AF_INET;
-    		server_addr.sin_port = htons(PORT);
+    		server_addr.sin_port = htons(static_cast<uint16_t>(PORT));
     		server_addr.sin_addr.s_addr = inet_addr(IP);
     		if (bind(listenFd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     		{
@@ -57,15 +58,15 @@ namespace czq
     		char *ip = inet_ntoa( peer_addr.sin_addr );
     		int port = htons( peer_addr.sin_port );
 
-    		if( flag == 0 )
+    		if (flag == 0)
     		{
 			OSSPeerInfo<<ip;
     		}
-    		else if ( flag == 1 )
+    		else if (flag == 1)
     		{
 			OSSPeerInfo<<port;
     		}
-    		else if ( flag == 2 )
+    		else if (flag == 2)
     		{
 			OSSPeerInfo<<ip<<":"<<port;
     		}
@@ -84,6 +85,7 @@ namespace czq
     		
 	}
 
+
 	void NetUtil::setNonBlocking(int sockFd)
 	{
 		int flags = fcntl(sockFd, F_GETFL, 0);
@@ -94,20 +96,26 @@ namespace czq
     		fcntl(sockFd, F_SETFL, flags | O_NONBLOCK);
 	}
 
-	int NetUtil::readSpecifySize2( int fd, void *buffer, size_t totalBytes)
+	void NetUtil::setSndBufferSize(int sockFd, unsigned int sndBufferSize)
+	{
+		setsockopt(sockFd, SOL_SOCKET, SO_SNDBUF, &sndBufferSize, sizeof(sndBufferSize));
+	}
+
+	
+	size_t NetUtil::readSpecifySize2( int fd, void *buffer, size_t totalBytes)
 	{
     		size_t  leftBytes;
-    		int receivedBytes;
+    		ssize_t receivedBytes;
     		uint8_t *bufferForward;
     		bufferForward = (uint8_t *)buffer;
     		leftBytes = totalBytes;
-    		while ( true )
+    		while (true)
     		{
         		if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
         		{
-            			if (  receivedBytes < 0 )
+            			if ( receivedBytes < 0)
             			{
-                			if( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK )
+                			if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
                 			{
                     			receivedBytes = 0;
                 			}
@@ -123,8 +131,8 @@ namespace czq
             			}
         		}
         
-        		leftBytes -= receivedBytes;
-        		if( leftBytes == 0 )
+        		leftBytes -= static_cast<size_t>(receivedBytes);
+        		if (leftBytes == 0)
             		break;
         		bufferForward   += receivedBytes;
     		}

@@ -12,7 +12,7 @@ MAIN_FILE="main"
 AUTHOR="chenzhengqiang"
 DATE=`date '+%Y%m%d-%H:%M:%S'`
 COMPILER="g++"
-COMPILER_FLAGS="-g -W -Wall -Werror -Wshadow -Wextra -Wunused-parameter -Wconversion -Wdeprecated"
+COMPILER_FLAGS="-pg -g -W -Wall -Werror -Wshadow -Wextra -Wunused-parameter -Wconversion -Wdeprecated"
 #define the optimize level
 OLEVEL=0
 MAKEFILE="./Makefile"

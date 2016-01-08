@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20160104-08:59:38
+#generate date:20160105-09:02:34
 
 
 INCLUDE_DIR:=./include/
@@ -11,7 +11,7 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 TARGET:=xtrartmp
 CC:=g++
-CFLAGS:=-O0 -g -W -Wall -Werror -Wshadow
+CFLAGS:=-O0 -pg -g -W -Wall -Werror -Wshadow -Wextra -Wunused-parameter -Wconversion -Wdeprecated
 LDCONFIG:=-I$(INCLUDE_DIR) -lev -lpthread
 OBJS:=xtrartmp serverutil netutil nana main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
