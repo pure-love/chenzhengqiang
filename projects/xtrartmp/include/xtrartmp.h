@@ -120,6 +120,7 @@ namespace czq
 			static int parseRtmpPacket(unsigned char *buffer, size_t len, std::vector<RtmpPacket> & rtmpPacketPool);
 			static void parseRtmpAMF0(unsigned char *buffer, size_t len, AmfPacket & amf);
 			static void rtmpAMF0Dump(const AmfPacket & amfPacket);
+			static void rtmpMessageDump(const RtmpMessageType &);
 			static bool onRtmpInvoke(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
 		private:
 			XtraRtmp( const XtraRtmp &){}

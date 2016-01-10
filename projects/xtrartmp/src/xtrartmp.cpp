@@ -497,41 +497,31 @@ namespace czq
 
 					XtraRtmp::parseRtmpAMF0(rpIter->rtmpPacketPayload, rpIter->rtmpPacketHeader.AMFSize, amfPacket);
 					XtraRtmp::rtmpAMF0Dump(amfPacket);
+					XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)rpIter->rtmpPacketHeader.AMFType);
 					//the state machine
 					switch (rpIter->rtmpPacketHeader.AMFType)
 					{
 						case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
 							break;
 						case XtraRtmp::MESSAGE_DROP_CHUNK:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
 							break;
 						case XtraRtmp::MESSAGE_SEND_BOTH_READ:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
 							break;
 						case XtraRtmp::MESSAGE_USER_CONTROL:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
 							break;
 						case XtraRtmp::MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
 							break;
 						case XtraRtmp::MESSAGE_SET_PEER_BANDWIDTH:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
 							break;
 						case XtraRtmp::MESSAGE_AUDIO:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
 							break;
 						case XtraRtmp::MESSAGE_VIDEO:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
 							break;
 						case XtraRtmp::MESSAGE_AMF0_DATA:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF AN INVOKE WHICH DOES NOT EXPECT A REPLY");
 							break;
 						case XtraRtmp::MESSAGE_SUBTYPE:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
 							break;
 						case XtraRtmp::MESSAGE_INVOKE:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF INVOKE WHICH LIKE REMOTING CALL, USED FOR STREAM ACTIONS TOO");
 							done = XtraRtmp::onRtmpInvoke(rpIter->rtmpPacketHeader, amfPacket, consultWatcher->fd);
 							if (done)
 							{
@@ -539,7 +529,6 @@ namespace czq
 							}
 							break;
 						default:
-							Nana::say(Nana::HAPPY, ToConsultCallback, "THIS IS THE RTMP MESSAGE OF UNKNOWN");
 							break;
 					}
 					++rpIter;
@@ -576,13 +565,63 @@ namespace czq
 	}
 
 
+
+	void XtraRtmp::rtmpMessageDump(const RtmpMessageType & rtmpMessageType)
+	{
+		#define ToRtmpMessageDump __func__
+		switch (rtmpMessageType)
+		{
+			case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
+				break;
+			case XtraRtmp::MESSAGE_DROP_CHUNK:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
+				break;
+			case XtraRtmp::MESSAGE_SEND_BOTH_READ:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
+				break;
+			case XtraRtmp::MESSAGE_USER_CONTROL:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
+				break;
+			case XtraRtmp::MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
+				break;
+			case XtraRtmp::MESSAGE_SET_PEER_BANDWIDTH:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
+				break;
+			case XtraRtmp::MESSAGE_AUDIO:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
+				break;
+			case XtraRtmp::MESSAGE_VIDEO:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
+				break;
+			case XtraRtmp::MESSAGE_AMF0_DATA:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF AMF0 DATA");
+				break;
+			case XtraRtmp::MESSAGE_SUBTYPE:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
+				break;
+			case XtraRtmp::MESSAGE_INVOKE:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF INVOKE");
+				break;
+			default:
+				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF UNKNOWN %x",rtmpMessageType);
+				break;
+		}
+	}
+
+
+	
 	void  receiveStreamCallback(struct ev_loop * mainEventLoop, struct ev_io * receiveStreamWatcher, int revents)
 	{
 		#define ToReceiveStreamCallback __func__
+
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++START++++++++++++++++++++");
 		if ( EV_ERROR & revents )
     		{
         		Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
-			close(receiveStreamWatcher->fd);	
+			close(receiveStreamWatcher->fd);
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
     		}
 		
@@ -590,13 +629,15 @@ namespace czq
 		ssize_t readBytes=read(receiveStreamWatcher->fd, &chunkBasicHeader, sizeof(chunkBasicHeader));
 		if ( readBytes <= 0 )
 		{
-			close(receiveStreamWatcher->fd);	
+			close(receiveStreamWatcher->fd);
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
 		}
 
 		char format = static_cast<char>((chunkBasicHeader & 0xc0) >> 6);
 		char channelID = static_cast<char>(chunkBasicHeader & 0x3f);
 		unsigned char chunkMsgHeader[11];
+		memset(chunkMsgHeader, 0, 11);
 		size_t chunkMsgHeaderSize;
 		switch ( format )
 		{
@@ -614,7 +655,7 @@ namespace czq
 				break;
 		}
 
-		switch ( channelID )
+		switch (channelID)
 		{
 			case XtraRtmp::CHANNEL_PING_BYTEREAD:
 				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
@@ -626,41 +667,48 @@ namespace czq
 				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
 				break;
 		}
-
+		
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
 		if ( chunkMsgHeaderSize > 0 )
 		{
 			readBytes=read(receiveStreamWatcher->fd, chunkMsgHeader, chunkMsgHeaderSize);
 			if ( chunkMsgHeaderSize >= 7 )
 			{
-				int AMFSize = 0; 
-				AMFSize = chunkMsgHeader[3]*256+chunkMsgHeader[4]*16+chunkMsgHeader[5];
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "AMF DATA SIZE:%d", AMFSize);
+				int timestamp = chunkMsgHeader[0]*256+chunkMsgHeader[1]*16+chunkMsgHeader[2];
+				int AMFSize = chunkMsgHeader[3]*256+chunkMsgHeader[4]*16+chunkMsgHeader[5];
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d", timestamp, AMFSize);
+				unsigned char msgType = chunkMsgHeader[6];
+				XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)msgType);
 				unsigned char * AmfData = new unsigned char[AMFSize];
 				readBytes=read(receiveStreamWatcher->fd, AmfData, AMFSize);
 				if ( readBytes <= 0 )
 				{
 					Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 					close(receiveStreamWatcher->fd);
+					Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 					DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 				}
-				
+
 				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE", AMFSize);
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 				delete [] AmfData;
 				AmfData = 0;
 				return;
 			}
 		}
-
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
+		
 		char rtmpStream[128];
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DEFAULT SIZE 128 BYTES START");
 		readBytes=read(receiveStreamWatcher->fd, &rtmpStream, sizeof(rtmpStream));
 		if ( readBytes <= 0 )
 		{
 			Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 			close(receiveStreamWatcher->fd);
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 		}
-		
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DEFAULT SIZE 128 BYTES DONE");
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 	}
 
 
