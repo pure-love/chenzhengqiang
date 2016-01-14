@@ -36,5 +36,14 @@ namespace czq
 		static void readConfig( const char * configFile, ServerConfig & serverConfig );
 		static void generateSimpleRandomValue(unsigned char*buffer, unsigned int bufferLen);
 	};
+
+	namespace Epoll
+	{
+		
+	};
+
+	namespace Signall
+	{
+	};
 };
 #endif

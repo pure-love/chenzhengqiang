@@ -13,7 +13,9 @@
 #include "nana.h"
 #include "xtrartmp.h"
 #include<iostream>
-#include<cstdlib>
+#include<stdint.h>
+
+
 
 namespace czq
 {
@@ -254,22 +256,22 @@ namespace czq
 			{
 				case 0:
 					rtmpPacket.rtmpPacketHeader.size = 12;
-					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*256+rtmpRequest[pos+2]*16+rtmpRequest[pos+3];
-					rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[pos+4]*256+rtmpRequest[pos+5]*16+rtmpRequest[pos+6];
+					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*65536+rtmpRequest[pos+2]*256+rtmpRequest[pos+3];
+					rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[pos+4]*65536+rtmpRequest[pos+5]*256+rtmpRequest[pos+6];
 					rtmpPacket.rtmpPacketHeader.AMFType = rtmpRequest[pos+7];
-					rtmpPacket.rtmpPacketHeader.streamID = rtmpRequest[pos+8]*65536+rtmpRequest[pos+9]*256
-													+rtmpRequest[pos+10]*16+rtmpRequest[pos+11];
+					rtmpPacket.rtmpPacketHeader.streamID = rtmpRequest[pos+8]*256*256*256+rtmpRequest[pos+9]*65536
+													+rtmpRequest[pos+10]*256+rtmpRequest[pos+11];
 					break;
 				case 1:
 					rtmpPacket.rtmpPacketHeader.size = 8;
-					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*256+rtmpRequest[pos+2]*16+rtmpRequest[pos+3];
-					rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[pos+4]*256+rtmpRequest[pos+5]*16+rtmpRequest[pos+6];
+					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*65536+rtmpRequest[pos+2]*256+rtmpRequest[pos+3];
+					rtmpPacket.rtmpPacketHeader.AMFSize = rtmpRequest[pos+4]*65536+rtmpRequest[pos+5]*256+rtmpRequest[pos+6];
 					rtmpPacket.rtmpPacketHeader.AMFType = rtmpRequest[pos+7];
 					rtmpPacket.rtmpPacketHeader.streamID=0;
 					break;
 				case 2:
 					rtmpPacket.rtmpPacketHeader.size = 4;
-					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*256+rtmpRequest[pos+2]*16+rtmpRequest[pos+3];
+					rtmpPacket.rtmpPacketHeader.timestamp = rtmpRequest[pos+1]*65536+rtmpRequest[pos+2]*256+rtmpRequest[pos+3];
 					rtmpPacket.rtmpPacketHeader.AMFSize=0;
 					rtmpPacket.rtmpPacketHeader.AMFType=0;
 					rtmpPacket.rtmpPacketHeader.streamID=0;
@@ -624,18 +626,52 @@ namespace czq
 			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
     		}
+
+		static bool alreadyReadAvcSequenceHeader = false;
+		static bool alreadyReadAacSequenceHeader = false;
+		static bool AMFDataSizeGT128 = false;
+		static size_t LEFT_READ_SIZE = 0;
+		static size_t previousAMFDataSize = 0;
 		
 		unsigned char chunkBasicHeader;
-		ssize_t readBytes=read(receiveStreamWatcher->fd, &chunkBasicHeader, sizeof(chunkBasicHeader));
+		size_t totalBytes = 0;
+		ssize_t readBytes=read(receiveStreamWatcher->fd, &chunkBasicHeader, 1);
 		if ( readBytes <= 0 )
 		{
 			close(receiveStreamWatcher->fd);
 			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
 		}
+		static size_t TOTAL_READ_BYTES = 0;
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
+		unsigned char format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
+		unsigned char channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
+		unsigned char channelID2[2];
+		switch( channelID )
+		{
+			case 0:
+				//just read one byte more
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
+				read(receiveStreamWatcher->fd, &channelID, 1);
+				channelID = static_cast<unsigned char>(channelID +64);
+				break;
+			case 1:	
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
+				read(receiveStreamWatcher->fd, channelID2, 2);
+				//channelID = channelID2[0]*256+ channelID2[1]*64;
+				break;
+			case 2:
+			case 3:
+			case 4:	
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
+				break;	
+			default:
+				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
+				break;	
+		}	
 
-		char format = static_cast<char>((chunkBasicHeader & 0xc0) >> 6);
-		char channelID = static_cast<char>(chunkBasicHeader & 0x3f);
+		
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
 		unsigned char chunkMsgHeader[11];
 		memset(chunkMsgHeader, 0, 11);
 		size_t chunkMsgHeaderSize;
@@ -652,6 +688,7 @@ namespace czq
 				break;
 			case 3:
 				chunkMsgHeaderSize = 0;
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
 				break;
 		}
 
@@ -667,20 +704,98 @@ namespace czq
 				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
 				break;
 		}
+
 		
 		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
 		if ( chunkMsgHeaderSize > 0 )
 		{
-			readBytes=read(receiveStreamWatcher->fd, chunkMsgHeader, chunkMsgHeaderSize);
-			if ( chunkMsgHeaderSize >= 7 )
+			while( totalBytes != chunkMsgHeaderSize )
 			{
-				int timestamp = chunkMsgHeader[0]*256+chunkMsgHeader[1]*16+chunkMsgHeader[2];
-				int AMFSize = chunkMsgHeader[3]*256+chunkMsgHeader[4]*16+chunkMsgHeader[5];
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d", timestamp, AMFSize);
-				unsigned char msgType = chunkMsgHeader[6];
-				XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)msgType);
-				unsigned char * AmfData = new unsigned char[AMFSize];
-				readBytes=read(receiveStreamWatcher->fd, AmfData, AMFSize);
+				readBytes=read(receiveStreamWatcher->fd, chunkMsgHeader+totalBytes, 
+												     chunkMsgHeaderSize-totalBytes);
+				if ( readBytes <= 0 )
+				{
+					Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
+					close(receiveStreamWatcher->fd);
+					Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+					DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+				}
+				totalBytes +=static_cast<size_t>(readBytes);
+			}
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ CHUNK MESSAGE HEADER DONE");
+		}
+
+		if ( chunkMsgHeaderSize >= 7 )
+		{
+			int timestamp = chunkMsgHeader[0]*65536+chunkMsgHeader[1]*256+chunkMsgHeader[2];
+			size_t AMFSize = static_cast<size_t>(chunkMsgHeader[3]*65536+chunkMsgHeader[4]*256+chunkMsgHeader[5]);
+			if ( AMFSize == 0 )
+			{
+				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "RTMP PACKET ERROR");
+				exit(EXIT_FAILURE);
+			}
+			
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d HEX:%x %x %x DECIMAL:%d %d %d", 
+						timestamp, AMFSize,  chunkMsgHeader[3], chunkMsgHeader[4], chunkMsgHeader[5],
+						chunkMsgHeader[3],chunkMsgHeader[4],chunkMsgHeader[5]);
+			unsigned char msgType = chunkMsgHeader[6];
+			if (msgType == XtraRtmp::MESSAGE_AMF0_DATA)
+			{
+				AMFSize += 3;
+			}
+			else if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
+			{
+				if ( AMFSize > 128 )
+				{
+					previousAMFDataSize = AMFSize;
+					LEFT_READ_SIZE = AMFSize - 128;
+					AMFSize = 128;
+					TOTAL_READ_BYTES += 128;
+					AMFDataSizeGT128 = true;
+				}
+				
+				if ( msgType ==  XtraRtmp::MESSAGE_VIDEO )
+				{
+					
+					if (!alreadyReadAvcSequenceHeader)
+					{
+						alreadyReadAvcSequenceHeader = true;
+						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
+					}
+					else
+					{
+						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", AMFSize);
+						
+					}	
+				}
+				else
+				{
+					if (!alreadyReadAacSequenceHeader)
+					{
+						alreadyReadAacSequenceHeader = true;
+						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AAC SEQUENCE HEADER");
+					}
+					else
+					{
+						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE RTMP AUDIO DATA");
+					}
+				}
+				
+			}
+			else
+			{
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
+			}
+
+			
+			XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)msgType);
+			uint8_t * AmfData = new uint8_t[AMFSize];
+			memset(AmfData, 0, AMFSize);
+			totalBytes = 0;
+
+			while ( totalBytes != AMFSize )
+			{
+				readBytes=read(receiveStreamWatcher->fd, AmfData+totalBytes, AMFSize-totalBytes);
 				if ( readBytes <= 0 )
 				{
 					Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
@@ -688,26 +803,69 @@ namespace czq
 					Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 					DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 				}
-
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE", AMFSize);
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-				delete [] AmfData;
-				AmfData = 0;
-				return;
+				totalBytes += static_cast<size_t>(readBytes);
 			}
+
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE:%d BYTES", totalBytes);
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+			delete [] AmfData;
+			AmfData = 0;
+			return;
+		}
+		else if ( format == 2 )
+		{
+			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
+			LEFT_READ_SIZE = previousAMFDataSize;
+			previousAMFDataSize = 0;
+			AMFDataSizeGT128 = true;
+		}
+
+		size_t bufferSize = 0;
+		if ( LEFT_READ_SIZE >= 128 )
+		{
+			bufferSize = 128;
+			LEFT_READ_SIZE -=128;
+		}
+		else
+		{
+			bufferSize = LEFT_READ_SIZE;
+			LEFT_READ_SIZE = 0;
+		}
+
+		if ( ! AMFDataSizeGT128 )
+		{
+			bufferSize = 128;
+		}
+
+		TOTAL_READ_BYTES += bufferSize;
+		char rtmpStream[128];
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES START", bufferSize);
+		totalBytes = 0;
+		while ( totalBytes != bufferSize )
+		{
+			readBytes=read(receiveStreamWatcher->fd, rtmpStream+totalBytes, bufferSize-totalBytes);
+			if ( readBytes <= 0 )
+			{
+				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
+				close(receiveStreamWatcher->fd);
+				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+				DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+			}
+			totalBytes += static_cast<size_t>(readBytes);
+		}
+
+		if ( LEFT_READ_SIZE == 0 )
+		{
+			AMFDataSizeGT128 = false;
 		}
 		
-		char rtmpStream[128];
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DEFAULT SIZE 128 BYTES START");
-		readBytes=read(receiveStreamWatcher->fd, &rtmpStream, sizeof(rtmpStream));
-		if ( readBytes <= 0 )
+		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
+													bufferSize, TOTAL_READ_BYTES);
+
+		if (LEFT_READ_SIZE == 0 || !AMFDataSizeGT128 )
 		{
-			Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
-			close(receiveStreamWatcher->fd);
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-			DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+			TOTAL_READ_BYTES = 0;
 		}
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DEFAULT SIZE 128 BYTES DONE");
 		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 	}
 
