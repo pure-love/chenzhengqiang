@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/01/15 10:50:05
+#generate date:2016/01/15 13:53:51
 
 
 INCLUDE_DIR:=./include
@@ -21,7 +21,7 @@ OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
 CONFIG_PATH:=./config
-SERVICE:=simpleCGI
+SERVICE:=./scripts/simpleCGI
 CONFIG_INSTALL_PATH:=/etc/simplecgi
 TAR_NAME=$(TARGET)-$(shell date +%Y%m%d)
 

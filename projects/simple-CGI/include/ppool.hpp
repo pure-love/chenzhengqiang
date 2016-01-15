@@ -6,10 +6,10 @@
 *@desc: 
 */
 
-
 #include "netutil.h"
 #include "process.h"
 #include "serverutil.h"
+#include<iostream>
 #include<stdexcept>
 #include<sys/types.h>
 #include<sys/wait.h>
@@ -18,8 +18,8 @@
 #include<unistd.h>
 #include<errno.h>
 extern int errno;
-
-
+using std::cout;
+using std::endl;
 namespace czq
 {
 	//the global pipe fd for converting signal event to epoll event
@@ -138,6 +138,8 @@ namespace czq
 	template<typename T>
 	void ppool<T>::letChildrenGo()
 	{
+		pid_t me = getpid();
+		cout<<"child "<<me<<" is running"<<endl;
 		signal2Pipe();
 		int pipeFd = subProcesses_[indexOfPool_].pipeFd_[1];
 
@@ -196,16 +198,9 @@ namespace czq
 					{
 						switch (signals[i])
 						{
-							case SIGCHLD:
-								pid_t pid;
-								int stat;
-								while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
-								{
-									;
-								}
-								break;
 							case SIGTERM:
 							case SIGINT:
+								cout<<"I'm killed,Dad save me!"<<endl;
 								stop_ = true;
 								break;
 							default:
@@ -237,13 +232,15 @@ namespace czq
 	template<typename T>
 	void ppool<T>::letParentGo()	
 	{
+		pid_t me = getpid();
+		cout<<"Dad "<<me<<" is running"<<endl;
 		signal2Pipe();
 		Epoll::IOSet(epollFd_, listenFd_, Epoll::READ);
 		epoll_event epollEvents[MAX_EVENT_NUMBER];
 		int subProcessCounter = 0;
 		int newConn = 1;
 		int events = 0;
-
+		int count = 0;
 		while ( ! stop_ )
 		{
 			events = epoll_wait(epollFd_, epollEvents, MAX_EVENT_NUMBER, -1);
@@ -286,6 +283,38 @@ namespace czq
 				{
 					;//handle the signals especially the SIGCHLD signal
 					;//when receive the SIGTERM OR SIGINT,just kill all children
+					char signals[1024];
+					ssize_t ret = recv(signalPipeFd[0], signals, sizeof(signals), 0);
+					if ( ret <= 0 )
+					continue;
+
+					for (int i=0; i < ret; ++i)
+					{
+						switch (signals[i])
+						{
+							case SIGCHLD:
+								pid_t pid;
+								int stat;
+								while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
+								{
+									cout<<"my child "<<pid<<" was killed!"<<endl;
+									++count;
+								}
+								break;
+							case SIGTERM:
+							case SIGINT:
+								if ( count != processes_ )
+								cout<<"Fuck,someone want kill me!"<<endl;
+								else
+								{
+									cout<<"All my children were killed,I can not save them any more!"<<endl;
+									stop_ = true;
+								}
+								break;
+							default:
+								break;
+						}
+					}
 				}
 			}
 		}

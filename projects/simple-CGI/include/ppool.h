@@ -40,7 +40,7 @@ namespace czq
 					//the max processes that pool supports
 					MAX_PROCESSES=8,
 					//the max users that each sub-process can handle
-					USERS_PER_PROCESS = 65536,
+					USERS_PER_PROCESS = 10000,
 					//the max events that the epoll can handle
 					MAX_EVENT_NUMBER = 10000
 			};
