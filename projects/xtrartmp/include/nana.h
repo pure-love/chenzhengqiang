@@ -30,7 +30,6 @@ namespace czq
                 PEACE=1,
                 HAPPY=2
             };
-            
             enum NanaLife
             {
                 KB = 1024,
@@ -38,21 +37,40 @@ namespace czq
                 LIFE_LENGTH =100*(MB)
             };
             
-            static int born(std::string &cradle, int emotion, int breakTime);
-            static void die();
-            static void say(int emotion, const char *toWho, const char *about,...);
-            static inline bool is(int emotion){ return emotion <= emotion_;}
-            static void tidy();
+        public: 
+            //using the singleton pattern 
+            //callNana return the global instance of nana
+            static Nana *born(const std::string & cradle, int emotion, int breakTime)
+            {
+                //don't use the double-check and mutex lock
+                if ( ! nana_ )
+                {
+                    nana_ = new Nana(cradle, emotion, breakTime);
+                }
+                return nana_;
+            }
+           
+            void say(int emotion, const char *toWho, const char *about,...);
+            bool is(int emotion){ return emotion <= emotion_;}
+            void shutup();
+            void die();
         private:
-            static int reborn();
-            static unsigned long lifeLength();
-        public:
-            static int emotion_;
-            static Life life_;
-            static std::string cradle_; 
-            static std::string said_;
-            static time_t tidyTime_;
-            static int breakTime_;
+            Nana(const std::string & cradle, int emotion, int breakTime);
+            Nana( const Nana & ){}
+            Nana & operator=( const Nana & ){ return *this;}
+            ~Nana(){die();}
+            int reborn();
+            unsigned long lifeLength();
+        private:
+            static Nana * nana_;
+            std::string cradle_; 
+            int emotion_;
+            Life life_;
+            int breakTime_;
+            time_t shutupTime_;
+            char said_[4*KB*9];//9 pages
+            char *nowQ_;
+            char *endQ_;
     };
 };
 #endif

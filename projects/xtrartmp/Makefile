@@ -22,10 +22,10 @@ SERVICE:=./scripts/xtrartmp
 CONFIG_INSTALL_PATH:=/etc/xtrartmp
 TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 
-.PHONEY=clean
-.PHONEY=install
-.PHONEY=test
-.PHONEY=tar
+.PHONEY:clean
+.PHONEY:install
+.PHONEY:test
+.PHONEY:tar
 
 all:$(TARGET)
 $(TARGET):$(OBJS)

@@ -8,42 +8,49 @@
 
 
 #include "nana.h"
+#include <cstring>
 #include <pthread.h>
 #include <sys/stat.h>
 #include <stdarg.h>
+#include <stdexcept>
 
+using std::runtime_error;
 
 namespace czq
 {
-	Life Nana::life_ = 0;
-	int Nana::emotion_ = Nana::HAPPY;
-	std::string Nana::cradle_ = "";
-	std::string Nana::said_ = "\r";
-	time_t Nana::tidyTime_ = 0;
-	int Nana::breakTime_ = 0;
 	static const char * NANA_EMOTION[]={"_COMPLAIN_", "_PEACE_", "_HAPPY_"};
 	static pthread_mutex_t  GuardianAngel= PTHREAD_MUTEX_INITIALIZER;
+
 	
-	int Nana::born(std::string & cradle, int emotion, int breakTime)
+	Nana * Nana::nana_ = 0;
+	
+	Nana::Nana( const std::string & cradle, int emotion, int breakTime)
+	:cradle_(cradle), emotion_(emotion), breakTime_(breakTime),shutupTime_(0)
 	{
-		life_ = fopen(cradle.c_str(), "w");
+		life_ = fopen(cradle_.c_str(), "w");
     		if (life_ == 0)
     		{
-        		return -1;
+        		throw runtime_error("failed to open cradle");
     		}
-    		
     		setbuf(life_, NULL);
-    		cradle_ = cradle;
-    		emotion_ = emotion;
- 		breakTime_ = breakTime;
-    		return 0;
+ 		memset(said_, 0, sizeof(said_));
+ 		nowQ_ = said_;
+ 		endQ_ = said_+sizeof(said_);
 	}
-
+	
 
 	void Nana::die()
 	{
-    		if (life_ != 0)
-       	fclose(life_);
+    		if ( life_ != 0 )
+    		{
+       		fclose(life_);
+       	}
+       	
+       	if ( Nana::nana_ != 0 )
+       	{
+       		delete Nana::nana_;
+       		Nana::nana_ = 0;
+       	}
 	}
 
 	unsigned long Nana::lifeLength()
@@ -62,7 +69,7 @@ namespace czq
 
 	int Nana::reborn( void )
 	{
-    		char curTime[24];/* "YYYY-MM-DD HH:MM:SS" */
+    		char curTime[24];//the time format:"YYYY-MM-DD HH:MM:SS" 
     		time_t now;
     		struct tm *localTime;
     		now = time( NULL );
@@ -105,34 +112,56 @@ namespace czq
     			loctime = localtime(&now);
     			char detailedSay[1024];
     			strftime (timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
-    			int printBytes = snprintf(detailedSay, sizeof(detailedSay),"%s %-15s : %-8s : ", timeBuffer, toWho, NANA_EMOTION[emotion]);
-    			vsnprintf(detailedSay+printBytes, sizeof(detailedSay)-printBytes, about, valist);
-    			said_+=std::string().assign(detailedSay)+"\n\r";
-    			tidy();
+    			int saidQ = snprintf(detailedSay, sizeof(detailedSay),"%s %-15s : %-8s : ", timeBuffer, toWho, NANA_EMOTION[emotion]);
+    			saidQ += vsnprintf(detailedSay+saidQ, sizeof(detailedSay)-saidQ, about, valist);
+    			char *prevQ = nowQ_;
+    			
+    			if ( (nowQ_+saidQ+1) < (endQ_) )
+    			{
+    				memcpy(nowQ_, detailedSay, saidQ);
+    				nowQ_ += saidQ;
+    				*nowQ_ = '\n';
+    				nowQ_ += 1;
+    			}
+
+    			//just shutup nana's talking
+    			shutup();
+
+    			if ((prevQ+saidQ+1) >= (endQ_))
+    			{
+    				memcpy(nowQ_, detailedSay, saidQ);
+    				nowQ_ += saidQ;
+    				*nowQ_ = '\n';
+    				nowQ_ += 1;
+    			}
+    			
     			pthread_mutex_unlock(&GuardianAngel);
     			va_end(valist);
     		}
 	}
 
-	void Nana::tidy()
+	void Nana::shutup()
 	{
-		if( breakTime_ == 0 )
+		if( breakTime_ <= 0 )
 		{
-			if (said_.length() > 1)
+			if ( nowQ_ > said_ )
 			{
-				fprintf(life_, said_.c_str());
-    				said_="\r";
+				fprintf(life_, said_);
+				nowQ_ = &said_[0];
+				memset(said_, 0, 4*KB*9);
 			}
 		}
 		else
 		{
+			
 			time_t now = time(NULL);
-    			if ((said_.length() > (size_t)(50*KB)) || (now-tidyTime_) >=(time_t) breakTime_)
+    			if (((nowQ_ - said_) >= (8*KB)) || (now-shutupTime_) >=(time_t) breakTime_)
     			{
-    				fprintf(life_, said_.c_str());
-    				said_="\r";
+    				fprintf(life_, said_);
+    				nowQ_ = said_;
+    				memset(said_, 0, 4*KB*9);
     			}
-    			tidyTime_ = now;
+    			shutupTime_ = now;
     		}
 	}
 };
