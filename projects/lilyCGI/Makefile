@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/01/15 13:53:51
+#generate date:2016/01/18 08:49:44
 
 
 INCLUDE_DIR:=./include
@@ -9,20 +9,20 @@ SUFFIX:=cpp
 vpath %.h $(INCLUDE_DIR)
 vpath %.$(SUFFIX) $(SOURCE_DIR)
 
-TARGET:=simpleCGI
+TARGET:=lilyCGI
 CC:=g++
 #define the optimize level of compiler
 OLEVEL=0
 LDCONFIG:=
 COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow -Wunused-parameter
 CFLAGS:=-O$(OLEVEL)  -I$(INCLUDE_DIR) $(COMPILER_FLAGS) $(LDCONFIG)
-OBJS:=main simplecgi serverutil process netutil 
+OBJS:=main serverutil process netutil lilycgi 
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
 CONFIG_PATH:=./config
-SERVICE:=./scripts/simpleCGI
-CONFIG_INSTALL_PATH:=/etc/simplecgi
+SERVICE:=./scripts/lilyCGI
+CONFIG_INSTALL_PATH:=/etc/lilyCGI
 TAR_NAME=$(TARGET)-$(shell date +%Y%m%d)
 
 .PHONEY:clean

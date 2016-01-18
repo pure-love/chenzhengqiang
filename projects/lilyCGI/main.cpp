@@ -10,7 +10,7 @@
 #include "serverutil.h"
 #include "netutil.h"
 #include "ppool.h"
-#include "simplecgi.h"
+#include "lilycgi.h"
 #include <iostream>
 #include <cstdlib>
 using std::cerr;

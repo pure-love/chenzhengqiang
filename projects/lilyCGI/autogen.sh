@@ -5,7 +5,7 @@
 #desc:auto generate the Makefile
 #!/bin/bash
 #########global configuration#######
-TARGET=simpleCGI
+TARGET=lilyCGI
 MAIN_FILE=main
 AUTHOR=chenzhengqiang
 DATE=`date '+%Y/%m/%d %H:%M:%S'`
@@ -20,8 +20,8 @@ INCLUDE_DIR=./include
 INSTALL_DIR=/usr/local/bin
 #you didn't have to configure this
 CONFIG_PATH=./config
-CONFIG_INSTALL_PATH=/etc/simplecgi
-SERVICE=./scripts/simpleCGI
+CONFIG_INSTALL_PATH=/etc/$TARGET
+SERVICE=./scripts/$TARGET
 #########global configuration#######
 `rm -rf $MAKEFILE`
 `touch $MAKEFILE`
