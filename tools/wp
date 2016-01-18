@@ -33,7 +33,7 @@ function write_readme(){
 
 
 
-function create_autogen_script(){
+function create_autogen_scripts(){
 	`rm -f autogen.sh`
 	`touch autogen.sh`
 	`chmod u+rwx autogen.sh`
@@ -144,94 +144,94 @@ function create_autogen_script(){
 
 
 
-function create_service_script(){
-	if [ ! -e "./script/service" ];then
-		`rm -rf script`
-		`mkdir script`
-		`touch script/service`
-		`chmod u+rwx script/service`
+function create_service_scripts(){
+	if [ ! -e "./scripts/service" ];then
+		`rm -rf scripts`
+		`mkdir scripts`
+		`touch scripts/service`
+		`chmod u+rwx scripts/service`
 	fi
 		
-	echo '#!/bin/bash' >> script/service
-	echo '#script name:' >> script/service
-	echo '#author:chenzhengqiang' >> script/service
-	echo "#generate date:`date '+%Y/%m/%d %H:%M:%S'`" >> script/service
-	echo '#modified date:' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo '#information about this service' >> script/service
-	echo '#service name:#you must fill the service name right here' >> script/service 
-	echo 'service=#you must fill the service name right here' >> script/service
-	echo 'args=' >> script/service
-	echo 'go=/usr/local/bin/$service $args' >> script/service
-	echo 'pid_file=/var/run/$service.pid' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo 'function start(){' >> script/service
-	echo 'pid=`pidof $service`' >> script/service
-	echo 'if [ -n "$pid" ];then' >> script/service
-	echo 'echo "Start failed,Service $service(pid $pid) Is Running."' >> script/service
-	echo 'exit 0' >> script/service
-	echo 'fi' >> script/service
-	echo 'echo -n "Starting Service $service......"' >> script/service
-	echo 'touch $pid_file' >> script/service
-	echo '$go' >> script/service
-	echo 'pid=`pidof $service`' >> script/service 
-	echo 'echo $pid > $pid_file' >> script/service
-	echo 'sleep 0.3' >> script/service
-	echo 'echo "(pid $pid)          [    OK    ]"' >> script/service
-	echo 'pid=`pidof $service`' >> script/service
-	echo 'touch $lock' >> script/service
-	echo '}' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo 'function stop(){' >> script/service
-	echo 'pid=`pidof $service`' >> script/service
-	echo 'if [ -n "$pid" ];then' >> script/service
-	echo 'echo -n "Shuting Down Service $service......"' >> script/service
-	echo 'sleep 0.3' >> script/service                                    
-    echo 'kill -9 $pid' >> script/service
-	echo 'if [ $? -eq 0 ];then' >> script/service
-	echo 'echo "                    [    OK    ]"' >> script/service
-	echo 'else' >> script/service
-	echo 'echo "(pid $pid)	  [   FAILED ]"' >> script/service
-	echo 'fi' >> script/service
-	echo 'else' >> script/service
-	echo 'echo "Error:Service $service Is Not Running."' >> script/service
-	echo 'fi' >> script/service
-	echo 'rm -rf $lock' >> script/service
-	echo 'rm -rf $pid_file' >> script/service
-	echo '}' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo 'function status(){' >> script/service
-	echo 'pid=`pidof $service`' >> script/service
-	echo 'if [ -n "$pid" ];then' >> script/service
-	echo 'echo "Service $service(pid $pid) Is Running"' >> script/service
-	echo 'else' >> script/service
-	echo 'echo "Service $service Has Stoped"' >> script/service
-	echo 'fi' >> script/service
-	echo '}' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo 'function restart(){' >> script/service
-	echo 'stop' >> script/service
-	echo 'start' >> script/service
-	echo '}' >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo >> script/service
-	echo 'case "$1" in' >> script/service
-	echo '"start") start;;' >> script/service
-	echo '"stop")  stop;;' >> script/service
-	echo '"status") status;;' >> script/service
-	echo '"restart") restart;;' >> script/service
-	echo 'esac' >> script/service
+	echo '#!/bin/bash' >> scripts/service
+	echo '#scripts name:' >> scripts/service
+	echo '#author:chenzhengqiang' >> scripts/service
+	echo "#generate date:`date '+%Y/%m/%d %H:%M:%S'`" >> scripts/service
+	echo '#modified date:' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo '#information about this service' >> scripts/service
+	echo '#service name:#you must fill the service name right here' >> scripts/service 
+	echo 'service=#you must fill the service name right here' >> scripts/service
+	echo 'args=' >> scripts/service
+	echo 'go=/usr/local/bin/$service $args' >> scripts/service
+	echo 'pid_file=/var/run/$service.pid' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo 'function start(){' >> scripts/service
+	echo 'pid=`pidof $service`' >> scripts/service
+	echo 'if [ -n "$pid" ];then' >> scripts/service
+	echo 'echo "Start failed,Service $service(pid $pid) Is Running."' >> scripts/service
+	echo 'exit 0' >> scripts/service
+	echo 'fi' >> scripts/service
+	echo 'echo -n "Starting Service $service......"' >> scripts/service
+	echo 'touch $pid_file' >> scripts/service
+	echo '$go' >> scripts/service
+	echo 'pid=`pidof $service`' >> scripts/service 
+	echo 'echo $pid > $pid_file' >> scripts/service
+	echo 'sleep 0.3' >> scripts/service
+	echo 'echo "(pid $pid)          [    OK    ]"' >> scripts/service
+	echo 'pid=`pidof $service`' >> scripts/service
+	echo 'touch $lock' >> scripts/service
+	echo '}' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo 'function stop(){' >> scripts/service
+	echo 'pid=`pidof $service`' >> scripts/service
+	echo 'if [ -n "$pid" ];then' >> scripts/service
+	echo 'echo -n "Shuting Down Service $service......"' >> scripts/service
+	echo 'sleep 0.3' >> scripts/service                                    
+    echo 'kill -9 $pid' >> scripts/service
+	echo 'if [ $? -eq 0 ];then' >> scripts/service
+	echo 'echo "                    [    OK    ]"' >> scripts/service
+	echo 'else' >> scripts/service
+	echo 'echo "(pid $pid)	  [   FAILED ]"' >> scripts/service
+	echo 'fi' >> scripts/service
+	echo 'else' >> scripts/service
+	echo 'echo "Error:Service $service Is Not Running."' >> scripts/service
+	echo 'fi' >> scripts/service
+	echo 'rm -rf $lock' >> scripts/service
+	echo 'rm -rf $pid_file' >> scripts/service
+	echo '}' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo 'function status(){' >> scripts/service
+	echo 'pid=`pidof $service`' >> scripts/service
+	echo 'if [ -n "$pid" ];then' >> scripts/service
+	echo 'echo "Service $service(pid $pid) Is Running"' >> scripts/service
+	echo 'else' >> scripts/service
+	echo 'echo "Service $service Has Stoped"' >> scripts/service
+	echo 'fi' >> scripts/service
+	echo '}' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo 'function restart(){' >> scripts/service
+	echo 'stop' >> scripts/service
+	echo 'start' >> scripts/service
+	echo '}' >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo >> scripts/service
+	echo 'case "$1" in' >> scripts/service
+	echo '"start") start;;' >> scripts/service
+	echo '"stop")  stop;;' >> scripts/service
+	echo '"status") status;;' >> scripts/service
+	echo '"restart") restart;;' >> scripts/service
+	echo 'esac' >> scripts/service
 }
 
 
@@ -263,9 +263,9 @@ function create_config(){
 		echo 'CC=gcc version 4.4.7' >> config/server.conf
 		echo 'protocol=rtmp' >> config/server.conf
 		echo 'bind-address=0.0.0.0' >> config/server.conf
-		echo '#write the bind port here'
+		echo '#write the bind port here' >> config/server.conf
 		echo 'bind-port=' >> config/server.conf
-		echo '#write the log file here'
+		echo '#write the log file here' >> config/server.conf
 		echo 'log-file=' >> config/server.conf
 		echo '#set the refresh frequence of log file by seconds' >> config/server.conf
 		echo '#0 indicates flush the log immediately' >> config/server.conf
@@ -328,9 +328,9 @@ if [ ! -e "README" ];then
 	touch README
 	write_readme;	
 fi
-create_autogen_script
+create_autogen_scripts
 create_config;
-create_service_script;
+create_service_scripts;
 }
 
 create_all_basic_files;
