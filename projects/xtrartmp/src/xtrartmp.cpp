@@ -26,6 +26,7 @@ namespace czq
     	W= NULL;\
     	return;
 
+	Nana *nana=0;
 	//the amf command
 	namespace AmfCommand
        {
@@ -88,10 +89,11 @@ namespace czq
     			{
         			daemon(0,0);
     			}
-    			
-    			Nana::born(serverConfig_.server["log-file"], atoi(serverConfig_.server["log-level"].c_str()),
+
+    			nana = Nana::born(serverConfig_.server["log-file"], atoi(serverConfig_.server["log-level"].c_str()),
     					   atoi(serverConfig_.server["flush-time"].c_str()));
-    			Nana::say(Nana::HAPPY, __func__,  "LISTEN SOCKET FD:%d", listenFd_);
+    					   
+    			nana->say(Nana::HAPPY, __func__,  "LISTEN SOCKET FD:%d", listenFd_);
     
     			//you have to ignore the PIPE's signal when client close the socket
     			struct sigaction sa;
@@ -99,7 +101,7 @@ namespace czq
     			sa.sa_flags = 0;
     			if ( sigemptyset( &sa.sa_mask ) == -1 ||sigaction( SIGPIPE, &sa, 0 ) == -1 )
     			{ 
-        			Nana::say(Nana::COMPLAIN,"serveForever","FAILED TO IGNORE SIGPIPE SIGNAL");
+        			nana->say(Nana::COMPLAIN,"serveForever","FAILED TO IGNORE SIGPIPE SIGNAL");
     			}
 			else
 			{
@@ -110,7 +112,7 @@ namespace czq
              			ev_io_start( mainEventLoop_, listenWatcher_ );
             			ev_run( mainEventLoop_,0 );
     			}
-    			Nana::die();
+    			nana->die();
 		}
 		else
 		{
@@ -124,7 +126,7 @@ namespace czq
 
     		if ( EV_ERROR & revents )
     		{
-        		Nana::say(Nana::COMPLAIN, ToAcceptCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+        		nana->say(Nana::COMPLAIN, ToAcceptCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
         		return;
     		}
 
@@ -134,24 +136,24 @@ namespace czq
     		int connFd = accept( listenWatcher->fd, (struct sockaddr *)&clientAddr, &len );
     		if ( connFd < 0 )
     		{
-        		Nana::say(Nana::COMPLAIN, ToAcceptCallback, "ACCEPT ERROR:%s", strerror(errno));   
+        		nana->say(Nana::COMPLAIN, ToAcceptCallback, "ACCEPT ERROR:%s", strerror(errno));   
         		return;
     		}
     		
     		struct ev_io * receiveRequestWatcher = new struct ev_io;
     		if ( receiveRequestWatcher == NULL )
     		{
-        		Nana::say(Nana::COMPLAIN, ToAcceptCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        		nana->say(Nana::COMPLAIN, ToAcceptCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
         		close(connFd);
         		return;
     		}
     
     		receiveRequestWatcher->active = 0;
     		receiveRequestWatcher->data = 0;   
-    		if ( Nana::is(Nana::PEACE))
+    		if ( nana->is(Nana::PEACE))
     		{
         		std::string peerInfo = NetUtil::getPeerInfo(connFd);
-        		Nana::say(Nana::PEACE, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
+        		nana->say(Nana::PEACE, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
                                                              peerInfo.c_str(), connFd);
     		}
     
@@ -167,11 +169,11 @@ namespace czq
 		XtraRtmp::C1 c1;
 		if ( EV_ERROR & revents )
     		{
-        		Nana::say(Nana::COMPLAIN, ToShakeHandCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+        		nana->say(Nana::COMPLAIN, ToShakeHandCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
         		return;
     		}
     		
-    		Nana::say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND START++++++++++");
+    		nana->say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND START++++++++++");
 		struct iovec iovRead[2];
 		iovRead[0].iov_base=&c0;
 		iovRead[0].iov_len=1;
@@ -180,8 +182,8 @@ namespace czq
 		ssize_t readBytes=readv(receiveRequestWatcher->fd, iovRead, 2);
     		if ( readBytes != -1 )
     		{
-    			Nana::say(Nana::HAPPY, ToShakeHandCallback, "RECEIVE THE C0 AND C1 PACKET TOTAL BYTES:%d", readBytes);
-			Nana::say(Nana::HAPPY, ToShakeHandCallback, "C0 VERSION:%d C1.timestamp:%u", c0, ntohl(c1.timestamp));	
+    			nana->say(Nana::HAPPY, ToShakeHandCallback, "RECEIVE THE C0 AND C1 PACKET TOTAL BYTES:%d", readBytes);
+			nana->say(Nana::HAPPY, ToShakeHandCallback, "C0 VERSION:%d C1.timestamp:%u", c0, ntohl(c1.timestamp));	
     			s0=c0;
 			XtraRtmp::S1 s1;	
     			s1.timestamp = htonl(0);
@@ -195,20 +197,20 @@ namespace czq
 			ssize_t wrotenBytes=writev(receiveRequestWatcher->fd,iovWrite,2);
 			if ( wrotenBytes == -1)
 			{
-				Nana::say(Nana::COMPLAIN, ToShakeHandCallback, "SENT THE S0,S1 PACKET FAILED:%s", strerror(errno));
+				nana->say(Nana::COMPLAIN, ToShakeHandCallback, "SENT THE S0,S1 PACKET FAILED:%s", strerror(errno));
 			}
 			else
 			{
-				Nana::say(Nana::HAPPY, ToShakeHandCallback, "SENT THE S0,S1 PACKET SUCCESSED. TOTAL SENT BYTES:%d", wrotenBytes);
+				nana->say(Nana::HAPPY, ToShakeHandCallback, "SENT THE S0,S1 PACKET SUCCESSED. TOTAL SENT BYTES:%d", wrotenBytes);
 				XtraRtmp::C2 c2;
 				readBytes=read(receiveRequestWatcher->fd, &c2, sizeof(c2));
 				if ( readBytes == -1 )
 				{
-					Nana::say(Nana::COMPLAIN, ToShakeHandCallback, "READ THE C2 PACKET FAILED:%s", strerror(errno));
+					nana->say(Nana::COMPLAIN, ToShakeHandCallback, "READ THE C2 PACKET FAILED:%s", strerror(errno));
 				}
 				else
 				{
-					Nana::say(Nana::HAPPY, ToShakeHandCallback, "READ THE C2 PACKET SUCCESSED. TOTAL READ BYTES:%d C2.S1.timestamp:%u C2.C1.timestamp:%u", 
+					nana->say(Nana::HAPPY, ToShakeHandCallback, "READ THE C2 PACKET SUCCESSED. TOTAL READ BYTES:%d C2.S1.timestamp:%u C2.C1.timestamp:%u", 
 															     readBytes,ntohl(c2.timestamp),ntohl(c2.zeroOrTime));
 					XtraRtmp::S2 s2;
 					s2.timestamp=c1.timestamp;
@@ -216,11 +218,11 @@ namespace czq
 					memcpy(s2.randomValue, c1.randomValue, XtraRtmp::RANDOM_VALUE_SIZE);
 					wrotenBytes=write(receiveRequestWatcher->fd, &s2, sizeof(s2));
 					
-					Nana::say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND DONE++++++++++");
+					nana->say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND DONE++++++++++");
 					struct ev_io * consultWatcher = new struct ev_io;
     					if ( consultWatcher == NULL )
     					{
-        					Nana::say(Nana::COMPLAIN, ToShakeHandCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        					nana->say(Nana::COMPLAIN, ToShakeHandCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
         					DO_EVENT_CB_CLEAN(mainEventLoop,receiveRequestWatcher);
     					}
     
@@ -237,10 +239,10 @@ namespace czq
 	int XtraRtmp::parseRtmpPacket(unsigned char *rtmpRequest, size_t len, std::vector<RtmpPacket> & rtmpPacketPool)
 	{
 		#define ToParseRtmpPacket __func__
-		Nana::say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++START++++++++++");
+		nana->say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++START++++++++++");
 		if ( len == 0 )
 		{
-			Nana::say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
+			nana->say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
 			return ARGUMENT_ERROR;
 		}
 
@@ -285,7 +287,7 @@ namespace czq
 					break;
 			}
 
-			Nana::say(Nana::HAPPY, ToParseRtmpPacket, "RTMP HEADER SIZE:%u, AMF SIZE:%u", rtmpPacket.rtmpPacketHeader.size, rtmpPacket.rtmpPacketHeader.AMFSize);
+			nana->say(Nana::HAPPY, ToParseRtmpPacket, "RTMP HEADER SIZE:%u, AMF SIZE:%u", rtmpPacket.rtmpPacketHeader.size, rtmpPacket.rtmpPacketHeader.AMFSize);
 			pos += rtmpPacket.rtmpPacketHeader.size;
 			if ( rtmpPacket.rtmpPacketHeader.AMFSize != 0 )
 			{
@@ -299,7 +301,7 @@ namespace czq
 			rtmpPacketPool.push_back(rtmpPacket);
 		}
 		
-		Nana::say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
+		nana->say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
 		return OK;
 	}
 
@@ -325,7 +327,7 @@ namespace czq
 		size_t stringLen,keyLen;
 		int countString = 0;
 		int countNumber = 0;
-		Nana::say(Nana::HAPPY, ToParseRtmpAMF0,"+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToParseRtmpAMF0,"+++++++++++++++START+++++++++++++++");
 		while (pos < len)
 		{
 			if ( !AMFObjectAlreadyStart )
@@ -404,22 +406,22 @@ namespace czq
 				}
 			}
 		}
-		Nana::say(Nana::HAPPY, ToParseRtmpAMF0,"+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToParseRtmpAMF0,"+++++++++++++++DONE+++++++++++++++");
 	}
 
 	void XtraRtmp::rtmpAMF0Dump(const AmfPacket & amfPacket)
 	{
 		#define ToRtmpAmf0Dump __func__
-		Nana::say(Nana::HAPPY, ToRtmpAmf0Dump,"+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToRtmpAmf0Dump,"+++++++++++++++START+++++++++++++++");
 		
 		if (!amfPacket.command.empty())
 		{
-					Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "COMMAND NAME:%s", amfPacket.command.c_str()); 
+					nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "COMMAND NAME:%s", amfPacket.command.c_str()); 
 		}
 				
 		if (amfPacket.transactionID[0] == 1)
 		{
-			Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "TRANSACTION ID:%0x %0x %0x %0x %0x %0x %0x %0x",
+			nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "TRANSACTION ID:%0x %0x %0x %0x %0x %0x %0x %0x",
 												   amfPacket.transactionID[1],
 												   amfPacket.transactionID[2],
 												   amfPacket.transactionID[3],
@@ -433,31 +435,31 @@ namespace czq
 
 		if (amfPacket.flag[0] != 0)
 		{
-			Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "FLAG:%x", amfPacket.flag[1]);
+			nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "FLAG:%x", amfPacket.flag[1]);
 		}
 
 		if (!amfPacket.streamName.empty())
 		{
-			Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "STREAM NAME:%s", amfPacket.streamName.c_str()); 
+			nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "STREAM NAME:%s", amfPacket.streamName.c_str()); 
 		}
 
 		if (!amfPacket.publishType.empty())
 		{
-			Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "PUBLISH TYPE:%s", amfPacket.publishType.c_str()); 
+			nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "PUBLISH TYPE:%s", amfPacket.publishType.c_str()); 
 		}
 		
 		if( !amfPacket.parameters.empty() )
 		{
 			std::map<std::string, std::string>::const_iterator coo_iter = amfPacket.parameters.begin();
-			Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "CORE OBJECT EXISTS,THAT THE VALUE TYPE IS CORE STRING");
+			nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "CORE OBJECT EXISTS,THAT THE VALUE TYPE IS CORE STRING");
 			while (coo_iter != amfPacket.parameters.end())
 			{
-				Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "KEY:%s", coo_iter->first.c_str());
-				Nana::say(Nana::HAPPY, ToRtmpAmf0Dump, "VALUE:%s", coo_iter->second.c_str());
+				nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "KEY:%s", coo_iter->first.c_str());
+				nana->say(Nana::HAPPY, ToRtmpAmf0Dump, "VALUE:%s", coo_iter->second.c_str());
 				++coo_iter;
 			}
 		}
-		Nana::say(Nana::HAPPY, ToRtmpAmf0Dump,"+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToRtmpAmf0Dump,"+++++++++++++++DONE+++++++++++++++");
 		
 	}
 
@@ -468,7 +470,7 @@ namespace czq
 		#define ToConsultCallback __func__
 		if ( EV_ERROR & revents )
     		{
-        		Nana::say(Nana::COMPLAIN, ToConsultCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+        		nana->say(Nana::COMPLAIN, ToConsultCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
         		close(consultWatcher->fd);	
 			DO_EVENT_CB_CLEAN(mainEventLoop, consultWatcher);
     		}
@@ -479,23 +481,23 @@ namespace czq
 		bool done = false;
 		if ( readBytes > 0 )
 		{
-			Nana::say( Nana::HAPPY, ToConsultCallback, "READ THE RTMP PACKET %d BYTES", readBytes);
+			nana->say( Nana::HAPPY, ToConsultCallback, "READ THE RTMP PACKET %d BYTES", readBytes);
 			std::vector<XtraRtmp::RtmpPacket> rtmpPacketPool;
 			int ret = XtraRtmp::parseRtmpPacket(consultRequest, static_cast<size_t>(readBytes), rtmpPacketPool);
 			XtraRtmp::AmfPacket amfPacket;
 			if (ret == OK )
 			{
-				Nana::say(Nana::HAPPY, ToConsultCallback, "THERE IS(ARE) %u RTMP PACKET(S)", rtmpPacketPool.size());
+				nana->say(Nana::HAPPY, ToConsultCallback, "THERE IS(ARE) %u RTMP PACKET(S)", rtmpPacketPool.size());
 
 				std::vector<XtraRtmp::RtmpPacket>::iterator rpIter = rtmpPacketPool.begin();
 				while (rpIter != rtmpPacketPool.end())
 				{
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER SIZE:%u", rpIter->rtmpPacketHeader.size );
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER CHUNK STREAM ID:%u", rpIter->rtmpPacketHeader.chunkStreamID);
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER TIMESTAMP:%u", rpIter->rtmpPacketHeader.timestamp);
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER AMF SIZE:%u", rpIter->rtmpPacketHeader.AMFSize);
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER AMF TYPE:%u", rpIter->rtmpPacketHeader.AMFType);
-					Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER STREAM ID:%u", rpIter->rtmpPacketHeader.streamID);
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER SIZE:%u", rpIter->rtmpPacketHeader.size );
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER CHUNK STREAM ID:%u", rpIter->rtmpPacketHeader.chunkStreamID);
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER TIMESTAMP:%u", rpIter->rtmpPacketHeader.timestamp);
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER AMF SIZE:%u", rpIter->rtmpPacketHeader.AMFSize);
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER AMF TYPE:%u", rpIter->rtmpPacketHeader.AMFType);
+					nana->say(Nana::HAPPY, ToConsultCallback, "RTMP HEADER STREAM ID:%u", rpIter->rtmpPacketHeader.streamID);
 
 					XtraRtmp::parseRtmpAMF0(rpIter->rtmpPacketPayload, rpIter->rtmpPacketHeader.AMFSize, amfPacket);
 					XtraRtmp::rtmpAMF0Dump(amfPacket);
@@ -535,13 +537,13 @@ namespace czq
 					}
 					++rpIter;
 				}
-				Nana::say(Nana::HAPPY, ToConsultCallback,"++++++++++RTMP INTERACTIVE SIGNALLING DONE++++++++++");
+				nana->say(Nana::HAPPY, ToConsultCallback,"++++++++++RTMP INTERACTIVE SIGNALLING DONE++++++++++");
 			}
 			else
 			{
-				Nana::say(Nana::COMPLAIN, ToConsultCallback, "ERROR OCCURRED WHEN READ:%s", strerror(errno));
+				nana->say(Nana::COMPLAIN, ToConsultCallback, "ERROR OCCURRED WHEN READ:%s", strerror(errno));
 				close(consultWatcher->fd);
-				Nana::say(Nana::HAPPY, ToConsultCallback,"++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
+				nana->say(Nana::HAPPY, ToConsultCallback,"++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
 				DO_EVENT_CB_CLEAN(mainEventLoop, consultWatcher);
 			}
 			
@@ -549,11 +551,11 @@ namespace czq
 		
 		if (consultDone)
 		{
-			Nana::say(Nana::HAPPY, ToConsultCallback, "RTMP CONSULT DONE,STARTING RECEIVE THE RTMP STREAM");
+			nana->say(Nana::HAPPY, ToConsultCallback, "RTMP CONSULT DONE,STARTING RECEIVE THE RTMP STREAM");
 			struct ev_io * receiveStreamWatcher = new struct ev_io;
     			if ( receiveStreamWatcher == NULL )
     			{
-        			Nana::say(Nana::COMPLAIN, ToConsultCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+        			nana->say(Nana::COMPLAIN, ToConsultCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
     			}
     			else
     			{
@@ -574,40 +576,40 @@ namespace czq
 		switch (rtmpMessageType)
 		{
 			case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
 				break;
 			case XtraRtmp::MESSAGE_DROP_CHUNK:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
 				break;
 			case XtraRtmp::MESSAGE_SEND_BOTH_READ:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
 				break;
 			case XtraRtmp::MESSAGE_USER_CONTROL:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
 				break;
 			case XtraRtmp::MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
 				break;
 			case XtraRtmp::MESSAGE_SET_PEER_BANDWIDTH:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
 				break;
 			case XtraRtmp::MESSAGE_AUDIO:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
 				break;
 			case XtraRtmp::MESSAGE_VIDEO:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
 				break;
 			case XtraRtmp::MESSAGE_AMF0_DATA:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF AMF0 DATA");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF AMF0 DATA");
 				break;
 			case XtraRtmp::MESSAGE_SUBTYPE:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
 				break;
 			case XtraRtmp::MESSAGE_INVOKE:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF INVOKE");
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF INVOKE");
 				break;
 			default:
-				Nana::say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF UNKNOWN %x",rtmpMessageType);
+				nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF UNKNOWN %x",rtmpMessageType);
 				break;
 		}
 	}
@@ -618,12 +620,12 @@ namespace czq
 	{
 		#define ToReceiveStreamCallback __func__
 
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++START++++++++++++++++++++");
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++START++++++++++++++++++++");
 		if ( EV_ERROR & revents )
     		{
-        		Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+        		nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
 			close(receiveStreamWatcher->fd);
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
     		}
 
@@ -639,11 +641,11 @@ namespace czq
 		if ( readBytes <= 0 )
 		{
 			close(receiveStreamWatcher->fd);
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			DO_EVENT_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
 		}
 		static size_t TOTAL_READ_BYTES = 0;
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
 		unsigned char format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
 		unsigned char channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
 		unsigned char channelID2[2];
@@ -651,27 +653,27 @@ namespace czq
 		{
 			case 0:
 				//just read one byte more
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
 				read(receiveStreamWatcher->fd, &channelID, 1);
 				channelID = static_cast<unsigned char>(channelID +64);
 				break;
 			case 1:	
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
 				read(receiveStreamWatcher->fd, channelID2, 2);
 				//channelID = channelID2[0]*256+ channelID2[1]*64;
 				break;
 			case 2:
 			case 3:
 			case 4:	
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
 				break;	
 			default:
-				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
+				nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
 				break;	
 		}	
 
 		
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
 		unsigned char chunkMsgHeader[11];
 		memset(chunkMsgHeader, 0, 11);
 		size_t chunkMsgHeaderSize;
@@ -688,25 +690,25 @@ namespace czq
 				break;
 			case 3:
 				chunkMsgHeaderSize = 0;
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
 				break;
 		}
 
 		switch (channelID)
 		{
 			case XtraRtmp::CHANNEL_PING_BYTEREAD:
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
 				break;
 			case XtraRtmp::CHANNEL_INVOKE:
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF INVOKE");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF INVOKE");
 				break;
 			case XtraRtmp::CHANNEL_AUDIO_VIDEO:
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
 				break;
 		}
 
 		
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
 		if ( chunkMsgHeaderSize > 0 )
 		{
 			while( totalBytes != chunkMsgHeaderSize )
@@ -715,14 +717,14 @@ namespace czq
 												     chunkMsgHeaderSize-totalBytes);
 				if ( readBytes <= 0 )
 				{
-					Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
+					nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
 					close(receiveStreamWatcher->fd);
-					Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 					DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 				}
 				totalBytes +=static_cast<size_t>(readBytes);
 			}
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ CHUNK MESSAGE HEADER DONE");
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ CHUNK MESSAGE HEADER DONE");
 		}
 
 		if ( chunkMsgHeaderSize >= 7 )
@@ -731,19 +733,16 @@ namespace czq
 			size_t AMFSize = static_cast<size_t>(chunkMsgHeader[3]*65536+chunkMsgHeader[4]*256+chunkMsgHeader[5]);
 			if ( AMFSize == 0 )
 			{
-				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "RTMP PACKET ERROR");
+				nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "RTMP PACKET ERROR");
 				exit(EXIT_FAILURE);
 			}
 			
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d HEX:%x %x %x DECIMAL:%d %d %d", 
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d HEX:%x %x %x DECIMAL:%d %d %d", 
 						timestamp, AMFSize,  chunkMsgHeader[3], chunkMsgHeader[4], chunkMsgHeader[5],
 						chunkMsgHeader[3],chunkMsgHeader[4],chunkMsgHeader[5]);
 			unsigned char msgType = chunkMsgHeader[6];
-			if (msgType == XtraRtmp::MESSAGE_AMF0_DATA)
-			{
-				AMFSize += 3;
-			}
-			else if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
+			
+			if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
 			{
 				if ( AMFSize > 128 )
 				{
@@ -760,11 +759,11 @@ namespace czq
 					if (!alreadyReadAvcSequenceHeader)
 					{
 						alreadyReadAvcSequenceHeader = true;
-						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
 					}
 					else
 					{
-						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", AMFSize);
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", AMFSize);
 						
 					}	
 				}
@@ -773,18 +772,18 @@ namespace czq
 					if (!alreadyReadAacSequenceHeader)
 					{
 						alreadyReadAacSequenceHeader = true;
-						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AAC SEQUENCE HEADER");
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AAC SEQUENCE HEADER");
 					}
 					else
 					{
-						Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE RTMP AUDIO DATA");
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE RTMP AUDIO DATA");
 					}
 				}
 				
 			}
 			else
 			{
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
 			}
 
 			
@@ -798,23 +797,43 @@ namespace czq
 				readBytes=read(receiveStreamWatcher->fd, AmfData+totalBytes, AMFSize-totalBytes);
 				if ( readBytes <= 0 )
 				{
-					Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
+					nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 					close(receiveStreamWatcher->fd);
-					Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 					DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 				}
 				totalBytes += static_cast<size_t>(readBytes);
 			}
 
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE:%d BYTES", totalBytes);
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+			if ( msgType == XtraRtmp::MESSAGE_AMF0_DATA )
+			{
+				totalBytes = 0;
+				unsigned char trailer[3];
+				while( totalBytes != 2 )
+				{
+					readBytes=read(receiveStreamWatcher->fd, trailer+totalBytes, 2-totalBytes);
+					totalBytes += readBytes;
+				}
+				
+				if ( trailer[0] == 0 && trailer[1] == 9 )
+				{
+					;
+				}
+				else
+				{
+					read(receiveStreamWatcher->fd, trailer+2, 1);
+				}
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ RTMP SET DATA FRAME MESSAGE DONE");
+			}
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE:%d BYTES", totalBytes);
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 			delete [] AmfData;
 			AmfData = 0;
 			return;
 		}
 		else if ( format == 2 )
 		{
-			Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
+			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
 			LEFT_READ_SIZE = previousAMFDataSize;
 			previousAMFDataSize = 0;
 			AMFDataSizeGT128 = true;
@@ -839,16 +858,16 @@ namespace czq
 
 		TOTAL_READ_BYTES += bufferSize;
 		char rtmpStream[128];
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES START", bufferSize);
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES START", bufferSize);
 		totalBytes = 0;
 		while ( totalBytes != bufferSize )
 		{
 			readBytes=read(receiveStreamWatcher->fd, rtmpStream+totalBytes, bufferSize-totalBytes);
 			if ( readBytes <= 0 )
 			{
-				Nana::say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
+				nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 				close(receiveStreamWatcher->fd);
-				Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 				DO_EVENT_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
 			}
 			totalBytes += static_cast<size_t>(readBytes);
@@ -859,14 +878,14 @@ namespace czq
 			AMFDataSizeGT128 = false;
 		}
 		
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
 													bufferSize, TOTAL_READ_BYTES);
 
 		if (LEFT_READ_SIZE == 0 || !AMFDataSizeGT128 )
 		{
 			TOTAL_READ_BYTES = 0;
 		}
-		Nana::say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 	}
 
 
@@ -885,17 +904,17 @@ namespace czq
 			std::string peerInfo = NetUtil::getPeerInfo(connFd);
 			if (amfPacket.command == AmfCommand::connect)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE A AMF connect COMMAND RELATED TO ID:%s", peerInfo.c_str());
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE A AMF connect COMMAND RELATED TO ID:%s", peerInfo.c_str());
 				onConnect(rtmpPacketHeader, amfPacket, connFd);
 			}
 			else if (amfPacket.command == AmfCommand::createStream)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF createStream COMMAND RELATED TO ID:%s", peerInfo.c_str());
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF createStream COMMAND RELATED TO ID:%s", peerInfo.c_str());
 				onCreateStream(rtmpPacketHeader, amfPacket, connFd);
 			}
 			else if (amfPacket.command == AmfCommand::releaseStream)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF releaseStream COMMAND RELATED TO ID:%s", peerInfo.c_str());
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF releaseStream COMMAND RELATED TO ID:%s", peerInfo.c_str());
 				onReleaseStream(rtmpPacketHeader, amfPacket, connFd);			
 			}
 			else if (amfPacket.command == AmfCommand::deleteStream)
@@ -912,7 +931,7 @@ namespace czq
 			}
 			else if (amfPacket.command == AmfCommand::FCPublish)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF FCPublish COMMAND");
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF FCPublish COMMAND");
 				onFCPublish(rtmpPacketHeader, amfPacket, connFd);
 			}
 			else if (amfPacket.command == AmfCommand::receiveAudio)
@@ -925,7 +944,7 @@ namespace czq
 			}
 			else if (amfPacket.command == AmfCommand::publish)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF publish COMMAND");
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF publish COMMAND");
 				onPublish(rtmpPacketHeader, amfPacket, connFd);
 				done = true;
 			}
@@ -939,7 +958,7 @@ namespace czq
 			}
 			else if (amfPacket.command == AmfCommand::_checkbw)
 			{
-				Nana::say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE _checkbw COMMAND");
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE _checkbw COMMAND");
 				onCheckbw(rtmpPacketHeader, amfPacket, connFd);
 			}
 		}
@@ -1002,12 +1021,12 @@ namespace czq
 													{0, 0}
 												};
 		
-		Nana::say(Nana::HAPPY, ToOnCreateStream, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnCreateStream, "+++++++++++++++START+++++++++++++++");
 		rtmpPacketHeader.flag = 1;
 		rtmpPacketHeader.chunkStreamID = 3;
 		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, CreateStreamParameters, 2, connFd);
-		Nana::say(Nana::HAPPY, ToOnCreateStream, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnCreateStream, "+++++++++++++++DONE+++++++++++++++");
 									  
 	}
 
@@ -1028,13 +1047,13 @@ namespace czq
 									{"description", "call to function _checkbw failed"}
 								    };
 			
-		Nana::say(Nana::HAPPY, ToOnCheckbw, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnCheckbw, "+++++++++++++++START+++++++++++++++");
 
 		rtmpPacketHeader.flag = 1;
 		rtmpPacketHeader.chunkStreamID = 3;
 		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, CheckBWS, 5, connFd);
-		Nana::say(Nana::HAPPY, ToOnCheckbw, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnCheckbw, "+++++++++++++++DONE+++++++++++++++");
 										  
 	}
 
@@ -1043,7 +1062,7 @@ namespace czq
 	void XtraRtmp::onReleaseStream(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd)
 	{
 		#define ToReleaseStream __func__
-		Nana::say(Nana::HAPPY, ToReleaseStream, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToReleaseStream, "+++++++++++++++START+++++++++++++++");
 		const char * ReleaseStreamParametersS[5][2]={ 
 													{"_error",0},
 													{0, 0},	
@@ -1055,7 +1074,7 @@ namespace czq
 		rtmpPacketHeader.chunkStreamID = 3;
 		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, ReleaseStreamParametersS, 5, connFd);
-		Nana::say(Nana::HAPPY, ToReleaseStream, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToReleaseStream, "+++++++++++++++DONE+++++++++++++++");
 	}
 
 
@@ -1067,7 +1086,7 @@ namespace czq
 		if (rtmpPacketHeader.size  < 8)
 		return;
 	
-		Nana::say(Nana::HAPPY, ToFCPublish, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToFCPublish, "+++++++++++++++START+++++++++++++++");
 		const char * FCPublishParametersS[3][2]={ 
 												{"_result",0},
 												{0, 0},
@@ -1086,7 +1105,7 @@ namespace czq
 		FCPublishParametersC[3][1]=amfPacket.streamName.c_str();
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, FCPublishParametersS, 3, connFd);
 		onRtmpReply(rtmpPacketHeader, 0, FCPublishParametersC, 4, connFd);
-		Nana::say(Nana::HAPPY, ToFCPublish, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToFCPublish, "+++++++++++++++DONE+++++++++++++++");
 	}
 
 
@@ -1104,13 +1123,13 @@ namespace czq
 												};
 
 			
-		Nana::say(Nana::HAPPY, ToOnPublish, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnPublish, "+++++++++++++++START+++++++++++++++");
 		rtmpPacketHeader.flag = 0;
 		//the audio video channel
 		rtmpPacketHeader.chunkStreamID = 4;
 		rtmpPacketHeader.size = 12;
 		onRtmpReply(rtmpPacketHeader, 0, PublishParametersS, 5, connFd);
-		Nana::say(Nana::HAPPY, ToOnPublish, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnPublish, "+++++++++++++++DONE+++++++++++++++");
 										  
 	}
 
@@ -1120,7 +1139,7 @@ namespace czq
 									const char *parameters[][2], int rows, int connFd)
 	{
 		#define ToOnRtmpReply __func__
-		Nana::say(Nana::HAPPY, ToOnRtmpReply, "+++++++++++++++START+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnRtmpReply, "+++++++++++++++START+++++++++++++++");
 		unsigned char reply[250];
 		size_t AMFSize = generateReply(reply, transactionID, parameters, rows);
 		unsigned char * rtmpPack = new unsigned char[rtmpPacketHeader.size+AMFSize];
@@ -1143,14 +1162,14 @@ namespace czq
 		ssize_t wroteBytes = write(connFd, rtmpPack, rtmpPacketHeader.size+AMFSize);
 		if (wroteBytes < 0 || (static_cast<size_t>(wroteBytes) != rtmpPacketHeader.size+AMFSize))
 		{
-			Nana::say(Nana::COMPLAIN, ToOnRtmpReply, "WRITE ERROR:%s", strerror(errno));
+			nana->say(Nana::COMPLAIN, ToOnRtmpReply, "WRITE ERROR:%s", strerror(errno));
 		}
 		else
 		{
-			Nana::say(Nana::HAPPY, ToOnRtmpReply, "RTMP PACKET WRITTEN BYTES:%d", wroteBytes);
+			nana->say(Nana::HAPPY, ToOnRtmpReply, "RTMP PACKET WRITTEN BYTES:%d", wroteBytes);
 		}
 		delete [] rtmpPack;
-		Nana::say(Nana::HAPPY, ToOnRtmpReply, "+++++++++++++++DONE+++++++++++++++");
+		nana->say(Nana::HAPPY, ToOnRtmpReply, "+++++++++++++++DONE+++++++++++++++");
 	}
 
 
