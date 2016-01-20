@@ -19,6 +19,7 @@ namespace czq
 			static void setNonBlocking(int sockFd);
 			static size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
 			static void setSndBufferSize(int sockFd, unsigned int sndBufferSize);
+			static ssize_t writeSpecifySize2(int fd, const void *buffer, size_t total_bytes);
 	};
 }
 #endif

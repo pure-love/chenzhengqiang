@@ -102,6 +102,8 @@ namespace czq
                    //ignore the coreMap object temporarily
                    struct AmfPacket
                     {
+			    short eventType;	
+			    unsigned int windowAcknowledgementSize;				
                         std::string command;
                         //the first byte indicates whether the transaction ID exist
                         //0->not exists
@@ -117,8 +119,9 @@ namespace czq
                         std::map<std::string, std::string> parameters; 
                     };
 		public:
-			static int parseRtmpPacket(unsigned char *buffer, size_t len, std::vector<RtmpPacket> & rtmpPacketPool);
-			static void parseRtmpAMF0(unsigned char *buffer, size_t len, AmfPacket & amf);
+			static int   parseRtmpPacket(unsigned char *buffer, size_t len, std::vector<RtmpPacket> & rtmpPacketPool);
+			static void parseRtmpAMF0(unsigned char *buffer, size_t len, AmfPacket & amf, 
+										  const RtmpMessageType & rtmpMessageType = MESSAGE_INVOKE);
 			static void rtmpAMF0Dump(const AmfPacket & amfPacket);
 			static void rtmpMessageDump(const RtmpMessageType &);
 			static bool onRtmpInvoke(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);

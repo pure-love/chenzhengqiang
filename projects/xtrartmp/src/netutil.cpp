@@ -138,4 +138,39 @@ namespace czq
     		}
     		return (totalBytes-leftBytes);
 	}
+
+
+	ssize_t   NetUtil::writeSpecifySize2(int fd, const void *buffer, size_t total_bytes)
+	{
+    		size_t      left_bytes;
+    		ssize_t     sent_bytes;
+    		const uint8_t *buffer_forward= (const uint8_t *)buffer;
+    		left_bytes = total_bytes;
+    		while ( true )
+    		{
+        		if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+        		{
+            			if ( sent_bytes < 0 )
+            			{
+                			if ( errno == EINTR  || errno == EAGAIN || errno == EWOULDBLOCK )
+                			{
+                    			sent_bytes = 0;
+                			}
+                			else
+                			{
+                    			return -1;
+                			}
+            			}
+            			else
+                		return -1;
+
+        		}
+				
+        		left_bytes -= sent_bytes;
+        		if ( left_bytes == 0 )
+            		break;
+        		buffer_forward   += sent_bytes;
+    		}
+    		return(total_bytes);
+	}
 }

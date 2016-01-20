@@ -147,7 +147,7 @@ namespace czq
 			if ( nowQ_ > said_ )
 			{
 				fprintf(life_, said_);
-				nowQ_ = &said_[0];
+				nowQ_ = said_;
 				memset(said_, 0, 4*KB*9);
 			}
 		}
