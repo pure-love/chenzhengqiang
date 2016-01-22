@@ -134,6 +134,8 @@ namespace czq
 			static void onReleaseStream(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
 			static void onFCPublish(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
 			static void onPublish(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onPlay(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
+			static void onGetStreamLength(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd);
 			static size_t generateReply(unsigned char *reply, unsigned char *transactionID, const char * parameters[][2], int rows);
 			static void onRtmpReply(RtmpPacketHeader & rtmpPacketHeader, unsigned char *transactionID, const char *parameters[][2], int rows, int connFD);
 			static void onRtmpReply(const RtmpMessageType & rtmpMessageType, int connFD, size_t size=0);

@@ -42,7 +42,8 @@ namespace czq
         	static const char *FCPublish = "FCPublish";
         	static const char *receiveAudio = "receiveAudio";
         	static const char *receiveVideo = "receiveVideo";
-		static const char *_checkbw = "_checkbw";	
+		static const char *_checkbw = "_checkbw";
+		static const char *getStreamLength = "getStreamLength";
        };
        
 	//define the global variable for xtrartmp server's sake
@@ -622,7 +623,7 @@ namespace czq
 			pointer +=AMFSize-1;
 			if ( AMFType == XtraRtmp::MESSAGE_INVOKE && format == 0 && channelID == 3)
 			{
-				while ( *pointer != 9 )
+				while ( *pointer != 9 && *pointer != 5)
 				{
 					pointer +=1;
 					read(consultWatcher->fd, pointer, 1);
@@ -1079,7 +1080,8 @@ namespace czq
 			}
 			else if (amfPacket.command == AmfCommand::play)
 			{
-				
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF play COMMAND");
+				onPlay(rtmpPacketHeader, amfPacket, connFd);
 			}
 			else if (amfPacket.command == AmfCommand::play2)
 			{
@@ -1117,6 +1119,11 @@ namespace czq
 				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE _checkbw COMMAND");
 				onCheckbw(rtmpPacketHeader, amfPacket, connFd);
 			}
+			else if (amfPacket.command == AmfCommand::getStreamLength)
+			{
+				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE getStreamLength COMMAND");
+				onGetStreamLength(rtmpPacketHeader, amfPacket, connFd);
+			}
 		}
 		else
 		{
@@ -1126,10 +1133,61 @@ namespace czq
 	}
 
 
+	void XtraRtmp::onPlay(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd)
+	{
+		
+		#define ToOnPlay __func__
+		
+		const char * OnPlay1[4][2]={ 
+										{"onStatus",0},
+										{0, 0},//null data
+										{"level", "status"},
+										{"code","NetStream.Play.Reset"}
+								   };
+		
+		const char * OnPlay2[4][2]={ 
+										{"onStatus",0},
+										{0, 0},
+										{"level", "status"},
+										{"code","NetStream.Play.Start"}
+								   };
+		const char * OnPlay3[1][2]={
+								   {"|RtmpSampleAccess", 0},
+							       };
 
+		
+		rtmpPacketHeader.flag = 0;
+		//the audio video channel
+		rtmpPacketHeader.chunkStreamID = 4;
+		rtmpPacketHeader.size = 12;
+		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay1, 4, connFd);
+		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay2, 4, connFd);
+		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay3, 1, connFd);
+		
+	}
+
+		
+	void XtraRtmp::onGetStreamLength(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd)
+	{
+		#define ToOnGetStreamLength __func__
+		
+		if (rtmpPacketHeader.size  < 8)
+		return;
+		
+		const char * GetStreamParameters[2][2]={ 
+												{"_result",0},
+												{0,0},
+											 };
+		
+		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, GetStreamParameters, 2, connFd);
+		nana->say(Nana::HAPPY, ToOnGetStreamLength, "REPLY RTMP AMF COMMAND DONE:getStreamLength");
+		onRtmpReply(MESSAGE_USER_CONTROL, connFd);
+		nana->say(Nana::HAPPY, ToOnGetStreamLength, "REPLY USER CONTROL MESSAGE DONE");
+	}
+
+	
 	void XtraRtmp::onConnect(RtmpPacketHeader &rtmpPacketHeader, AmfPacket &amfPacket, int connFd)
 	{
-		(void) amfPacket;
 		#define ToOnConnect __func__
 		
 		if (rtmpPacketHeader.size  < 8)
