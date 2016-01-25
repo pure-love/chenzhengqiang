@@ -27,6 +27,7 @@ namespace czq
     	return;
 
 	Nana *nana=0;
+	
 	//the amf command
 	namespace AmfCommand
        {
@@ -1150,7 +1151,8 @@ namespace czq
 										{0, 0},
 										{"level", "status"},
 										{"code","NetStream.Play.Start"}
-								   };
+								 };
+		
 		const char * OnPlay3[1][2]={
 								   {"|RtmpSampleAccess", 0},
 							       };
