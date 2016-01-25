@@ -12,6 +12,8 @@
 #define _CZQ_MP4_H_
 //write the function prototypes or the declaration of variables here
 #include<stdint.h>
+#include<cstdio>
+
 namespace czq
 {
 	namespace mp4
@@ -35,11 +37,16 @@ namespace czq
 			uint8_t comtableBrands[12];
 		};
 
-		struct MP4
+		struct MP4Boxes
 		{
-			FtypBox *ftypeBox;
+			FtypBox *ftypBox;
 		};
-			
+
+		MP4Boxes * allocateMP4Boxes();
+		void deallocateMP4Boxes( void * data);
+		MP4Boxes * onMediaMP4Parse(const char * fileName);
+		bool onFtypBoxParse(FILE *fmp4Handler, FtypBox * ftypBox);
+		void onMP4InfoDump(void * data);
 	};
 };
 #endif
