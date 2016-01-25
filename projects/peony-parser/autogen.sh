@@ -1,11 +1,11 @@
 #file name:autogen.sh
 #author:chenzhengqiang
-#start date:2016/01/15 09:44:31
+#start date:2016/01/22 16:41:31
 #modified date:
 #desc:auto generate the Makefile
 #!/bin/bash
 #########global configuration#######
-TARGET=simpleCGI
+TARGET="write the target of compiler here"
 MAIN_FILE=main
 AUTHOR=chenzhengqiang
 DATE=`date '+%Y/%m/%d %H:%M:%S'`
@@ -14,14 +14,14 @@ COMPILER_FLAGS="-pg -g -W -Wall -Werror -Wshadow -Wconversion -Wextra -Wunused-p
 #define the optimize level
 OLEVEL=0
 MAKEFILE=./Makefile
-LDCONFIG=
+LDCONFIG="write the load config your program need here:e.g. -lpthread -lmath"
 SOURCE_DIR=./src
 INCLUDE_DIR=./include
 INSTALL_DIR=/usr/local/bin
 #you didn't have to configure this
-CONFIG_PATH=./config
-CONFIG_INSTALL_PATH=/etc/simplecgi
-SERVICE=./scripts/simpleCGI
+CONFIG_PATH=
+CONFIG_INSTALL_PATH=
+SERVICE=
 #########global configuration#######
 `rm -rf $MAKEFILE`
 `touch $MAKEFILE`
@@ -50,7 +50,7 @@ echo "CC:=$COMPILER" >> $MAKEFILE
 echo "#define the optimize level of compiler" >> $MAKEFILE
 echo "OLEVEL=$OLEVEL" >> $MAKEFILE
 echo "LDCONFIG:=$LDCONFIG" >> $MAKEFILE
-echo "COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow -Wunused-parameter" >> $MAKEFILE
+echo "COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow" >> $MAKEFILE
 echo "CFLAGS:=-O\$(OLEVEL)  -I\$(INCLUDE_DIR) \$(COMPILER_FLAGS) \$(LDCONFIG)" >> $MAKEFILE
 for cpp_file in `ls $SOURCE_DIR`
 do
