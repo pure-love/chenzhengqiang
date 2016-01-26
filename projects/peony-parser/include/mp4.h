@@ -34,18 +34,47 @@ namespace czq
 			Boxheader boxHeader;
 			uint8_t majorBrand[4];
 			uint8_t minorVersion[4];
-			uint8_t comtableBrands[12];
+			uint8_t compatibleBrands[12+1];
 		};
 
+		struct MvhdBox
+		{
+			Boxheader boxHeader;
+			uint32_t creationTime;
+			uint32_t modificationTime;
+			uint32_t timescale;
+			uint32_t duration;
+			uint32_t rate;
+			uint8_t volume[2];
+			uint8_t reserved[10];
+			uint8_t matrix[36];
+		};
+
+		struct TrackBox
+		{
+			Boxheader boxHeader;
+			TrackBox * next;
+		};
+		
+		struct MoovBox
+		{
+			uint32_t size;
+			uint8_t type[8];//it should be moov
+			MvhdBox mvhdBox;
+			TrackBox *tracks;
+		};
+		
 		struct MP4Boxes
 		{
 			FtypBox *ftypBox;
+			MoovBox * moovBox;
 		};
 
 		MP4Boxes * allocateMP4Boxes();
 		void deallocateMP4Boxes( void * data);
 		MP4Boxes * onMediaMP4Parse(const char * fileName);
-		bool onFtypBoxParse(FILE *fmp4Handler, FtypBox * ftypBox);
+		bool onFtypBoxParse(uint8_t *buffer, uint32_t size, FtypBox * ftypBox);
+		bool onMoovBoxParse(uint8_t *buffer, uint32_t size, MoovBox * moovBox);
 		void onMP4InfoDump(void * data);
 	};
 };
