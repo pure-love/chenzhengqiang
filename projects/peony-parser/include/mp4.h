@@ -44,12 +44,21 @@ namespace czq
 			uint32_t modificationTime;
 			uint32_t timescale;
 			uint32_t duration;
-			uint32_t rate;
+			uint8_t rate[4];
 			uint8_t volume[2];
 			uint8_t reserved[10];
 			uint8_t matrix[36];
+			uint8_t predefined[24];
+			uint32_t nextTrackID;
 		};
 
+		struct IodsBox
+		{
+			Boxheader boxHeader;
+			uint8_t * data;
+			uint32_t size;
+		};
+		
 		struct TrackBox
 		{
 			Boxheader boxHeader;
@@ -59,15 +68,16 @@ namespace czq
 		struct MoovBox
 		{
 			uint32_t size;
-			uint8_t type[8];//it should be moov
-			MvhdBox mvhdBox;
+			uint8_t type[4];//it should be moov
+			MvhdBox *mvhdBox;
+			IodsBox  *iodsBox;
 			TrackBox *tracks;
 		};
 		
 		struct MP4Boxes
 		{
-			FtypBox *ftypBox;
-			MoovBox * moovBox;
+			FtypBox  *ftypBox;
+			MoovBox *moovBox;
 		};
 
 		MP4Boxes * allocateMP4Boxes();

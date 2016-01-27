@@ -38,7 +38,9 @@ namespace czq
 				mp4Boxes->moovBox = new MoovBox;
 				if ( mp4Boxes->moovBox != 0 )
 				{
-					mp4Boxes->moovBox->mvhdBox.boxHeader.fullBox= 1;
+					mp4Boxes->moovBox->mvhdBox = 0;
+					mp4Boxes->moovBox->iodsBox = 0;
+					mp4Boxes->moovBox->tracks = 0;
 				}
 				else
 				{
@@ -145,48 +147,100 @@ namespace czq
 			return status;
 		}
 
-		bool onMoovBoxParse(uint8_t *buffer,uint32_t size, MoovBox * moovBox)
+		bool onMoovBoxParse(uint8_t *buffer,uint32_t bufferSize, MoovBox * moovBox)
 		{
-			bool status = false;
-			if ( buffer == 0 || size == 0 || moovBox == 0 )
+			bool status = true;
+			if ( buffer == 0 || bufferSize < 16 || moovBox == 0 )
 			{
 				status = false;
 			}
 
 			uint32_t pos = 4;
-			moovBox->size = size;
+			moovBox->size = bufferSize;
 			memcpy(moovBox->type, buffer+pos, 4);
 			pos += 4;
-			memcpy(&moovBox->mvhdBox.boxHeader.size, buffer+pos, 4);
-			moovBox->mvhdBox.boxHeader.size = ntohl(moovBox->mvhdBox.boxHeader.size);
+			uint32_t size=0;
+			uint8_t type[4]={0};
+
+			memcpy(&size, buffer+pos, 4);
+			size = ntohl(size);
 			pos +=4;
-			memcpy(moovBox->mvhdBox.boxHeader.type, buffer+pos, 4);
+			memcpy(type, buffer+pos, 4);
 			pos +=4;
-			memcpy(&moovBox->mvhdBox.boxHeader.version, buffer+pos, 1);
-			pos +=1;
-			memcpy(moovBox->mvhdBox.boxHeader.flags, buffer+pos, 3);
-			pos += 3;
-			memcpy(&moovBox->mvhdBox.creationTime, buffer+pos, 4);
-			moovBox->mvhdBox.creationTime = ntohl(moovBox->mvhdBox.creationTime );
-			pos +=4;
-			memcpy(&moovBox->mvhdBox.modificationTime, buffer+pos, 4);
-			moovBox->mvhdBox.modificationTime = ntohl(moovBox->mvhdBox.modificationTime );
-			pos += 4;
-			memcpy(&moovBox->mvhdBox.timescale, buffer+pos, 4);
-			moovBox->mvhdBox.timescale = ntohl(moovBox->mvhdBox.timescale);
-			pos += 4;
-			memcpy(&moovBox->mvhdBox.duration, buffer+pos, 4);
-			moovBox->mvhdBox.duration = ntohl(moovBox->mvhdBox.duration );
-			pos += 4;
-			memcpy(&moovBox->mvhdBox.rate, buffer+pos, 4);
-			moovBox->mvhdBox.rate = ntohl(moovBox->mvhdBox.rate );
-			pos += 4;
-			memcpy(moovBox->mvhdBox.volume, buffer+pos, 2);
-			pos +=2;
-			memcpy(moovBox->mvhdBox.reserved, buffer+pos, 10);
-			pos +=10;
-			memcpy(moovBox->mvhdBox.matrix, buffer+pos, 36);
-			pos +=36;
+			
+			while ( (pos-8+size) <= bufferSize  )
+			{
+				if ( type[0] == 'm' && type[1] == 'v' && type[2] == 'h' && type[3] == 'd' )
+				{
+					moovBox->mvhdBox = new MvhdBox;
+					if ( moovBox->mvhdBox != 0 )
+					{
+						moovBox->mvhdBox->boxHeader.size = size;
+						memcpy(moovBox->mvhdBox->boxHeader.type, type, 4);
+						memcpy(&moovBox->mvhdBox->boxHeader.version, buffer+pos, 1);
+						pos +=1;
+						memcpy(moovBox->mvhdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(&moovBox->mvhdBox->creationTime, buffer+pos, 4);
+						moovBox->mvhdBox->creationTime = ntohl(moovBox->mvhdBox->creationTime );
+						pos +=4;
+						memcpy(&moovBox->mvhdBox->modificationTime, buffer+pos, 4);
+						moovBox->mvhdBox->modificationTime = ntohl(moovBox->mvhdBox->modificationTime );
+						pos += 4;
+						memcpy(&moovBox->mvhdBox->timescale, buffer+pos, 4);
+						moovBox->mvhdBox->timescale = ntohl(moovBox->mvhdBox->timescale);
+						pos += 4;
+						memcpy(&moovBox->mvhdBox->duration, buffer+pos, 4);
+						moovBox->mvhdBox->duration = ntohl(moovBox->mvhdBox->duration );
+						pos += 4;
+						memcpy(moovBox->mvhdBox->rate, buffer+pos, 4);
+						pos += 4;
+						memcpy(moovBox->mvhdBox->volume, buffer+pos, 2);
+						pos +=2;
+						memcpy(moovBox->mvhdBox->reserved, buffer+pos, 10);
+						pos +=10;
+						memcpy(moovBox->mvhdBox->matrix, buffer+pos, 36);
+						pos +=36;
+						memcpy(moovBox->mvhdBox->predefined, buffer+pos, 24);
+						pos +=24;
+						memcpy(&moovBox->mvhdBox->nextTrackID, buffer+pos, 4);
+						pos += 4;
+						moovBox->mvhdBox->nextTrackID = ntohl(moovBox->mvhdBox->nextTrackID);
+
+						if ( (pos + size) <= bufferSize )
+						{
+							memcpy(&size, buffer+pos, 4);
+							size = ntohl(size);
+							pos +=4;
+							memcpy(type, buffer+pos, 4);
+							pos +=4;
+						}
+						else
+						break;	
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}	
+
+				if ( type[0] == 'i' && type[1] == 'o' && type[2] == 'd' && type[3] == 's' )
+				{
+					moovBox->iodsBox = new IodsBox;
+					if ( moovBox->iodsBox != 0 )
+					{
+						moovBox->iodsBox->boxHeader.size = size;
+						memcpy(moovBox->iodsBox->boxHeader.type, type, 4);
+						break;
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+			}
 			return status;
 		}
 
@@ -212,17 +266,33 @@ namespace czq
 				{
 					cout<<"++++++++++++++++++++++++MOOV BOX++++++++++++++++++++++++++"<<endl;
 					cout<<"size:"<<mp4Boxes->moovBox->size<<endl;
-					cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->type)<<endl;
-					cout<<"++++++++++MVHD BOX++++++++++"<<endl;
-					cout<<"size:"<<mp4Boxes->moovBox->mvhdBox.boxHeader.size<<endl;
-					cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->mvhdBox.boxHeader.type)<<endl;
-					cout<<"version:"<<(int)mp4Boxes->moovBox->mvhdBox.boxHeader.version<<endl;
-					cout<<"creation time:"<<mp4Boxes->moovBox->mvhdBox.creationTime<<endl;
-					cout<<"modification time:"<<mp4Boxes->moovBox->mvhdBox.modificationTime<<endl;
-					cout<<"timescale:"<<mp4Boxes->moovBox->mvhdBox.timescale<<endl;
-					cout<<"duration:"<<mp4Boxes->moovBox->mvhdBox.duration<<endl;
-					cout<<"rate:"<<mp4Boxes->moovBox->mvhdBox.rate<<endl;
-					cout<<endl<<endl;
+					cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->type, 4)<<endl;
+
+					if ( mp4Boxes->moovBox->mvhdBox != 0 )
+					{
+						cout<<"++++++++++++MVHD BOX++++++++++++"<<endl;
+						cout<<"size:"<<mp4Boxes->moovBox->mvhdBox->boxHeader.size<<endl;
+						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->mvhdBox->boxHeader.type)<<endl;
+						cout<<"version:"<<(int)mp4Boxes->moovBox->mvhdBox->boxHeader.version<<endl;
+						cout<<"creation time:"<<mp4Boxes->moovBox->mvhdBox->creationTime<<endl;
+						cout<<"modification time:"<<mp4Boxes->moovBox->mvhdBox->modificationTime<<endl;
+						cout<<"timescale:"<<mp4Boxes->moovBox->mvhdBox->timescale<<endl;
+						cout<<"duration:"<<mp4Boxes->moovBox->mvhdBox->duration<<endl;
+						double rate = static_cast<double>(mp4Boxes->moovBox->mvhdBox->rate[0]*256+mp4Boxes->moovBox->mvhdBox->rate[1]);
+						cout<<"rate:"<<rate<<endl;
+						double volume = static_cast<double>(mp4Boxes->moovBox->mvhdBox->volume[0]);
+						cout<<"volume:"<<volume<<endl;
+						cout<<"next track ID:"<<(int)mp4Boxes->moovBox->mvhdBox->nextTrackID<<endl;
+						cout<<endl<<endl;
+					}
+
+					if ( mp4Boxes->moovBox->iodsBox != 0 )
+					{
+						cout<<"++++++++++++IODS BOX++++++++++++"<<endl;
+						cout<<"size:"<<mp4Boxes->moovBox->iodsBox->boxHeader.size<<endl;
+						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->iodsBox->boxHeader.type)<<endl;
+						cout<<endl<<endl;
+					}
 				}
 			}
 		}
