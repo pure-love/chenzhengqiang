@@ -40,7 +40,7 @@ namespace czq
 				{
 					mp4Boxes->moovBox->mvhdBox = 0;
 					mp4Boxes->moovBox->iodsBox = 0;
-					mp4Boxes->moovBox->tracks = 0;
+					mp4Boxes->moovBox->traks = 0;
 				}
 				else
 				{
@@ -52,7 +52,7 @@ namespace czq
 			return mp4Boxes;
 		}
 		
-		void deallocateMP4Boxes( void * data)
+		void deallocateMP4Boxes( void * data )
 		{
 			MP4Boxes *mp4Boxes = static_cast<MP4Boxes *>(data);
 			if ( mp4Boxes != 0 )
@@ -147,8 +147,23 @@ namespace czq
 			return status;
 		}
 
+
 		bool onMoovBoxParse(uint8_t *buffer,uint32_t bufferSize, MoovBox * moovBox)
 		{
+			#define GET_SIZE_TYPE(P,S,T,D,B) \
+			if ( (P+S) <= B )\
+			{\
+				memcpy(&S, D+P, 4);\
+				S = ntohl(S);\
+				P +=4;\
+				memcpy(T, D+P, 4);\
+				P +=4;\
+			}\
+			else\
+			{\
+				break;\
+			}\
+			
 			bool status = true;
 			if ( buffer == 0 || bufferSize < 16 || moovBox == 0 )
 			{
@@ -168,6 +183,7 @@ namespace czq
 			memcpy(type, buffer+pos, 4);
 			pos +=4;
 			
+			TrakBox *prevTrackBox = 0; 
 			while ( (pos-8+size) <= bufferSize  )
 			{
 				if ( type[0] == 'm' && type[1] == 'v' && type[2] == 'h' && type[3] == 'd' )
@@ -203,20 +219,10 @@ namespace czq
 						pos +=36;
 						memcpy(moovBox->mvhdBox->predefined, buffer+pos, 24);
 						pos +=24;
-						memcpy(&moovBox->mvhdBox->nextTrackID, buffer+pos, 4);
+						memcpy(&moovBox->mvhdBox->nextTrakID, buffer+pos, 4);
 						pos += 4;
-						moovBox->mvhdBox->nextTrackID = ntohl(moovBox->mvhdBox->nextTrackID);
-
-						if ( (pos + size) <= bufferSize )
-						{
-							memcpy(&size, buffer+pos, 4);
-							size = ntohl(size);
-							pos +=4;
-							memcpy(type, buffer+pos, 4);
-							pos +=4;
-						}
-						else
-						break;	
+						moovBox->mvhdBox->nextTrakID = ntohl(moovBox->mvhdBox->nextTrakID);
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);	
 					}
 					else
 					{
@@ -230,9 +236,24 @@ namespace czq
 					moovBox->iodsBox = new IodsBox;
 					if ( moovBox->iodsBox != 0 )
 					{
-						moovBox->iodsBox->boxHeader.size = size;
-						memcpy(moovBox->iodsBox->boxHeader.type, type, 4);
-						break;
+						moovBox->iodsBox->size = size;
+						memcpy(moovBox->iodsBox->type, type, 4);
+						moovBox->iodsBox->data = 0;
+						if ( size-8 > 0 )
+						{
+							moovBox->iodsBox->data = new uint8_t[size-8];
+							pos += size-8;
+							if ( moovBox->iodsBox->data != 0 )
+							{
+								memcpy(moovBox->iodsBox->data, buffer+pos, size-8);
+								GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+							}
+							else
+							{
+								status = false;
+								break;
+							}
+						}
 					}
 					else
 					{
@@ -240,7 +261,63 @@ namespace czq
 						break;
 					}
 				}
+
+				if ( type[0] == 't' && type[1] == 'r' && type[2] == 'a' && type[3] == 'k' )
+				{
+					moovBox->traks = new TrakBox;
+					if ( moovBox->traks != 0 )
+					{
+						moovBox->traks->size = size;
+						memcpy(moovBox->traks->type, type, 4);
+						moovBox->traks->next = 0;
+						moovBox->traks->tkhdBox = 0;
+						if ( prevTrackBox != 0 )
+						{
+							prevTrackBox->next = moovBox->traks;
+						}
+						prevTrackBox = moovBox->traks;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 't' && type[1] == 'k' && type[2] == 'h' && type[3] == 'd' )
+				{
+					prevTrackBox->tkhdBox = new TkhdBox;
+					if ( prevTrackBox->tkhdBox != 0 )
+					{
+						cout <<"here"<<endl;
+						prevTrackBox->tkhdBox->boxHeader.fullBox = 1;
+						prevTrackBox->tkhdBox->boxHeader.size = size;
+						memcpy(prevTrackBox->tkhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrackBox->tkhdBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrackBox->tkhdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(&prevTrackBox->tkhdBox->creationTime, buffer+pos, 4);
+						prevTrackBox->tkhdBox->creationTime = ntohl(prevTrackBox->tkhdBox->creationTime);
+						pos += 4;
+						memcpy(&prevTrackBox->tkhdBox->modificationTime, buffer+pos, 4);
+						prevTrackBox->tkhdBox->modificationTime = ntohl(prevTrackBox->tkhdBox->modificationTime);
+						pos += 4;
+						memcpy(&prevTrackBox->tkhdBox->trakID, buffer+pos, 4);
+						prevTrackBox->tkhdBox->trakID = ntohl(prevTrackBox->tkhdBox->trakID);
+						break;
+						
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+					
+				}
 			}
+			
 			return status;
 		}
 
@@ -282,16 +359,33 @@ namespace czq
 						cout<<"rate:"<<rate<<endl;
 						double volume = static_cast<double>(mp4Boxes->moovBox->mvhdBox->volume[0]);
 						cout<<"volume:"<<volume<<endl;
-						cout<<"next track ID:"<<(int)mp4Boxes->moovBox->mvhdBox->nextTrackID<<endl;
+						cout<<"next track ID:"<<(int)mp4Boxes->moovBox->mvhdBox->nextTrakID<<endl;
 						cout<<endl<<endl;
 					}
 
 					if ( mp4Boxes->moovBox->iodsBox != 0 )
 					{
 						cout<<"++++++++++++IODS BOX++++++++++++"<<endl;
-						cout<<"size:"<<mp4Boxes->moovBox->iodsBox->boxHeader.size<<endl;
-						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->iodsBox->boxHeader.type)<<endl;
+						cout<<"size:"<<mp4Boxes->moovBox->iodsBox->size<<endl;
+						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->iodsBox->type, 4)<<endl;
 						cout<<endl<<endl;
+					}
+
+					if ( mp4Boxes->moovBox->traks != 0 )
+					{
+						cout<<"++++++++++++TRAK BOX++++++++++++"<<endl;
+						cout<<"size:"<<mp4Boxes->moovBox->traks->size<<endl;
+						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->type, 4)<<endl;
+						if ( mp4Boxes->moovBox->traks->tkhdBox != 0 )
+						{
+							cout<<"++++++++++++TKHD BOX++++++++++++"<<endl;
+							cout<<"size:"<<mp4Boxes->moovBox->traks->tkhdBox->boxHeader.size<<endl;
+							cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->tkhdBox->boxHeader.type, 4)<<endl;
+							cout<<"version:"<<(int)mp4Boxes->moovBox->traks->tkhdBox->boxHeader.version<<endl;
+							cout<<"creation time:"<<mp4Boxes->moovBox->traks->tkhdBox->creationTime<<endl;
+							cout<<"modification time:"<<mp4Boxes->moovBox->traks->tkhdBox->modificationTime<<endl;
+							cout<<"trak ID:"<<mp4Boxes->moovBox->traks->tkhdBox->trakID<<endl;
+						}
 					}
 				}
 			}

@@ -25,8 +25,8 @@ namespace czq
 			uint8_t type[4];
 			uint8_t version;
 			uint8_t flags[3];
-			uint8_t largeSize[8];
-			uint8_t uuid[16];
+			uint8_t *largeSize;
+			uint8_t *uuid;
 		};
 
 		struct FtypBox
@@ -49,20 +49,31 @@ namespace czq
 			uint8_t reserved[10];
 			uint8_t matrix[36];
 			uint8_t predefined[24];
-			uint32_t nextTrackID;
+			uint32_t nextTrakID;
 		};
 
 		struct IodsBox
 		{
-			Boxheader boxHeader;
-			uint8_t * data;
 			uint32_t size;
+			uint8_t type[4];
+			//data's size is size-8
+			uint8_t * data;
 		};
-		
-		struct TrackBox
+
+		struct TkhdBox
 		{
 			Boxheader boxHeader;
-			TrackBox * next;
+			uint32_t creationTime;
+			uint32_t modificationTime;
+			uint32_t trakID;
+		};
+		
+		struct TrakBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+			TkhdBox *tkhdBox;
+			TrakBox * next;
 		};
 		
 		struct MoovBox
@@ -71,7 +82,7 @@ namespace czq
 			uint8_t type[4];//it should be moov
 			MvhdBox *mvhdBox;
 			IodsBox  *iodsBox;
-			TrackBox *tracks;
+			TrakBox *traks;
 		};
 		
 		struct MP4Boxes
