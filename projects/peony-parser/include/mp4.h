@@ -66,6 +66,22 @@ namespace czq
 			uint32_t creationTime;
 			uint32_t modificationTime;
 			uint32_t trakID;
+			uint8_t reserved1[4];
+			uint32_t duration;
+			uint8_t reserved2[8];
+			uint8_t layer[2];
+			uint8_t alternateGroup[2];
+			uint8_t volume[2];
+			uint8_t reserved3[2];
+			uint8_t matrix[36];
+			uint8_t width[4];
+			uint8_t height[4];
+		};
+
+		struct MdiaBox
+		{
+			uint32_t size;
+			uint8_t type[4];
 		};
 		
 		struct TrakBox
@@ -73,6 +89,7 @@ namespace czq
 			uint32_t size;
 			uint8_t type[4];
 			TkhdBox *tkhdBox;
+			MdiaBox *mdiaBox;
 			TrakBox * next;
 		};
 		
