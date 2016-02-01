@@ -73,7 +73,7 @@ void MemoryPool<T>::expandTheFreeList(int howMany)
 	MemoryPool<T> * runner = static_cast<MemoryPool<T> *>(new char[size]);
 	next = runner;
 	
-	for ( int index = 0; index < howMany; ++index)
+	for ( int index = 0; index < howMany; ++index )
 	{
 		runner->next = static_cast<MemoryPool *>(new char[size]);
 		runner = runner->next;
@@ -82,11 +82,12 @@ void MemoryPool<T>::expandTheFreeList(int howMany)
 	runner->next = 0;
 }
 
-//write the prototypes here
+
+
 class Rational
 {
 	public:
-		Rational(int a =0, int b = 1):n(a), d(b){}
+		Rational(int a =0, int b = 1):n(a), d(b){;}
 		void *operator new(size_t size) { return memPool->alloc(size);}
 		void operator delete(void *doomed, size_t size) { memPool->free(doomed);}
 		static void newMemPool() { memPool = new MemoryPool<Rational>;}
