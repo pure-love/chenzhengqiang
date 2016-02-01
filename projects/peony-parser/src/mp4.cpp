@@ -345,7 +345,8 @@ namespace czq
 					{
 						prevTrackBox->mdiaBox->size = size;
 						memcpy(prevTrackBox->mdiaBox->type, type, 4);
-						break;
+						prevTrackBox->mdiaBox->mdhdBox = 0;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
 					else
 					{
@@ -353,6 +354,86 @@ namespace czq
 						break;
 					}
 					
+				}
+
+				if ( type[0] == 'm' && type[1] == 'd' && type[2] == 'h' && type[3] == 'd' )
+				{
+					prevTrackBox->mdiaBox->mdhdBox = new MdhdBox;
+					if ( prevTrackBox->mdiaBox->mdhdBox  != 0 )
+					{
+						prevTrackBox->mdiaBox->mdhdBox->boxHeader.size = size;
+						memcpy(prevTrackBox->mdiaBox->mdhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrackBox->mdiaBox->mdhdBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrackBox->mdiaBox->mdhdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(&prevTrackBox->mdiaBox->mdhdBox->creationTime, buffer+pos, 4);
+						prevTrackBox->mdiaBox->mdhdBox->creationTime = ntohl(prevTrackBox->mdiaBox->mdhdBox->creationTime);
+						pos += 4;
+						memcpy(&prevTrackBox->mdiaBox->mdhdBox->modificationTime, buffer+pos, 4);
+						prevTrackBox->mdiaBox->mdhdBox->modificationTime = ntohl(prevTrackBox->mdiaBox->mdhdBox->modificationTime);
+						pos += 4;
+						memcpy(&prevTrackBox->mdiaBox->mdhdBox->timescale, buffer+pos, 4);
+						prevTrackBox->mdiaBox->mdhdBox->timescale = ntohl(prevTrackBox->mdiaBox->mdhdBox->timescale);
+						pos += 4;
+						memcpy(&prevTrackBox->mdiaBox->mdhdBox->duration, buffer+pos, 4);
+						prevTrackBox->mdiaBox->mdhdBox->duration = ntohl(prevTrackBox->mdiaBox->mdhdBox->duration);
+						pos += 4;
+						memcpy(prevTrackBox->mdiaBox->mdhdBox->language, buffer+pos, 2);
+						pos += 2;
+						memcpy(prevTrackBox->mdiaBox->mdhdBox->predefined, buffer+pos, 2);
+						pos += 2;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 'h' && type[1] == 'd' && type[2] == 'l' && type[3] == 'r' )
+				{
+					prevTrackBox->mdiaBox->hdlrBox = new HdlrBox;
+					if ( prevTrackBox->mdiaBox->hdlrBox  != 0 )
+					{
+						prevTrackBox->mdiaBox->hdlrBox->boxHeader.size = size;
+						memcpy(prevTrackBox->mdiaBox->hdlrBox->boxHeader.type, type, 4);
+						memcpy(&prevTrackBox->mdiaBox->hdlrBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrackBox->mdiaBox->hdlrBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(prevTrackBox->mdiaBox->hdlrBox->componentType, buffer+pos, 4);
+						pos += 4;
+						memcpy(prevTrackBox->mdiaBox->hdlrBox->componentSubType, buffer+pos, 4);
+						pos += 4;
+						memcpy(prevTrackBox->mdiaBox->hdlrBox->reserved, buffer+pos, 12);
+						pos += 12;
+						prevTrackBox->mdiaBox->hdlrBox->name.assign((char*)(buffer+pos), size-32);
+						pos += size-32;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 'm' && type[1] == 'i' && type[2] == 'n' && type[3] == 'f' )
+				{
+					prevTrackBox->mdiaBox->minfBox = new MinfBox;
+					if ( prevTrackBox->mdiaBox->minfBox  != 0 )
+					{
+						prevTrackBox->mdiaBox->minfBox->size = size;
+						memcpy(prevTrackBox->mdiaBox->minfBox->type, type, 4);
+						break;
+					}
+					else
+					{
+						status = false;
+						break;
+					}
 				}
 			}
 			
@@ -426,7 +507,7 @@ namespace czq
 							cout<<"duration:"<<mp4Boxes->moovBox->traks->tkhdBox->duration<<endl;
 							cout<<"layer:"<<mp4Boxes->moovBox->traks->tkhdBox->layer[0]*256
 										    +mp4Boxes->moovBox->traks->tkhdBox->layer[1]<<endl;
-							cout<<"volume:"<<mp4Boxes->moovBox->traks->tkhdBox->volume[0]<<endl;
+							cout<<"volume:"<<(double)(mp4Boxes->moovBox->traks->tkhdBox->volume[0])<<endl;
 							cout<<"width:"<<mp4Boxes->moovBox->traks->tkhdBox->width[0]*256
 										    +mp4Boxes->moovBox->traks->tkhdBox->width[1]<<endl;
 							cout<<"height:"<<mp4Boxes->moovBox->traks->tkhdBox->height[0]*256
@@ -438,6 +519,37 @@ namespace czq
 							cout<<"++++++++++++MDIA BOX++++++++++++"<<endl;
 							cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->size<<endl;
 							cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->type, 4)<<endl;
+
+							if ( mp4Boxes->moovBox->traks->mdiaBox->mdhdBox != 0 )
+							{
+								cout<<"++++++++++++MDHD BOX++++++++++++"<<endl;
+								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.size<<endl;
+								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.type, 4)<<endl;
+								cout<<"version:"<<(int)mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.version<<endl;
+								cout<<"creation time:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->creationTime<<endl;
+								cout<<"modification time:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->modificationTime<<endl;
+								cout<<"timescale:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->timescale<<endl;
+								cout<<"duration:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->duration<<endl;
+								cout<<"language:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->language,2)<<endl;
+							}
+
+							if ( mp4Boxes->moovBox->traks->mdiaBox->hdlrBox != 0 )
+							{
+								cout<<"++++++++++++HDLR BOX++++++++++++"<<endl;
+								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.size<<endl;
+								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.type, 4)<<endl;
+								cout<<"version:"<<(int)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.version<<endl;
+								cout<<"component type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->componentType, 4)<<endl;
+								cout<<"component Subtype:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->componentSubType, 4)<<endl;
+								cout<<"name:"<<mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->name<<endl;
+							}
+
+							if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox != 0 )
+							{
+								cout<<"++++++++++++MINF BOX++++++++++++"<<endl;
+								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->minfBox->size<<endl;
+								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->minfBox->type, 4)<<endl;
+							}
 						}
 					}
 				}

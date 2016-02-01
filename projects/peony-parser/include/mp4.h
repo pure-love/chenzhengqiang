@@ -13,6 +13,7 @@
 //write the function prototypes or the declaration of variables here
 #include<stdint.h>
 #include<cstdio>
+#include<string>
 
 namespace czq
 {
@@ -78,10 +79,41 @@ namespace czq
 			uint8_t height[4];
 		};
 
+
+		struct MdhdBox
+		{
+			Boxheader boxHeader;
+			uint32_t creationTime;
+			uint32_t modificationTime;
+			uint32_t timescale;
+			uint32_t duration;
+			uint8_t language[2];
+			uint8_t predefined[2];
+			
+		};
+
+		struct HdlrBox
+		{
+			Boxheader boxHeader;
+			uint8_t componentType[4];
+			uint8_t componentSubType[4];
+			uint8_t reserved[12];
+			std::string name;
+		};
+
+		struct MinfBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+		};
+		
 		struct MdiaBox
 		{
 			uint32_t size;
 			uint8_t type[4];
+			MdhdBox * mdhdBox;
+			HdlrBox * hdlrBox;
+			MinfBox * minfBox;
 		};
 		
 		struct TrakBox
