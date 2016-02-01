@@ -21,7 +21,7 @@ INSTALL_DIR=/usr/local/bin
 #you didn't have to configure this
 CONFIG_PATH=./config
 CONFIG_INSTALL_PATH=/etc/fileLiveServer
-SERVICE=./scripts
+SERVICE=./scripts/$TARGET
 #########global configuration#######
 `rm -rf $MAKEFILE`
 `touch $MAKEFILE`

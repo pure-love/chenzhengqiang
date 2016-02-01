@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/01/30 18:30:15
+#generate date:2016/02/01 10:03:31
 
 
 INCLUDE_DIR:=./include
@@ -16,12 +16,12 @@ OLEVEL=0
 LDCONFIG:=-lev
 COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow
 CFLAGS:=-O$(OLEVEL)  -I$(INCLUDE_DIR) $(COMPILER_FLAGS) $(LDCONFIG)
-OBJS:=main 
+OBJS:=main serverutil netutil nana fileliveserver 
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
 CONFIG_PATH:=./config
-SERVICE:=./scripts
+SERVICE:=./scripts/fileLiveServer
 CONFIG_INSTALL_PATH:=/etc/fileLiveServer
 TAR_NAME=$(TARGET)-$(shell date +%Y%m%d)
 
@@ -37,7 +37,7 @@ $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe *.out
+	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
 
 install:
 	-mv $(TARGET) $(INSTALL_DIR)

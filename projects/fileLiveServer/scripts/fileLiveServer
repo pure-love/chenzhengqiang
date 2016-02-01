@@ -29,7 +29,6 @@ echo $pid > $pid_file
 sleep 0.3
 echo "(pid $pid)          [    OK    ]"
 pid=`pidof $service`
-touch $lock
 }
 
 
@@ -48,7 +47,6 @@ fi
 else
 echo "Error:Service $service Is Not Running."
 fi
-rm -rf $lock
 rm -rf $pid_file
 }
 

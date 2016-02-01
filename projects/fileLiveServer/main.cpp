@@ -1,18 +1,60 @@
 /*
-*@filename:main.cpp
-*@author:chenzhengqiang
-*@start date:2016/01/30 18:34:28
-*@modified date:
-*@desc: 
+ * @author:chenzhengqiang
+ * @company:swwy
+ * @date:2015/12/23
+ * @modified-date:
+ * @version:1.0
+ * @desc:
+ * this is the implementation of the simple rtmp server named xtrartmp
 */
 
+#include "fileliveserver.h"
+#include "netutil.h"
+#include "serverutil.h"
+#include <iostream>
+#include <cstdlib>
+using std::cerr;
+using std::endl;
 
+using namespace czq;
 
-#include<iostream>
-using namespace std;
+static const char *DEFAULT_CONFIG_FILE="/etc/fileLiveServer/server.conf";
 
-int main( int argc, char ** argv )
+int main( int ARGC, char ** ARGV )
 {
-	cout<<"hello"<<endl;
-	return 0;
-}
+	ServerUtil::CmdOptions cmdOptions;
+    ServerUtil::handleCmdOptions( ARGC, ARGV, cmdOptions );
+    ServerUtil::ServerConfig serverConfig;
+
+    if ( ! cmdOptions.configFile.empty() )
+    {
+		ServerUtil::readConfig( cmdOptions.configFile.c_str(), serverConfig );
+    }
+    else
+    {
+		ServerUtil::readConfig( DEFAULT_CONFIG_FILE, serverConfig );
+    }
+
+	Service::FileLiveServer  fileLiveServer(serverConfig);
+    if ( cmdOptions.needPrintHelp )
+    {
+		fileLiveServer.printHelp();
+    }
+
+    if ( cmdOptions.needPrintVersion )
+    {
+		fileLiveServer.printVersion();
+    }
+
+    int listenFd = NetUtil::registerTcpServer( serverConfig.server["bind-address"].c_str(), atoi(serverConfig.server["bind-port"].c_str()));
+	if ( listenFd > 0 )
+	{	
+		fileLiveServer.registerServer(listenFd);
+		fileLiveServer.serveForever();
+	}
+	else
+	{
+		cerr<<"register tcp server failed,please check the config file carefully"<<endl;
+	}
+    return 0;
+}	
