@@ -23,6 +23,7 @@ class MemoryPool
 };
 
 
+
 template<class T>
 MemoryPool<T>::MemoryPool (size_t size)
 {
@@ -69,8 +70,9 @@ template<class T>
 void MemoryPool<T>::expandTheFreeList(int howMany)
 {
 	size_t size = (sizeof(T) > sizeof(MemoryPool<T>*)) ? sizeof(T):sizeof(MemoryPool<T> *);
-	MemoryPool<T> * runner = static_cast<MemoryPool *>(new char[size]);
+	MemoryPool<T> * runner = static_cast<MemoryPool<T> *>(new char[size]);
 	next = runner;
+	
 	for ( int index = 0; index < howMany; ++index)
 	{
 		runner->next = static_cast<MemoryPool *>(new char[size]);
@@ -80,6 +82,7 @@ void MemoryPool<T>::expandTheFreeList(int howMany)
 	runner->next = 0;
 }
 
+//write the prototypes here
 class Rational
 {
 	public:
