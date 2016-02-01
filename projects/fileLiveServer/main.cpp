@@ -1,11 +1,11 @@
 /*
  * @author:chenzhengqiang
  * @company:swwy
- * @date:2015/12/23
+ * @date:2016/2/1
  * @modified-date:
  * @version:1.0
  * @desc:
- * this is the implementation of the simple rtmp server named xtrartmp
+ * this is the implementation of the file live server
 */
 
 #include "fileliveserver.h"

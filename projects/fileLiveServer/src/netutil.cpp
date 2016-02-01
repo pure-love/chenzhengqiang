@@ -1,7 +1,7 @@
 /*
  *@Author:chenzhengqiang
  *@company:swwy
- *@date:2015/12/23
+ *@date:2016/2/1
  *@modified:
  *@desc:
  @version:1.0
@@ -22,13 +22,11 @@ namespace czq
 				struct sockaddr_in server_addr;
 				if (( listenFd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0)
 				{
-		    		return SYSTEM_ERROR;
+		    			return SYSTEM_ERROR;
 				}
 
-				
 				setReuseAddr(listenFd);
-				setSndBufferSize(listenFd, 65535);
-				//setNonBlocking(listenFd);
+				setNonBlocking(listenFd);
 				bzero(server_addr.sin_zero, sizeof(server_addr.sin_zero));
 				server_addr.sin_family = AF_INET;
 				server_addr.sin_port = htons(static_cast<uint16_t>(PORT));
@@ -79,11 +77,11 @@ namespace czq
 		void setReuseAddr(int listenFd )
 		{
 			int REUSEADDR_ON=1;
-				int ret=setsockopt( listenFd, SOL_SOCKET, SO_REUSEADDR, &REUSEADDR_ON, sizeof(REUSEADDR_ON) );
-				if ( ret != 0 )
-				{
+			int ret=setsockopt( listenFd, SOL_SOCKET, SO_REUSEADDR, &REUSEADDR_ON, sizeof(REUSEADDR_ON) );
+			if ( ret != 0 )
+			{
 		    		;//do the error log here	
-				}
+			}
 				
 		}
 
@@ -91,11 +89,11 @@ namespace czq
 		void setNonBlocking(int sockFd)
 		{
 			int flags = fcntl(sockFd, F_GETFL, 0);
-				if (flags < 0)
-				{
+			if (flags < 0)
+			{
 		    		return;
-				}
-				fcntl(sockFd, F_SETFL, flags | O_NONBLOCK);
+			}
+			fcntl(sockFd, F_SETFL, flags | O_NONBLOCK);
 		}
 
 		void setSndBufferSize(int sockFd, unsigned int sndBufferSize)
@@ -113,8 +111,8 @@ namespace czq
 				leftBytes = totalBytes;
 				while (true)
 				{
-		    		if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
-		    		{
+		    			if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
+		    			{
 		        			if ( receivedBytes < 0)
 		        			{
 		            			if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
@@ -131,14 +129,14 @@ namespace czq
 		        			{
 		            			return 0; // it indicates the camera has  stoped to push 
 		        			}
-		    		}
+		    			}
 		    
-		    		leftBytes -= static_cast<size_t>(receivedBytes);
-		    		if (leftBytes == 0)
-		        		break;
-		    		bufferForward   += receivedBytes;
+		    			leftBytes -= static_cast<size_t>(receivedBytes);
+		    			if (leftBytes == 0)
+		        			break;
+		    			bufferForward   += receivedBytes;
 				}
-				return (totalBytes-leftBytes);
+			return (totalBytes-leftBytes);
 		}
 
 
@@ -150,8 +148,8 @@ namespace czq
 				left_bytes = total_bytes;
 				while ( true )
 				{
-		    		if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
-		    		{
+		    			if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+		    			{
 		        			if ( sent_bytes < 0 )
 		        			{
 		            			if ( errno == EINTR  || errno == EAGAIN || errno == EWOULDBLOCK )
@@ -166,14 +164,14 @@ namespace czq
 		        			else
 		            		return -1;
 
-		    		}
+		    			}
 					
-		    		left_bytes -= sent_bytes;
-		    		if ( left_bytes == 0 )
+		    			left_bytes -= sent_bytes;
+		    			if ( left_bytes == 0 )
 		        		break;
-		    		buffer_forward   += sent_bytes;
+		    			buffer_forward   += sent_bytes;
 				}
-				return(total_bytes);
+			return(total_bytes);
 		}
 	};
 }

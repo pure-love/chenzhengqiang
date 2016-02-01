@@ -38,6 +38,7 @@ namespace czq
 		};
 
 		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
+		void requestCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 	};
 };
 #endif

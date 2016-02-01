@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/02/01 10:03:31
+#generate date:2016/02/01 13:42:29
 
 
 INCLUDE_DIR:=./include
@@ -16,7 +16,7 @@ OLEVEL=0
 LDCONFIG:=-lev
 COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow
 CFLAGS:=-O$(OLEVEL)  -I$(INCLUDE_DIR) $(COMPILER_FLAGS) $(LDCONFIG)
-OBJS:=main serverutil netutil nana fileliveserver 
+OBJS:=main serverutil rosehttp netutil nana fileliveserver 
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

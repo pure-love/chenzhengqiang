@@ -13,21 +13,30 @@
 #include "errors.h"
 #include "netutil.h"
 #include "nana.h"
+#include "rosehttp.h"
 #include<iostream>
 #include<stdint.h>
 
 namespace czq
 {
 	namespace Service
-	{
+	{	
+		//define the global macro for libev's event clean
+		#define DO_EVENT_CB_CLEAN(M,W) \
+    		ev_io_stop(M, W);\
+    		delete W;\
+    		W= NULL;\
+    		return;
+		
+		//the global config
+		ServerUtil::ServerConfig SERVER_CONFIG;
 		//the global logging tool
 		Nana *nana=0;
-		
 		FileLiveServer::FileLiveServer( const ServerUtil::ServerConfig & serverConfig )
 		:listenFd_(-1),serverConfig_(serverConfig),mainEventLoop_(0),listenWatcher_(0),
 		acceptWatcher_(0)
 		{
-			;	
+			SERVER_CONFIG = serverConfig;
 		}
 
 		FileLiveServer::~FileLiveServer()
@@ -100,9 +109,9 @@ namespace czq
 			}
 		}
 
+
 		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents )
 		{
-			(void)mainEventLoop;
 			#define ToAcceptCallback __func__
 
 	    		if ( EV_ERROR & revents )
@@ -120,22 +129,83 @@ namespace czq
 	        		return;
 	    		}
 	    		
-	    		struct ev_io * receiveRequestWatcher = new struct ev_io;
-	    		if ( receiveRequestWatcher == NULL )
+	    		struct ev_io * requestWatcher = new struct ev_io;
+	    		if ( requestWatcher == NULL )
 	    		{
 	        		nana->say(Nana::COMPLAIN, ToAcceptCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
 	        		close(connFd);
 	        		return;
 	    		}
 	    
-	    		receiveRequestWatcher->active = 0;
-	    		receiveRequestWatcher->data = 0;   
+	    		requestWatcher->active = 0;
+	    		requestWatcher->data = 0;   
 	    		if ( nana->is(Nana::PEACE))
 	    		{
 	        		std::string peerInfo = NetUtil::getPeerInfo(connFd);
 	        		nana->say(Nana::PEACE, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
 	                                                             peerInfo.c_str(), connFd);
 	    		}
+
+			//register the socket io callback for reading client's request    
+    			ev_io_init(  requestWatcher, requestCallback, connFd, EV_READ );
+    			ev_io_start( mainEventLoop, requestWatcher );	
+		}
+
+
+		void requestCallback( struct ev_loop * mainEventLoop, struct ev_io * requestWatcher, int revents )
+		{
+			#define ToRequestCallback __func__
+
+	    		if ( EV_ERROR & revents )
+	    		{
+	        		nana->say(Nana::COMPLAIN, ToRequestCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+				RoseHttp::replyWithRoseHttpStatus( 500, requestWatcher->fd);
+        			close(requestWatcher->fd );
+				DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
+	    		}
+
+			 ssize_t receivedBytes;
+    			//used to store those key-values parsed from http request
+    			char request[1024];
+    			//read the http header and then parse it
+    			receivedBytes = RoseHttp::readRoseHttpHeader( requestWatcher->fd, request, sizeof(request) );
+    			if(  receivedBytes <= 0  )
+    			{     
+          			if(  receivedBytes == 0  )
+          			{
+              			if( nana->is(Nana::PEACE) )
+              			{
+                    			std::string peerInfo = NetUtil::getPeerInfo( requestWatcher->fd );
+                    			nana->say( Nana::PEACE, ToRequestCallback," READ 0 BYTE FROM %s CLIENT DISCONNECTED ALREADY",
+                                                                                           peerInfo.c_str() );
+              			}
+          			}
+          			else if(  receivedBytes == LENGTH_OVERFLOW  )
+          			{
+              			if( nana->is(Nana::PEACE) )
+              			{
+                    			std::string peerInfo = NetUtil::getPeerInfo( requestWatcher->fd );
+                    			nana->say( Nana::PEACE, ToRequestCallback, "CLIENT %s'S HTTP REQUEST LINE IS TOO LONG",
+                                                                                          peerInfo.c_str() );
+              			}
+          			}
+          
+          			RoseHttp::replyWithRoseHttpStatus( 400, requestWatcher->fd );
+          			close( requestWatcher->fd );
+          			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
+    			}
+    
+    			request[receivedBytes]='\0';
+    			nana->say( Nana::HAPPY, ToRequestCallback, "HTTP REQUEST HEADER:%s", request );
+			RoseHttp::SimpleRoseHttpHeader simpleRoseHttpHeader;
+			ssize_t ret = RoseHttp::parseSimpleRoseHttpHeader( request, strlen( request ), simpleRoseHttpHeader);
+    			if( ret == STREAM_FORMAT_ERROR )
+    			{
+        			nana->say( Nana::COMPLAIN, ToRequestCallback, "HTTP REQUEST LINE FORMAT ERROR");
+        			RoseHttp::replyWithRoseHttpStatus( 400, requestWatcher->fd );
+        			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);	
+    			}
+			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);	
 		}
 	};
 };
