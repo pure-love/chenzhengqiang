@@ -12,6 +12,10 @@
 #include <fstream>
 #include <cstdlib>
 #include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdint.h>
+
 extern int errno;
 
 using std::cerr;
@@ -174,6 +178,72 @@ namespace czq
 				buffer[index]=static_cast<unsigned char>(index*tmp+1986 % 256);
 				tmp = buffer[index];
 			}
+		}
+
+
+		bool fileExists(const char * file)
+		{
+			bool exists = false;
+			if((access(file,F_OK)) !=-1)   
+    			{   
+        			exists =  true;
+    			}
+			return exists;
+		}
+
+		
+		void setNonBlocking(int fd)
+		{
+			int flags = fcntl(fd, F_GETFL, 0);
+			if (flags < 0)
+			{
+		    		return;
+			}
+			fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+		}
+
+
+		ssize_t readSpecifySize( int fd, void *buffer, size_t totalBytes)
+		{
+    			size_t  leftBytes;
+    			ssize_t receivedBytes;
+    			uint8_t *bufferForward;
+    			bufferForward = (uint8_t *)buffer;
+    			leftBytes = totalBytes;
+
+    			while ( true )
+    			{
+        			if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
+        			{
+            				if (  receivedBytes < 0 )
+            				{
+                				if( errno == EINTR )
+                				{
+                    				receivedBytes = 0;
+                				}
+                				else if( errno == EAGAIN || errno == EWOULDBLOCK )
+                				{
+		        				if( (totalBytes-leftBytes) == 0 )
+		        				continue;		
+		        				return ( totalBytes-leftBytes );
+                				}
+                				else
+		   				{
+                     				return 0;
+		   				}
+            				}
+            				else
+	     				{
+                 				return 0; // it indicates the camera has  stoped to push stream or unknown error occurred
+	     				}
+        			}
+        
+        			leftBytes -= receivedBytes;
+        			if( leftBytes == 0 )
+            			break;
+        			bufferForward   += receivedBytes;
+    			}
+    			return ( totalBytes-leftBytes );	
 		}
 	};
 };

@@ -12,7 +12,10 @@
 #define _CZQ_FILELIVESERVER_H_
 //write the function prototypes or the declaration of variables here
 #include "serverutil.h"
+#include <vector>
 #include <ev++.h>
+#include <string>
+using std::string;
 namespace czq
 {
 	namespace Service
@@ -31,12 +34,18 @@ namespace czq
 				ServerUtil::ServerConfig serverConfig_;
 				struct ev_loop *mainEventLoop_;
                     	struct ev_io *listenWatcher_;
-                    	struct ev_io *acceptWatcher_;	
+                    	struct ev_io *acceptWatcher_;
+				struct ev_io *writeWatcher_;
+				bool stop_;
 			private:
 				FileLiveServer(const FileLiveServer &){}
 				FileLiveServer & operator=(const FileLiveServer &) { return *this; }
+				void directlyUpdateM3u8();
+				void getMediaFiles(const char * dir, std::vector<std::string> & mediaFilePool);
+				void deleteMediaFiles( std::vector<std::string> & mediaFilePool );
 		};
 
+		void writeCallback( struct ev_loop * mainEventLoop, struct ev_io * readWatcher, int revents );
 		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 		void requestCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 	};

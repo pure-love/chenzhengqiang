@@ -32,7 +32,10 @@ namespace czq
 		
 		void handleCmdOptions( int ARGC, char * * ARGV, CmdOptions & cmdOptions );
 		void readConfig( const char * configFile, ServerConfig & serverConfig );
+		bool fileExists(const char *file);
 		void generateSimpleRandomValue(unsigned char*buffer, unsigned int bufferLen);
+		void setNonBlocking(int fd);
+		ssize_t readSpecifySize( int fd, void *buffer, size_t totalBytes);
 	};
 
 	namespace Epoll
