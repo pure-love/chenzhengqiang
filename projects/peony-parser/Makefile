@@ -37,7 +37,7 @@ $(OBJS):%.o:%.$(SUFFIX)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
-	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe
+	-rm -f *.o *.a *.so *.log *core* $(TARGET) *.tar.gz *.cppe *.out
 
 install:
 	-mv $(TARGET) $(INSTALL_DIR)

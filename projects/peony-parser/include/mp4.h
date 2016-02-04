@@ -101,11 +101,99 @@ namespace czq
 			std::string name;
 		};
 
+		struct VmhdBox
+		{
+			Boxheader boxHeader;
+			uint8_t graphics[2];
+			uint8_t opcolor[2*3];
+		};
+
+		struct SmhdBox
+		{
+			Boxheader boxHeader;
+			uint8_t balance[2];
+			uint8_t reserved[2];
+		};
+
+		struct HmhdBox
+		{
+			Boxheader boxHeader;
+		};
+
+		struct NmhdBox
+		{
+			Boxheader boxHeader;
+		};
+
+		struct DrefBox
+		{
+			Boxheader boxHeader;
+			uint32_t entryCount;
+			//the urls' size is size -16
+			uint8_t *urls;
+		};
+		
+		struct DinfBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+			DrefBox * drefBox;
+		};
+
+		struct StsdBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct SttsBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct StscBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct StszBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct StcoBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct StssBox
+		{
+			Boxheader boxHeader;
+		};
+		
+		struct StblBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+			StsdBox *stsdBox;
+			SttsBox *sttsBox;
+			StscBox *stscBox;
+			StszBox *stszBox;
+			StcoBox *stcoBox;
+			StssBox *stssBox;
+		};
+		
 		struct MinfBox
 		{
 			uint32_t size;
 			uint8_t type[4];
+			VmhdBox *vmhdBox;
+			SmhdBox *smhdBox;
+			HmhdBox *hmhdBox;
+			NmhdBox *nmhdBox;
+			DinfBox 	*dinfBox; 
+			StblBox *stblBox;
 		};
+
 		
 		struct MdiaBox
 		{
@@ -124,6 +212,14 @@ namespace czq
 			MdiaBox *mdiaBox;
 			TrakBox * next;
 		};
+
+		struct UdtaBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+			//data's size is size -8
+			uint8_t *data;
+		};
 		
 		struct MoovBox
 		{
@@ -132,6 +228,7 @@ namespace czq
 			MvhdBox *mvhdBox;
 			IodsBox  *iodsBox;
 			TrakBox *traks;
+			UdtaBox *udtaBox;
 		};
 		
 		struct MP4Boxes

@@ -41,6 +41,7 @@ namespace czq
 					mp4Boxes->moovBox->mvhdBox = 0;
 					mp4Boxes->moovBox->iodsBox = 0;
 					mp4Boxes->moovBox->traks = 0;
+					mp4Boxes->moovBox->udtaBox = 0;
 				}
 				else
 				{
@@ -151,7 +152,7 @@ namespace czq
 		bool onMoovBoxParse(uint8_t *buffer,uint32_t bufferSize, MoovBox * moovBox)
 		{
 			#define GET_SIZE_TYPE(P,S,T,D,B) \
-			if ( (P+S) <= B )\
+			if ( (P+4) < B )\
 			{\
 				memcpy(&S, D+P, 4);\
 				S = ntohl(S);\
@@ -163,7 +164,7 @@ namespace czq
 			{\
 				break;\
 			}\
-			
+
 			bool status = true;
 			if ( buffer == 0 || bufferSize < 16 || moovBox == 0 )
 			{
@@ -183,7 +184,7 @@ namespace czq
 			memcpy(type, buffer+pos, 4);
 			pos +=4;
 			
-			TrakBox *prevTrackBox = 0; 
+			TrakBox *prevTrakBox = 0; 
 			while ( (pos-8+size) <= bufferSize  )
 			{
 				if ( type[0] == 'm' && type[1] == 'v' && type[2] == 'h' && type[3] == 'd' )
@@ -264,19 +265,24 @@ namespace czq
 
 				if ( type[0] == 't' && type[1] == 'r' && type[2] == 'a' && type[3] == 'k' )
 				{
-					moovBox->traks = new TrakBox;
-					if ( moovBox->traks != 0 )
+					TrakBox * trakBox = new TrakBox;
+					if ( trakBox != 0 )
 					{
-						moovBox->traks->size = size;
-						memcpy(moovBox->traks->type, type, 4);
-						moovBox->traks->next = 0;
-						moovBox->traks->tkhdBox = 0;
-						moovBox->traks->mdiaBox = 0;
-						if ( prevTrackBox != 0 )
+						trakBox->size = size;
+						memcpy(trakBox->type, type, 4);
+						trakBox->next = 0;
+						trakBox->tkhdBox = 0;
+						trakBox->mdiaBox = 0;
+						
+						if ( prevTrakBox != 0 )
 						{
-							prevTrackBox->next = moovBox->traks;
+							prevTrakBox->next = trakBox;
 						}
-						prevTrackBox = moovBox->traks;
+						else
+						{
+							moovBox->traks = trakBox;
+						}
+						prevTrakBox = trakBox;
 						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
 					else
@@ -288,45 +294,45 @@ namespace czq
 
 				if ( type[0] == 't' && type[1] == 'k' && type[2] == 'h' && type[3] == 'd' )
 				{
-					prevTrackBox->tkhdBox = new TkhdBox;
-					if ( prevTrackBox->tkhdBox != 0 )
+					prevTrakBox->tkhdBox = new TkhdBox;
+					if ( prevTrakBox->tkhdBox != 0 )
 					{
-						prevTrackBox->tkhdBox->boxHeader.fullBox = 1;
-						prevTrackBox->tkhdBox->boxHeader.size = size;
-						memcpy(prevTrackBox->tkhdBox->boxHeader.type, type, 4);
-						memcpy(&prevTrackBox->tkhdBox->boxHeader.version, buffer+pos, 1);
+						prevTrakBox->tkhdBox->boxHeader.fullBox = 1;
+						prevTrakBox->tkhdBox->boxHeader.size = size;
+						memcpy(prevTrakBox->tkhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->tkhdBox->boxHeader.version, buffer+pos, 1);
 						pos += 1;
-						memcpy(prevTrackBox->tkhdBox->boxHeader.flags, buffer+pos, 3);
+						memcpy(prevTrakBox->tkhdBox->boxHeader.flags, buffer+pos, 3);
 						pos += 3;
-						memcpy(&prevTrackBox->tkhdBox->creationTime, buffer+pos, 4);
-						prevTrackBox->tkhdBox->creationTime = ntohl(prevTrackBox->tkhdBox->creationTime);
+						memcpy(&prevTrakBox->tkhdBox->creationTime, buffer+pos, 4);
+						prevTrakBox->tkhdBox->creationTime = ntohl(prevTrakBox->tkhdBox->creationTime);
 						pos += 4;
-						memcpy(&prevTrackBox->tkhdBox->modificationTime, buffer+pos, 4);
-						prevTrackBox->tkhdBox->modificationTime = ntohl(prevTrackBox->tkhdBox->modificationTime);
+						memcpy(&prevTrakBox->tkhdBox->modificationTime, buffer+pos, 4);
+						prevTrakBox->tkhdBox->modificationTime = ntohl(prevTrakBox->tkhdBox->modificationTime);
 						pos += 4;
-						memcpy(&prevTrackBox->tkhdBox->trakID, buffer+pos, 4);
-						prevTrackBox->tkhdBox->trakID = ntohl(prevTrackBox->tkhdBox->trakID);
+						memcpy(&prevTrakBox->tkhdBox->trakID, buffer+pos, 4);
+						prevTrakBox->tkhdBox->trakID = ntohl(prevTrakBox->tkhdBox->trakID);
 						pos += 4;
-						memcpy(prevTrackBox->tkhdBox->reserved1, buffer+pos, 4);
+						memcpy(prevTrakBox->tkhdBox->reserved1, buffer+pos, 4);
 						pos += 4;
-						memcpy(&prevTrackBox->tkhdBox->duration, buffer+pos, 4);
+						memcpy(&prevTrakBox->tkhdBox->duration, buffer+pos, 4);
 						pos += 4;
-						prevTrackBox->tkhdBox->duration = ntohl(prevTrackBox->tkhdBox->duration);
-						memcpy(prevTrackBox->tkhdBox->reserved2, buffer+pos, 8);
+						prevTrakBox->tkhdBox->duration = ntohl(prevTrakBox->tkhdBox->duration);
+						memcpy(prevTrakBox->tkhdBox->reserved2, buffer+pos, 8);
 						pos += 8;
-						memcpy(prevTrackBox->tkhdBox->layer, buffer+pos, 2);
+						memcpy(prevTrakBox->tkhdBox->layer, buffer+pos, 2);
 						pos += 2;
-						memcpy(prevTrackBox->tkhdBox->alternateGroup, buffer+pos, 2);
+						memcpy(prevTrakBox->tkhdBox->alternateGroup, buffer+pos, 2);
 						pos += 2;
-						memcpy(prevTrackBox->tkhdBox->volume, buffer+pos, 2);
+						memcpy(prevTrakBox->tkhdBox->volume, buffer+pos, 2);
 						pos += 2;
-						memcpy(prevTrackBox->tkhdBox->reserved3, buffer+pos, 2);
+						memcpy(prevTrakBox->tkhdBox->reserved3, buffer+pos, 2);
 						pos += 2;
-						memcpy(prevTrackBox->tkhdBox->matrix, buffer+pos, 36);
+						memcpy(prevTrakBox->tkhdBox->matrix, buffer+pos, 36);
 						pos += 36;
-						memcpy(prevTrackBox->tkhdBox->width, buffer+pos, 4);
+						memcpy(prevTrakBox->tkhdBox->width, buffer+pos, 4);
 						pos += 4;
-						memcpy(prevTrackBox->tkhdBox->height, buffer+pos, 4);
+						memcpy(prevTrakBox->tkhdBox->height, buffer+pos, 4);
 						pos += 4;
 						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
@@ -340,12 +346,12 @@ namespace czq
 
 				if ( type[0] == 'm' && type[1] == 'd' && type[2] == 'i' && type[3] == 'a' )
 				{
-					prevTrackBox->mdiaBox = new MdiaBox;
-					if ( prevTrackBox->mdiaBox != 0 )
+					prevTrakBox->mdiaBox = new MdiaBox;
+					if ( prevTrakBox->mdiaBox != 0 )
 					{
-						prevTrackBox->mdiaBox->size = size;
-						memcpy(prevTrackBox->mdiaBox->type, type, 4);
-						prevTrackBox->mdiaBox->mdhdBox = 0;
+						prevTrakBox->mdiaBox->size = size;
+						memcpy(prevTrakBox->mdiaBox->type, type, 4);
+						prevTrakBox->mdiaBox->mdhdBox = 0;
 						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
 					else
@@ -358,30 +364,30 @@ namespace czq
 
 				if ( type[0] == 'm' && type[1] == 'd' && type[2] == 'h' && type[3] == 'd' )
 				{
-					prevTrackBox->mdiaBox->mdhdBox = new MdhdBox;
-					if ( prevTrackBox->mdiaBox->mdhdBox  != 0 )
+					prevTrakBox->mdiaBox->mdhdBox = new MdhdBox;
+					if ( prevTrakBox->mdiaBox->mdhdBox  != 0 )
 					{
-						prevTrackBox->mdiaBox->mdhdBox->boxHeader.size = size;
-						memcpy(prevTrackBox->mdiaBox->mdhdBox->boxHeader.type, type, 4);
-						memcpy(&prevTrackBox->mdiaBox->mdhdBox->boxHeader.version, buffer+pos, 1);
+						prevTrakBox->mdiaBox->mdhdBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->mdhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->mdiaBox->mdhdBox->boxHeader.version, buffer+pos, 1);
 						pos += 1;
-						memcpy(prevTrackBox->mdiaBox->mdhdBox->boxHeader.flags, buffer+pos, 3);
+						memcpy(prevTrakBox->mdiaBox->mdhdBox->boxHeader.flags, buffer+pos, 3);
 						pos += 3;
-						memcpy(&prevTrackBox->mdiaBox->mdhdBox->creationTime, buffer+pos, 4);
-						prevTrackBox->mdiaBox->mdhdBox->creationTime = ntohl(prevTrackBox->mdiaBox->mdhdBox->creationTime);
+						memcpy(&prevTrakBox->mdiaBox->mdhdBox->creationTime, buffer+pos, 4);
+						prevTrakBox->mdiaBox->mdhdBox->creationTime = ntohl(prevTrakBox->mdiaBox->mdhdBox->creationTime);
 						pos += 4;
-						memcpy(&prevTrackBox->mdiaBox->mdhdBox->modificationTime, buffer+pos, 4);
-						prevTrackBox->mdiaBox->mdhdBox->modificationTime = ntohl(prevTrackBox->mdiaBox->mdhdBox->modificationTime);
+						memcpy(&prevTrakBox->mdiaBox->mdhdBox->modificationTime, buffer+pos, 4);
+						prevTrakBox->mdiaBox->mdhdBox->modificationTime = ntohl(prevTrakBox->mdiaBox->mdhdBox->modificationTime);
 						pos += 4;
-						memcpy(&prevTrackBox->mdiaBox->mdhdBox->timescale, buffer+pos, 4);
-						prevTrackBox->mdiaBox->mdhdBox->timescale = ntohl(prevTrackBox->mdiaBox->mdhdBox->timescale);
+						memcpy(&prevTrakBox->mdiaBox->mdhdBox->timescale, buffer+pos, 4);
+						prevTrakBox->mdiaBox->mdhdBox->timescale = ntohl(prevTrakBox->mdiaBox->mdhdBox->timescale);
 						pos += 4;
-						memcpy(&prevTrackBox->mdiaBox->mdhdBox->duration, buffer+pos, 4);
-						prevTrackBox->mdiaBox->mdhdBox->duration = ntohl(prevTrackBox->mdiaBox->mdhdBox->duration);
+						memcpy(&prevTrakBox->mdiaBox->mdhdBox->duration, buffer+pos, 4);
+						prevTrakBox->mdiaBox->mdhdBox->duration = ntohl(prevTrakBox->mdiaBox->mdhdBox->duration);
 						pos += 4;
-						memcpy(prevTrackBox->mdiaBox->mdhdBox->language, buffer+pos, 2);
+						memcpy(prevTrakBox->mdiaBox->mdhdBox->language, buffer+pos, 2);
 						pos += 2;
-						memcpy(prevTrackBox->mdiaBox->mdhdBox->predefined, buffer+pos, 2);
+						memcpy(prevTrakBox->mdiaBox->mdhdBox->predefined, buffer+pos, 2);
 						pos += 2;
 						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
@@ -394,22 +400,22 @@ namespace czq
 
 				if ( type[0] == 'h' && type[1] == 'd' && type[2] == 'l' && type[3] == 'r' )
 				{
-					prevTrackBox->mdiaBox->hdlrBox = new HdlrBox;
-					if ( prevTrackBox->mdiaBox->hdlrBox  != 0 )
+					prevTrakBox->mdiaBox->hdlrBox = new HdlrBox;
+					if ( prevTrakBox->mdiaBox->hdlrBox  != 0 )
 					{
-						prevTrackBox->mdiaBox->hdlrBox->boxHeader.size = size;
-						memcpy(prevTrackBox->mdiaBox->hdlrBox->boxHeader.type, type, 4);
-						memcpy(&prevTrackBox->mdiaBox->hdlrBox->boxHeader.version, buffer+pos, 1);
+						prevTrakBox->mdiaBox->hdlrBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->hdlrBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->mdiaBox->hdlrBox->boxHeader.version, buffer+pos, 1);
 						pos += 1;
-						memcpy(prevTrackBox->mdiaBox->hdlrBox->boxHeader.flags, buffer+pos, 3);
+						memcpy(prevTrakBox->mdiaBox->hdlrBox->boxHeader.flags, buffer+pos, 3);
 						pos += 3;
-						memcpy(prevTrackBox->mdiaBox->hdlrBox->componentType, buffer+pos, 4);
+						memcpy(prevTrakBox->mdiaBox->hdlrBox->componentType, buffer+pos, 4);
 						pos += 4;
-						memcpy(prevTrackBox->mdiaBox->hdlrBox->componentSubType, buffer+pos, 4);
+						memcpy(prevTrakBox->mdiaBox->hdlrBox->componentSubType, buffer+pos, 4);
 						pos += 4;
-						memcpy(prevTrackBox->mdiaBox->hdlrBox->reserved, buffer+pos, 12);
+						memcpy(prevTrakBox->mdiaBox->hdlrBox->reserved, buffer+pos, 12);
 						pos += 12;
-						prevTrackBox->mdiaBox->hdlrBox->name.assign((char*)(buffer+pos), size-32);
+						prevTrakBox->mdiaBox->hdlrBox->name.assign((char*)(buffer+pos), size-32);
 						pos += size-32;
 						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 					}
@@ -422,11 +428,277 @@ namespace czq
 
 				if ( type[0] == 'm' && type[1] == 'i' && type[2] == 'n' && type[3] == 'f' )
 				{
-					prevTrackBox->mdiaBox->minfBox = new MinfBox;
-					if ( prevTrackBox->mdiaBox->minfBox  != 0 )
+					prevTrakBox->mdiaBox->minfBox = new MinfBox;
+					if ( prevTrakBox->mdiaBox->minfBox  != 0 )
 					{
-						prevTrackBox->mdiaBox->minfBox->size = size;
-						memcpy(prevTrackBox->mdiaBox->minfBox->type, type, 4);
+						prevTrakBox->mdiaBox->minfBox->size = size;
+						prevTrakBox->mdiaBox->minfBox->vmhdBox = 0;
+						prevTrakBox->mdiaBox->minfBox->smhdBox = 0;
+						prevTrakBox->mdiaBox->minfBox->hmhdBox = 0;
+						prevTrakBox->mdiaBox->minfBox->nmhdBox = 0;
+						prevTrakBox->mdiaBox->minfBox->dinfBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox = 0;
+						memcpy(prevTrakBox->mdiaBox->minfBox->type, type, 4);
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 's' && type[1] == 'm' && type[2] == 'h' && type[3] == 'd' )
+				{
+					prevTrakBox->mdiaBox->minfBox->smhdBox = new SmhdBox;
+					if ( prevTrakBox->mdiaBox->minfBox->smhdBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->smhdBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->smhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->smhdBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->smhdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(prevTrakBox->mdiaBox->minfBox->smhdBox->balance, type, 2);
+						pos += 2;
+						memcpy(prevTrakBox->mdiaBox->minfBox->smhdBox->reserved, type, 2);
+						pos += 2;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 'v' && type[1] == 'm' && type[2] == 'h' && type[3] == 'd' )
+				{
+					prevTrakBox->mdiaBox->minfBox->vmhdBox = new VmhdBox;
+					if ( prevTrakBox->mdiaBox->minfBox->vmhdBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->vmhdBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->vmhdBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->vmhdBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->vmhdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(prevTrakBox->mdiaBox->minfBox->vmhdBox->graphics, type, 2);
+						pos += 2;
+						memcpy(prevTrakBox->mdiaBox->minfBox->vmhdBox->opcolor, type, 6);
+						pos += 6;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+				
+				if ( type[0] == 'd' && type[1] == 'i' && type[2] == 'n' && type[3] == 'f' )
+				{
+					prevTrakBox->mdiaBox->minfBox->dinfBox = new DinfBox;
+					if ( prevTrakBox->mdiaBox->minfBox->dinfBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->dinfBox->size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->dinfBox->type, type, 4);
+						prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox = 0;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 'd' && type[1] == 'r' && type[2] == 'e' && type[3] == 'f' )
+				{
+					prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox  = new DrefBox;
+					if ( prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.type, type, 4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						memcpy(&prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->entryCount, buffer+pos, 4);
+						prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->entryCount = 
+						ntohl(prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->entryCount);
+						pos += 4;
+						prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->urls = new uint8_t[size-16];
+						memcpy(prevTrakBox->mdiaBox->minfBox->dinfBox->drefBox->urls, buffer+pos, size-16);
+						pos += size-16;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 'b' && type[3] == 'l' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox = new StblBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->stscBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->stszBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->stssBox = 0;
+						prevTrakBox->mdiaBox->minfBox->stblBox->size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->type,type,4);
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 's' && type[3] == 'd' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox = new StsdBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stsdBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+				
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 't' && type[3] == 's' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox = new SttsBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->sttsBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+				
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 's' && type[3] == 'c' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->stscBox = new StscBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->stscBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stscBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stscBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->stscBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stscBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+				
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 's' && type[3] == 'z' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->stszBox = new StszBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->stszBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stszBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stszBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->stszBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stszBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 's' && type[3] == 's' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->stssBox = new StssBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->stssBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stssBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stssBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->stssBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stssBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+					
+				if ( type[0] == 's' && type[1] == 't' && type[2] == 'c' && type[3] == 'o' )
+				{
+					prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox = new StcoBox;
+					if ( prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox != 0 )
+					{
+						prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox->boxHeader.size = size;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox->boxHeader.type,type,4);
+						memcpy(&prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox->boxHeader.version, buffer+pos, 1);
+						pos += 1;
+						memcpy(prevTrakBox->mdiaBox->minfBox->stblBox->stcoBox->boxHeader.flags, buffer+pos, 3);
+						pos += 3;
+						pos += size-12;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
+					}
+					else
+					{
+						status = false;
+						break;
+					}
+				}
+
+				if ( type[0] == 'u' && type[1] == 'd' && type[2] == 't' && type[3] == 'a' )
+				{
+					moovBox->udtaBox = new UdtaBox;
+					if ( moovBox->udtaBox != 0 )
+					{
+						moovBox->udtaBox->size = size;
+						memcpy(moovBox->udtaBox->type, type, 4);
+						moovBox->udtaBox->data = new uint8_t[size-8];
+						memcpy(moovBox->udtaBox->data, buffer+pos, size-8);
+						pos += size-8;
+						GET_SIZE_TYPE(pos, size, type, buffer, bufferSize);
 						break;
 					}
 					else
@@ -435,6 +707,7 @@ namespace czq
 						break;
 					}
 				}
+
 			}
 			
 			return status;
@@ -449,24 +722,23 @@ namespace czq
 				cout<<endl;
 				if ( mp4Boxes->ftypBox != 0 )
 				{
-					cout<<"++++++++++++++++++++++++FTYP BOX++++++++++++++++++++++++++"<<endl;
+					cout<<"+++++++++++++++++++++++++++++FTYP BOX+++++++++++++++++++++++++++++++"<<endl;
 					cout<<"size:"<<mp4Boxes->ftypBox->boxHeader.size<<endl;
 					cout<<"type:"<<std::string((char *)mp4Boxes->ftypBox->boxHeader.type)<<endl;
 					cout<<"major brand:"<<std::string((char *)mp4Boxes->ftypBox->majorBrand)<<endl;
 					cout<<"minor version:"<<(int)mp4Boxes->ftypBox->minorVersion[3]<<endl;
 					cout<<"compatible brands:"<<std::string((char *)mp4Boxes->ftypBox->compatibleBrands+1, mp4Boxes->ftypBox->compatibleBrands[0])<<endl;
-					cout<<endl<<endl;
 				}
 
 				if ( mp4Boxes->moovBox != 0 )
 				{
-					cout<<"++++++++++++++++++++++++MOOV BOX++++++++++++++++++++++++++"<<endl;
+					cout<<"+++++++++++++++++++++++++MOOV BOX+++++++++++++++++++++++++++"<<endl;
 					cout<<"size:"<<mp4Boxes->moovBox->size<<endl;
 					cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->type, 4)<<endl;
 
 					if ( mp4Boxes->moovBox->mvhdBox != 0 )
 					{
-						cout<<"++++++++++++MVHD BOX++++++++++++"<<endl;
+						cout<<"++++++++++++++++++++MVHD BOX++++++++++++++++++++"<<endl;
 						cout<<"size:"<<mp4Boxes->moovBox->mvhdBox->boxHeader.size<<endl;
 						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->mvhdBox->boxHeader.type)<<endl;
 						cout<<"version:"<<(int)mp4Boxes->moovBox->mvhdBox->boxHeader.version<<endl;
@@ -479,25 +751,23 @@ namespace czq
 						double volume = static_cast<double>(mp4Boxes->moovBox->mvhdBox->volume[0]);
 						cout<<"volume:"<<volume<<endl;
 						cout<<"next track ID:"<<(int)mp4Boxes->moovBox->mvhdBox->nextTrakID<<endl;
-						cout<<endl<<endl;
 					}
 
 					if ( mp4Boxes->moovBox->iodsBox != 0 )
 					{
-						cout<<"++++++++++++IODS BOX++++++++++++"<<endl;
+						cout<<"++++++++++++++++++++IODS BOX++++++++++++++++++++"<<endl;
 						cout<<"size:"<<mp4Boxes->moovBox->iodsBox->size<<endl;
 						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->iodsBox->type, 4)<<endl;
-						cout<<endl<<endl;
 					}
 
-					if ( mp4Boxes->moovBox->traks != 0 )
+					while ( mp4Boxes->moovBox->traks != 0 )
 					{
-						cout<<"++++++++++++TRAK BOX++++++++++++"<<endl;
+						cout<<"++++++++++++++++++++TRAK BOX++++++++++++++++++++"<<endl;
 						cout<<"size:"<<mp4Boxes->moovBox->traks->size<<endl;
 						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->type, 4)<<endl;
 						if ( mp4Boxes->moovBox->traks->tkhdBox != 0 )
 						{
-							cout<<"++++++++++++TKHD BOX++++++++++++"<<endl;
+							cout<<"+++++++++++++++TKHD BOX+++++++++++++++"<<endl;
 							cout<<"size:"<<mp4Boxes->moovBox->traks->tkhdBox->boxHeader.size<<endl;
 							cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->tkhdBox->boxHeader.type, 4)<<endl;
 							cout<<"version:"<<(int)mp4Boxes->moovBox->traks->tkhdBox->boxHeader.version<<endl;
@@ -516,13 +786,13 @@ namespace czq
 
 						if (  mp4Boxes->moovBox->traks->mdiaBox != 0 )
 						{
-							cout<<"++++++++++++MDIA BOX++++++++++++"<<endl;
+							cout<<"+++++++++++++++MDIA BOX+++++++++++++++"<<endl;
 							cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->size<<endl;
 							cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->type, 4)<<endl;
 
 							if ( mp4Boxes->moovBox->traks->mdiaBox->mdhdBox != 0 )
 							{
-								cout<<"++++++++++++MDHD BOX++++++++++++"<<endl;
+								cout<<"++++++++++MDHD BOX++++++++++"<<endl;
 								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.size<<endl;
 								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.type, 4)<<endl;
 								cout<<"version:"<<(int)mp4Boxes->moovBox->traks->mdiaBox->mdhdBox->boxHeader.version<<endl;
@@ -535,7 +805,7 @@ namespace czq
 
 							if ( mp4Boxes->moovBox->traks->mdiaBox->hdlrBox != 0 )
 							{
-								cout<<"++++++++++++HDLR BOX++++++++++++"<<endl;
+								cout<<"++++++++++HDLR BOX++++++++++"<<endl;
 								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.size<<endl;
 								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.type, 4)<<endl;
 								cout<<"version:"<<(int)mp4Boxes->moovBox->traks->mdiaBox->hdlrBox->boxHeader.version<<endl;
@@ -546,11 +816,66 @@ namespace czq
 
 							if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox != 0 )
 							{
-								cout<<"++++++++++++MINF BOX++++++++++++"<<endl;
+								cout<<"++++++++++MINF BOX++++++++++"<<endl;
 								cout<<"size:"<<mp4Boxes->moovBox->traks->mdiaBox->minfBox->size<<endl;
 								cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->traks->mdiaBox->minfBox->type, 4)<<endl;
+								if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox->smhdBox != 0 )
+								{
+									cout<<"+++++SMHD BOX+++++"<<endl;
+									cout<<"size:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->smhdBox->boxHeader.size<<endl;
+									cout<<"type:"<<std::string((char *)mp4Boxes->moovBox
+										->traks->mdiaBox->minfBox->smhdBox->boxHeader.type, 4)<<endl;
+								}
+								
+								if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox->vmhdBox != 0 )
+								{
+									cout<<"+++++VMHD BOX+++++"<<endl;
+									cout<<"size:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->vmhdBox->boxHeader.size<<endl;
+									cout<<"type:"<<std::string((char *)mp4Boxes->moovBox
+										->traks->mdiaBox->minfBox->vmhdBox->boxHeader.type, 4)<<endl;
+								}
+								
+								if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox->dinfBox != 0 )
+								{
+									cout<<"+++++DINF BOX+++++"<<endl;
+									cout<<"size:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->dinfBox->size<<endl;
+									cout<<"type:"<<std::string((char *)mp4Boxes->moovBox
+										->traks->mdiaBox->minfBox->dinfBox->type, 4)<<endl;
+
+									if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox->dinfBox->drefBox != 0 )
+									{
+										cout<<"+DREF BOX+"<<endl;
+										cout<<"size:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.size<<endl;
+										cout<<"type:"<<std::string((char *)mp4Boxes->moovBox
+										->traks->mdiaBox->minfBox->dinfBox->drefBox->boxHeader.type, 4)<<endl;
+										cout<<"entry count:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->dinfBox->drefBox->entryCount<<endl;
+									}
+								}
+
+								if ( mp4Boxes->moovBox->traks->mdiaBox->minfBox->stblBox != 0 )
+								{
+									cout<<"+++++STBL BOX+++++"<<endl;
+									cout<<"size:"<<mp4Boxes->moovBox->traks
+												->mdiaBox->minfBox->stblBox->size<<endl;
+									cout<<"type:"<<std::string((char *)mp4Boxes->moovBox
+										->traks->mdiaBox->minfBox->stblBox->type, 4)<<endl;
+								}
 							}
 						}
+						mp4Boxes->moovBox->traks = mp4Boxes->moovBox->traks->next;
+					}
+
+					
+					if ( mp4Boxes->moovBox->udtaBox != 0 )
+					{
+						cout<<"++++++++++++++++++++UDTA BOX++++++++++++++++++++"<<endl;
+						cout<<"size:"<<mp4Boxes->moovBox->udtaBox->size<<endl;
+						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->udtaBox->type, 4)<<endl;
 					}
 				}
 			}
