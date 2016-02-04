@@ -169,6 +169,7 @@ namespace czq
 			if ( buffer == 0 || bufferSize < 16 || moovBox == 0 )
 			{
 				status = false;
+				return status;
 			}
 
 			uint32_t pos = 4;
