@@ -19,6 +19,9 @@
 #include<iostream>
 #include<stdint.h>
 #include<dirent.h>
+#include<list>
+#include<pthread.h>
+#include<sys/time.h>
 
 namespace czq
 {
@@ -37,11 +40,13 @@ namespace czq
 		//the global logging tool
 		Nana *nana=0;
 		FileLiveServer::FileLiveServer( const ServerUtil::ServerConfig & serverConfig )
-		:listenFd_(-1),serverConfig_(serverConfig),mainEventLoop_(0),listenWatcher_(0),
+		:serverConfig_(serverConfig),listenFd_(-1),mainEventLoop_(0),listenWatcher_(0),
 		acceptWatcher_(0),writeWatcher_(0),stop_(false)
 		{
 			SERVER_CONFIG = serverConfig;
+			sleepTime_ = atoi(SERVER_CONFIG.server["sleep"].c_str());
 		}
+
 
 		FileLiveServer::~FileLiveServer()
 		{
@@ -100,18 +105,19 @@ namespace czq
 						while ( !stop_ )
 						{
 							directlyUpdateM3u8();
-							nana->say(Nana::HAPPY, __func__, "ALL MEDIA FILE UPDATED, JUST WAIT 5 SECONDS");
+							nana->say(Nana::HAPPY, __func__, "ALL MEDIA FILE UPDATED, JUST WAIT %d SECONDS", sleepTime_);
 							//the best way
 							//you can startup a daemon thread or process to watch the change of media file directory
 							//and when the manager add some media files manualy,just send a signal to wake up
 							//the file live server
-							//sleep 5 seconds is one simple way
+							//sleep several seconds is one simple way
 							//everything is upond to you!
-							sleep(5);
+							sleep(sleepTime_);
 						}	
 					}
 					else
 					{
+						
     						//initialization on main event-loop
     						listenWatcher_ = new ev_io;
     						ev_io_init( listenWatcher_, acceptCallback, listenFd_, EV_READ );
@@ -127,10 +133,11 @@ namespace czq
 			}
 		}
 
+		
 		struct TData
 		{
 			FILE * handler;
-			std::string fileName;
+			char fileName[50];
 		};
 		void FileLiveServer::directlyUpdateM3u8()
 		{
@@ -156,14 +163,14 @@ namespace czq
 							nana->say(Nana::HAPPY, __func__, "OPEN %s SUCCESSED", citer->c_str());
 							std::string oldMediaFile = serverConfig_.server["media-file-dir"]+"/"+*citer;
 							nana->say(Nana::HAPPY, __func__, "OLD MEDIA FILE:%s", oldMediaFile.c_str());
-							TData tdata;
+							TData *tdata = new TData;
 							FILE *fp = fopen(oldMediaFile.c_str(), "r");
 							if ( fp != 0 )
 							{
-								tdata.handler = fp;
-								tdata.fileName = newMediaFile;
+								tdata->handler = fp;
+								strcpy(tdata->fileName,newMediaFile.c_str());
 								writeWatcher_= new ev_io;
-								writeWatcher_->data = (void *)&tdata;
+								writeWatcher_->data = (void *)tdata;
 								ev_io_init(writeWatcher_, writeCallback, mediaFileFd, EV_WRITE);
          							ev_io_start( mainEventLoop_, writeWatcher_);
 								haveFile = true;
@@ -180,7 +187,8 @@ namespace czq
 
 				if ( haveFile )
 				ev_run( mainEventLoop_, 0 );
-				deleteMediaFiles(mediaFilePool);
+				//deleteMediaFiles(mediaFilePool);
+				mediaFilePool.clear();
 			}
 		}
 
@@ -209,6 +217,7 @@ namespace czq
 		}
 
 
+		
 		void FileLiveServer::deleteMediaFiles( std::vector<std::string> & mediaFilePool )
 		{
 			std::vector<std::string>::const_iterator citer = mediaFilePool.begin();
@@ -229,83 +238,80 @@ namespace czq
 	        		return;
 	    		}
 
-			static std::string m3u8Head;
-			static bool needUpdate = false;
-			static bool firstWriteHead = true;
-			static time_t waitSeconds = 0;
+
+			static std::string m3u8Head="#EXTM3U\r\n#EXT-X-VERSION:3\r\n";
+			static int targetDuration = 0;
+			static time_t tsDuration = 0;
 			static time_t prevTime = 0;
-			static std::queue<std::string> tsQ;
-			time_t now= time(NULL);
-			if ( now -prevTime < waitSeconds )
+			static int mediaSequence = 0;
+			static std::list<std::string> tsList;
+			static std::string tsItem;
+			tsItem.reserve(1024);
+			struct  timeval now;
+			gettimeofday(&now);
+			suseconds_t elapsed = now.tv_sec *1000000;
+			elapsed += now.tv_usec;
+			if ( ( elapsed - prevTime ) < tsDuration )
 			return;
 			else
 			{
-				prevTime = now;
-				needUpdate = true;
+				nana->say(Nana::HAPPY, ToWriteCallback, "%d MICRO SECONDS HAS PASSED AWAY,UPDATE ANOTHER M3U8", tsDuration);
+				prevTime = elapsed;
 			}
 			
 			TData *tdata = static_cast<TData *>(writeWatcher->data);
-			if ( tdata->handler != 0 )
+			if ( tdata != 0 && tdata->handler != 0 )
 			{
 				char line[1024];
-				std::string tsItem;
+				char *pNum;
+				static std::string tmpM3u8File = std::string(tdata->fileName)+".tmp";
 				if ( fgets(line, sizeof(line), tdata->handler ) != 0 )
 				{
 					std::string absUrl="http://";
 					if (strncmp(line, "#EXTINF:", 8) == 0)
 					{
-						tsItem=line;
-						if ( firstWriteHead )
+						tsItem = line;
+						pNum = strstr(line, ":");
+						tsDuration = (time_t) (atof(pNum+1)*10);
+						nana->say(Nana::HAPPY, ToWriteCallback, "TS DURATION * 10 IS:%u", tsDuration);
+						int count = 0;
+						while ( fgets(line, sizeof(line), tdata->handler) != 0 )
 						{
-							firstWriteHead = false;
-							NetUtil::writeSpecifySize2(writeWatcher->fd, m3u8Head.c_str(), m3u8Head.length());
-							int count = 0;
-							while ( fgets(line, sizeof(line), tdata->handler) != 0 )
+							if (strncmp(line, "#EXTINF:", 8) == 0)
 							{
-								
-								if ( strstr(line, "#EXTINF:") == 0 )
-								{
-									absUrl+=SERVER_CONFIG.server["media-source-domain"]+"/"+line;
-									tsItem += absUrl;
-									absUrl="http://";
-									tsQ.push(tsItem);
-									NetUtil::writeSpecifySize2(writeWatcher->fd, tsItem.c_str(), tsItem.length());
-									++count;
-									if ( count == 3 )
-									break;	
-								}
-								else
-								{
-									tsItem = line;
-								}	
+								pNum = strstr(line, ":");
+								tsDuration += (time_t) (atof(pNum+1)*10);
+								tsItem += line;
 							}
-							return;
+							else if (  strncmp(line, "#EXT-X-ENDLIST", 14) != 0 )
+							{
+								absUrl+=SERVER_CONFIG.server["media-source-domain"]+"/"+line;
+								tsItem += absUrl;
+								absUrl="http://";
+							}
+							++count;
+							if ( count == 5 )
+							break;	
 						}
 
-						char *pNum = strstr(line, ":");
-						pNum = pNum+1;
-						waitSeconds= (time_t) atoi(pNum);
-						nana->say(Nana::HAPPY, ToWriteCallback, "WAIT SECONDS:%d", waitSeconds);
-						if ( fgets(line, sizeof(line), tdata->handler) != 0 )
-						{
-							absUrl+=SERVER_CONFIG.server["media-source-domain"]+"/"+line;
-							nana->say(Nana::HAPPY, ToWriteCallback, "ABSOLUTE URL GENERATED:%s", absUrl.c_str());
-							tsItem+=absUrl;
-							absUrl = "http://";
-							tsQ.push(tsItem);
-						}
-						else
+						tsDuration -= 60;
+						nana->say(Nana::HAPPY, ToWriteCallback, "READ THE M3U8 FILE'S TS ITEM:%s", tsItem.c_str());
+						std::ostringstream	OMediaSequence;
+						OMediaSequence<<"#EXT-X-MEDIA-SEQUENCE:"<<mediaSequence<<"\r\n";
+						mediaSequence += 3;
+						FILE* fp = fopen(tmpM3u8File.c_str(), "w");
+						fputs(m3u8Head.c_str(), fp);
+						fputs(OMediaSequence.str().c_str(), fp);
+						fputs(tsItem.c_str(), fp);
+						tsItem = "";
+						rename(tmpM3u8File.c_str(), tdata->fileName);
+						fclose(fp);
+						if ( count != 5 )
 						{
 							fclose(tdata->handler);
 							close(writeWatcher->fd);
+							delete static_cast<TData *>(writeWatcher->data);
 							DO_EVENT_CB_CLEAN(mainEventLoop, writeWatcher);
-						}
-
-						if ( needUpdate )
-						{
-							nana->say(Nana::HAPPY, ToWriteCallback, "M3U8 FILE UPDATE++++++++++START++++++++++");
-							
-							nana->say(Nana::HAPPY, ToWriteCallback, "M3U8 FILE UPDATE++++++++++DONE++++++++++");
 						}
 					}
 					else if( strncmp(line, "#EXT-X-ENDLIST", 14) == 0 )
@@ -315,20 +321,27 @@ namespace czq
 					else
 					{
 						nana->say(Nana::HAPPY, ToWriteCallback, "READ THE M3U8 FILE'S HEAD:%s", line);
-						m3u8Head+=line;
+						if ( strstr(line, "#EXT-X-TARGETDURATION:") != 0 )
+						{
+							m3u8Head+=line;
+							pNum = strstr(line, ":");
+							targetDuration = atoi(pNum+1);
+							nana->say(Nana::HAPPY, ToWriteCallback, "THE M3U8'S TARGET DURATION IS:%d", targetDuration);
+						}
 					}
 				}
 				else
 				{
-					if (feof(tdata->handler))
-					{
-						fclose(tdata->handler);
-						tdata->handler = 0;
-						writeWatcher->data = 0;
-					}
+					fclose(tdata->handler);
 					close(writeWatcher->fd);
+					delete static_cast<TData *>(writeWatcher->data);
 					DO_EVENT_CB_CLEAN(mainEventLoop, writeWatcher);
 				}
+			}
+			else
+			{
+				close(writeWatcher->fd);
+				DO_EVENT_CB_CLEAN(mainEventLoop, writeWatcher);
 			}
 		}
 

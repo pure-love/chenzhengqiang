@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/02/02 10:39:43
+#generate date:2016/02/03 18:41:29
 
 
 INCLUDE_DIR:=./include
@@ -13,7 +13,7 @@ TARGET:=fileLiveServer
 CC:=g++
 #define the optimize level of compiler
 OLEVEL=0
-LDCONFIG:=-lev
+LDCONFIG:=-lev -lpthread
 COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow
 CFLAGS:=-O$(OLEVEL)  -I$(INCLUDE_DIR) $(COMPILER_FLAGS) $(LDCONFIG)
 OBJS:=main serverutil rosehttp netutil nana fileliveserver 
