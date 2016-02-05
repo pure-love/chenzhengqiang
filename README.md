@@ -37,3 +37,12 @@ happy new year!
 the XtraRtmp Project almost finished:85% finished;the interactions with rtmp stream pusher and player is already carried out;
 
 But I must stop now for preparing for a new chance for my future's sake.Best wishes for me all the same! 
+
+
+------------------------------------2016/2/5----------------------------------------
+
+I'm writing the file live server which update the live m3u8 file in real time through the m3u8 source,it takes me several hours
+
+to implement the function,but there is a great challenge for keeping synchronization between player and the server
+
+...and my own project "peonyMediaParser" was already carried out for parsing the mp4 media file,next step I'm determined to parse the mpeg-ts media format in peonyMediaParser project
