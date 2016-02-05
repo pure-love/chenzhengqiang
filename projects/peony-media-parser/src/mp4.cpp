@@ -28,7 +28,7 @@ namespace czq
 				mp4Boxes->mdtaBox = allocateMdtaBox();
 				if ( mp4Boxes->ftypBox == 0 || mp4Boxes->moovBox == 0 || mp4Boxes->mdtaBox == 0 )
 				{
-					deallocateMP4Boxes(mp4Boxes);
+					deallocatePackage(mp4Boxes);
 					mp4Boxes = 0;
 				}
 			}
@@ -66,7 +66,7 @@ namespace czq
 		}
 
 		
-		void deallocateMP4Boxes( void * data )
+		void deallocatePackage( void * data )
 		{
 			MP4Boxes *mp4Boxes = static_cast<MP4Boxes *>(data);
 			if ( mp4Boxes != 0 )
@@ -95,7 +95,7 @@ namespace czq
 			;//do nothing temporarily
 		}
 		
-		MP4Boxes * onMediaMP4Parse(const char * fileName)
+		MP4Boxes * onMediaParse(const char * fileName)
 		{
 			MP4Boxes * mp4Boxes = 0;
 			FILE * fmp4Handler = fopen( fileName, "r");
@@ -137,7 +137,7 @@ namespace czq
 						}
 						else
 						{
-							deallocateMP4Boxes(mp4Boxes);
+							deallocatePackage(mp4Boxes);
 						}
 
 						if ( ok )
@@ -156,7 +156,7 @@ namespace czq
 						}
 						else
 						{
-							deallocateMP4Boxes(mp4Boxes);
+							deallocatePackage(mp4Boxes);
 						}
 					}
 				}
@@ -782,7 +782,7 @@ namespace czq
 		}
 
 		
-		void onMP4InfoDump(void * data)
+		void onMediaInfoDump(void * data)
 		{
 			MP4Boxes * mp4Boxes = static_cast<MP4Boxes *>(data);
 			if ( mp4Boxes != 0 )

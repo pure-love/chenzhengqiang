@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:2016/01/25 14:31:54
+#generate date:2016/02/05 12:54:36
 
 
 INCLUDE_DIR:=./include
@@ -14,9 +14,9 @@ CC:=g++
 #define the optimize level of compiler
 OLEVEL=0
 LDCONFIG:=
-COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wconversion -Wshadow
+COMPILER_FLAGS=-pg -g -W -Wall -Wextra -Wshadow
 CFLAGS:=-O$(OLEVEL)  -I$(INCLUDE_DIR) $(COMPILER_FLAGS) $(LDCONFIG)
-OBJS:=main peonymediaparser mp4 
+OBJS:=main ts peonymediaparser mp4 
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

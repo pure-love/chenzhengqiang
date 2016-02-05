@@ -250,15 +250,15 @@ namespace czq
 		FtypBox * allocateFtypBox();
 		MoovBox * allocateMoovBox();
 		MdtaBox * allocateMdtaBox();
-		void deallocateMP4Boxes( void * data);
+		void deallocatePackage( void * data);
 		void deallocateFtypBox(void *data);
 		void deallocateMoovBox(void *data);
 		void deallocateMdtaBox(void *data);
-		MP4Boxes * onMediaMP4Parse(const char * fileName);
+		MP4Boxes * onMediaParse(const char * fileName);
 		bool onFtypBoxParse(uint8_t *buffer, uint32_t size, FtypBox * ftypBox);
 		bool onMoovBoxParse(uint8_t *buffer, uint32_t size, MoovBox * moovBox);
 		bool onMdtaBoxParse(uint8_t *buffer, uint32_t size, MdtaBox * mdtaBox);
-		void onMP4InfoDump(void * data);
+		void onMediaInfoDump(void * data);
 	};
 };
 #endif

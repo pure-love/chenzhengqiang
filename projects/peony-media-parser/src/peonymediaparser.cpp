@@ -10,6 +10,7 @@
 #include "errors.h"
 #include  "peonymediaparser.h"
 #include "mp4.h"
+#include "ts.h"
 #include <cstring>
 #include <cstdio>
 
@@ -94,7 +95,12 @@ namespace czq
 					switch ( mediaInfo->type )
 					{
 						case PEONY_MEDIA_MP4:
-							mp4::deallocateMP4Boxes(mediaInfo->data);
+							mp4::deallocatePackage(mediaInfo->data);
+							break;
+						case PEONY_MEDIA_TS:
+							mpeg::deallocatePackage(mediaInfo->data);
+							break;
+						case PEONY_MEDIA_FLV:
 							break;
 						default:
 							break;
@@ -119,11 +125,12 @@ namespace czq
 					switch ( mediaInfo->type )
 					{
 						case PEONY_MEDIA_MP4:
-							mediaInfo->data = static_cast<void *>(mp4::onMediaMP4Parse(pmFormatContext->fileName));
+							mediaInfo->data = static_cast<void *>(mp4::onMediaParse(pmFormatContext->fileName));
 							break;
 						case PEONY_MEDIA_FLV:
 							break;
 						case PEONY_MEDIA_TS:
+							mediaInfo->data = static_cast<void *>(mpeg::onMediaParse(pmFormatContext->fileName));
 							break;
 						default:
 							break;
@@ -141,11 +148,12 @@ namespace czq
 				switch ( mediaInfo->type )
 				{
 					case PEONY_MEDIA_MP4:
-						mp4::onMP4InfoDump(mediaInfo->data);
+						mp4::onMediaInfoDump(mediaInfo->data);
 						break;
 					case PEONY_MEDIA_FLV:
 						break;
 					case PEONY_MEDIA_TS:
+						mpeg::onMediaInfoDump(mediaInfo->data);
 						break;
 					default:
 						break;
