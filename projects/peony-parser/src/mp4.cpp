@@ -21,59 +21,80 @@ namespace czq
 		MP4Boxes * allocateMP4Boxes()
 		{
 			MP4Boxes * mp4Boxes = new MP4Boxes;
-			mp4Boxes->ftypBox = 0;
 			if ( mp4Boxes != 0 )
 			{
-				mp4Boxes->ftypBox = new FtypBox;
-				if ( mp4Boxes->ftypBox != 0 )
+				mp4Boxes->ftypBox = allocateFtypBox();
+				mp4Boxes->moovBox = allocateMoovBox();
+				mp4Boxes->mdtaBox = allocateMdtaBox();
+				if ( mp4Boxes->ftypBox == 0 || mp4Boxes->moovBox == 0 || mp4Boxes->mdtaBox == 0 )
 				{
-					mp4Boxes->ftypBox->boxHeader.fullBox = 0;
-				}
-				else
-				{
-					delete mp4Boxes;
+					deallocateMP4Boxes(mp4Boxes);
 					mp4Boxes = 0;
-				}
-
-				mp4Boxes->moovBox = new MoovBox;
-				if ( mp4Boxes->moovBox != 0 )
-				{
-					mp4Boxes->moovBox->mvhdBox = 0;
-					mp4Boxes->moovBox->iodsBox = 0;
-					mp4Boxes->moovBox->traks = 0;
-					mp4Boxes->moovBox->udtaBox = 0;
-				}
-				else
-				{
-					delete mp4Boxes->ftypBox;
-					mp4Boxes->ftypBox = 0;
-					delete mp4Boxes;
 				}
 			}
 			return mp4Boxes;
 		}
+
+		FtypBox * allocateFtypBox()
+		{
+			FtypBox * ftypBox = new FtypBox;
+			return ftypBox;
+		}
+
+		MoovBox * allocateMoovBox()
+		{
+			MoovBox * moovBox = new MoovBox;
+			if ( moovBox != 0 )
+			{
+				moovBox->mvhdBox = 0;
+				moovBox->iodsBox = 0;
+				moovBox->traks = 0;
+				moovBox->udtaBox = 0;
+			}
+			return moovBox;
+		}
+
+		
+		MdtaBox * allocateMdtaBox()
+		{
+			MdtaBox * mdtaBox = new MdtaBox;
+			if ( mdtaBox != 0 )
+			{
+				mdtaBox->data = 0;
+			}
+			return mdtaBox;
+		}
+
 		
 		void deallocateMP4Boxes( void * data )
 		{
 			MP4Boxes *mp4Boxes = static_cast<MP4Boxes *>(data);
 			if ( mp4Boxes != 0 )
 			{
-				if ( mp4Boxes->ftypBox != 0 )
-				{
-					delete mp4Boxes->ftypBox;
-					mp4Boxes->ftypBox = 0;
-				}
-
-				if ( mp4Boxes->moovBox != 0 )
-				{
-					delete mp4Boxes->moovBox;
-					mp4Boxes->moovBox = 0;
-				}
+				deallocateFtypBox(mp4Boxes->ftypBox);
+				deallocateMoovBox(mp4Boxes->moovBox);
+				deallocateMdtaBox(mp4Boxes->mdtaBox);
 				delete mp4Boxes;
 			}
 		}
 
-
+		void deallocateFtypBox(void *data)
+		{
+			(void)data;
+			;//do nothing temporarily
+		}
+		
+		void deallocateMoovBox(void *data)
+		{
+			(void)data;
+			;//do nothing temporarily
+		}
+		void deallocateMdtaBox(void *data)
+		{
+			(void)data;
+			;//do nothing temporarily
+		}
+		
 		MP4Boxes * onMediaMP4Parse(const char * fileName)
 		{
 			MP4Boxes * mp4Boxes = 0;
@@ -114,13 +135,59 @@ namespace czq
 							}
 							
 						}
+						else
+						{
+							deallocateMP4Boxes(mp4Boxes);
+						}
+
+						if ( ok )
+						{
+							fread(&size, sizeof(size), 1, fmp4Handler);
+							fseek(fmp4Handler, -4, SEEK_CUR);
+							size = ntohl(size);
+							buffer = new uint8_t[size];
+							if ( buffer != 0 )
+							{
+								fread(buffer, size, 1, fmp4Handler);
+								ok = onMdtaBoxParse(buffer, size, mp4Boxes->mdtaBox);
+								delete [] buffer;
+								buffer = 0;
+							}
+						}
+						else
+						{
+							deallocateMP4Boxes(mp4Boxes);
+						}
 					}
 				}
 			}
 			return mp4Boxes;
 		}
 
+		bool onMdtaBoxParse(uint8_t *buffer, uint32_t bufferSize, MdtaBox * mdtaBox)
+		{
+			bool status = false;
+			if ( buffer == 0  || bufferSize == 0 || mdtaBox == 0 )
+			return status;
+			memcpy(&mdtaBox->size, buffer, 4);
+			mdtaBox->size = ntohl(mdtaBox->size);
+			if ( mdtaBox->size == bufferSize )
+			{
+				memcpy(mdtaBox->type, buffer+4, 4);
+				if ( mdtaBox->type[0] == 'm' && mdtaBox->type[1] == 'd' && mdtaBox->type[2] == 't' && mdtaBox->type[3] == 'a' )
+				{
+					mdtaBox->data = new uint8_t[bufferSize-8];
+					if ( mdtaBox->data != 0 )
+					{
+						status = true;
+						memcpy(mdtaBox->data, buffer+8, bufferSize-8);
+					}
+				}
+			}
 
+			return status;
+		}
+		
 		bool onFtypBoxParse(uint8_t *buffer, uint32_t size, FtypBox * ftypBox)
 		{
 			bool status = false;
@@ -877,6 +944,13 @@ namespace czq
 						cout<<"size:"<<mp4Boxes->moovBox->udtaBox->size<<endl;
 						cout<<"type:"<<std::string((char *)mp4Boxes->moovBox->udtaBox->type, 4)<<endl;
 					}
+				}
+
+				if ( mp4Boxes->mdtaBox != 0 )
+				{
+					cout<<"+++++++++++++++++++++++++++++MDTA BOX+++++++++++++++++++++++++++++++"<<endl;
+					cout<<"size:"<<mp4Boxes->mdtaBox->size<<endl;
+					cout<<"type:"<<std::string((char *)mp4Boxes->mdtaBox->type, 4)<<endl;
 				}
 			}
 		}

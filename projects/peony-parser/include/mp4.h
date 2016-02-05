@@ -230,18 +230,34 @@ namespace czq
 			TrakBox *traks;
 			UdtaBox *udtaBox;
 		};
+
+		struct MdtaBox
+		{
+			uint32_t size;
+			uint8_t type[4];
+			//data's size is size-8
+			uint8_t * data;
+		};
 		
 		struct MP4Boxes
 		{
 			FtypBox  *ftypBox;
 			MoovBox *moovBox;
+			MdtaBox *mdtaBox;
 		};
 
 		MP4Boxes * allocateMP4Boxes();
+		FtypBox * allocateFtypBox();
+		MoovBox * allocateMoovBox();
+		MdtaBox * allocateMdtaBox();
 		void deallocateMP4Boxes( void * data);
+		void deallocateFtypBox(void *data);
+		void deallocateMoovBox(void *data);
+		void deallocateMdtaBox(void *data);
 		MP4Boxes * onMediaMP4Parse(const char * fileName);
 		bool onFtypBoxParse(uint8_t *buffer, uint32_t size, FtypBox * ftypBox);
 		bool onMoovBoxParse(uint8_t *buffer, uint32_t size, MoovBox * moovBox);
+		bool onMdtaBoxParse(uint8_t *buffer, uint32_t size, MdtaBox * mdtaBox);
 		void onMP4InfoDump(void * data);
 	};
 };
