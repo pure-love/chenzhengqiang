@@ -49,7 +49,20 @@ namespace czq
 				void deleteMediaFiles( std::vector<std::string> & mediaFilePool );
 				
 		};
+
+		struct M3u8
+		{
+			std::string header;
+			std::vector<std::string> tsUrlPool;
+			int pos;
+		};
 		
+		typedef std::string Source;
+		typedef std::map<Source, M3u8> M3u8Pool;
+
+		
+		void *upgradeThreadEntry( void * arg );
+		void odtainM3u8Source( const char * dir );
 		void writeCallback( struct ev_loop * mainEventLoop, struct ev_io * readWatcher, int revents );
 		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 		void requestCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );

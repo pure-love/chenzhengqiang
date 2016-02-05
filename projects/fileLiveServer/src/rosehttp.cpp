@@ -112,122 +112,135 @@ namespace czq
 
 
 
-		ssize_t parseSimpleRoseHttpHeader( const char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & simpleRoseHttpHeader )
+		ssize_t parseSimpleRoseHttpHeader( char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & simpleRoseHttpHeader )
 		{
-		    if( cstrHttpHeader == NULL )
-		    {
-		        return ARGUMENT_ERROR;
-		    }
-
-		    const char *start = cstrHttpHeader;
-		    while( *cstrHttpHeader )
-		    {
-		        if( *cstrHttpHeader != ' ' )
-		            break;
-		        ++cstrHttpHeader;
-		        if( (size_t) ( cstrHttpHeader - start ) == length )
-		        break;    
-		    }
-		    
-		    if( (size_t) ( cstrHttpHeader - start ) == length )
-		    {
-		        return STREAM_FORMAT_ERROR;
-		    }
-		    std::string strHttpHeader( cstrHttpHeader );
-		    if(
-		     ( 
-			( strHttpHeader.find("get")  == std::string::npos && strHttpHeader.find("GET") == std::string::npos  )
-			&& 
-			( strHttpHeader.find("post") == std::string::npos && strHttpHeader.find("POST") == std::string::npos )
-		     )	
-		     ||( strHttpHeader.find("http/") == std::string::npos && strHttpHeader.find("HTTP/") == std::string::npos )
-		     )
-		     
-		    {
-		        return STREAM_FORMAT_ERROR;
-		    }
-
-		    size_t prev_pos=0,cur_pos=0;
-		    cur_pos = strHttpHeader.find_first_of(' ', prev_pos);
-		    if( cur_pos == std::string::npos )
-		    {
-		        return STREAM_FORMAT_ERROR;
-		    }
-
-		    simpleRoseHttpHeader.method = strHttpHeader.substr( prev_pos,cur_pos );
-		    std::string::iterator iter = simpleRoseHttpHeader.method.begin();
-		    while( iter != simpleRoseHttpHeader.method.end() )
-		    {
-		        *iter = static_cast<char>(toupper( *iter ));
-		        ++iter;
-		    }
+			#define FILTER_SPACE() \
+			while ( *cstrHttpHeader )\
+			{\
+				if ( *(cstrHttpHeader) == ' ')\
+				{\
+					++(cstrHttpHeader);\
+				}\
+				else\
+				{\
+					break;\
+				}\
+			}\
+			if ( ! *cstrHttpHeader )\
+			{\
+				return STREAM_LENGTH_ERROR;\
+			}
 			
-		    prev_pos = cur_pos+1;
-		    cur_pos = strHttpHeader.find_first_of('/', prev_pos );
-		    if( cur_pos == std::string::npos )
-		    {
-		        return STREAM_FORMAT_ERROR;    
-		    }
+		 	if( cstrHttpHeader == NULL || length == 0 )
+		    	{
+		       	return ARGUMENT_ERROR;
+		    	}
 
-		    prev_pos = cur_pos+1;
-		    cur_pos = strHttpHeader.find_first_of('?', prev_pos);
-		    if( cur_pos == std::string::npos )
-		    {
-		         cur_pos = strHttpHeader.find_first_of('=', prev_pos);
-			  if ( cur_pos != std::string::npos )
-			  {
-			  	return STREAM_FORMAT_ERROR;
-			  }
-			  else
-			  {
-			  	cur_pos = strHttpHeader.find_first_of(' ', prev_pos);
-				if ( cur_pos == std::string::npos )
+			char *curPos = strstr(cstrHttpHeader, " ");
+			char *prevPos = curPos;
+			if ( curPos == 0 )
+			{
+				return STREAM_FORMAT_ERROR;
+			}
+
+			//GET /swwy.com http/1.1\r\n
+			simpleRoseHttpHeader.method.assign((char *)cstrHttpHeader, curPos-cstrHttpHeader);
+			FILTER_SPACE();
+			bool hasArg = true;
+			curPos = strstr(prevPos+1, "?");
+			if ( curPos == 0 )
+			{
+				 hasArg = false;
+				curPos = strstr(prevPos+1, "=");
+				if ( curPos != 0 )
 				{
 					return STREAM_FORMAT_ERROR;
 				}
-			  }
-		    }	
-			
-		    simpleRoseHttpHeader.serverPath = strHttpHeader.substr( prev_pos, cur_pos-prev_pos);
-		    prev_pos = cur_pos+1;
+				
+				else
+				{
+					curPos = strstr(prevPos+1, " ");
+					if ( curPos == 0 )
+					{
+						return STREAM_FORMAT_ERROR;
+					}
+				}
+			}
 
-		    cur_pos = strHttpHeader.find_first_of('=', prev_pos);
-		    std::string key;
-		    std::string value;
-		    
-		    while( cur_pos != std::string::npos )
-		    {
-		        key="";
-		        value="";
-		        key = strHttpHeader.substr( prev_pos, cur_pos-prev_pos );
-		        prev_pos=cur_pos+1;
-		        cur_pos = strHttpHeader.find_first_of('&',prev_pos);
-		        if( cur_pos == std::string::npos )
-		        {
-		            cur_pos = strHttpHeader.find_first_of(' ', prev_pos );
-		            if( cur_pos == std::string::npos )
-		            break;
-		        }
-		        
-		        value = strHttpHeader.substr( prev_pos, cur_pos-prev_pos);
-		        simpleRoseHttpHeader.urlArgs.insert(std::make_pair( key, value ));
-		        prev_pos=cur_pos+1;
-		        cur_pos = strHttpHeader.find_first_of( '=',prev_pos );
-		    }
-		    
-		    cur_pos = strHttpHeader.find("HTTP/");
-		    if ( cur_pos ==  std::string::npos )
-		    {
-			  cur_pos = strHttpHeader.find("http/");
-			  if ( cur_pos == std::string::npos )
-			  return 	STREAM_FORMAT_ERROR;
-		    }
-		    prev_pos = cur_pos+5;
-		    cur_pos = strHttpHeader.find("\r\n", prev_pos);
-		    if ( cur_pos == std::string::npos )
-		    return STREAM_FORMAT_ERROR;		
-		    simpleRoseHttpHeader.version = strHttpHeader.substr( prev_pos, cur_pos-prev_pos );
-		    return OK;
+			simpleRoseHttpHeader.serverPath.assign(prevPos, curPos-prevPos);
+			prevPos = curPos+1;
+			
+			if ( hasArg )
+			{
+				std::string key,value;
+				while( *prevPos )
+    				{
+        				while( * prevPos && *prevPos != ' ' && *prevPos != '=')
+        				{
+            					key.push_back(*prevPos);
+            					++prevPos;
+        				}
+        
+       				 if( *prevPos == ' ' )
+        				{
+            					while( * prevPos && *prevPos==' ')
+            					{
+                					++prevPos;
+            					}
+						if ( ! *prevPos )
+						{
+							return STREAM_FORMAT_ERROR;
+						}
+        				}
+        				else if( *prevPos == '=' )
+        				++prevPos;
+					else
+					{
+						return STREAM_FORMAT_ERROR;
+					}
+
+       
+        				while( *prevPos && *prevPos != ' ' && *prevPos != '&' )
+        				{
+            					value.push_back(*prevPos);
+            					++prevPos;
+        				}
+
+					simpleRoseHttpHeader.urlArgs.insert(std::make_pair(key,value));
+        				key="";
+        				value="";
+					if ( *prevPos == ' ')
+					break;
+					else if ( ! *prevPos )
+					return STREAM_FORMAT_ERROR;	
+        				++prevPos;
+   				 }
+			}
+
+			curPos = strstr(prevPos, "http/");
+			if ( curPos == 0 )
+			{
+				curPos = strstr(prevPos, "HTTP/");
+			}
+			
+			if ( curPos != 0 )
+			{
+				prevPos = curPos+5;
+				curPos = strstr(prevPos,"\r\n");
+				if ( curPos != 0 )
+				{
+					simpleRoseHttpHeader.version.assign(prevPos, curPos-prevPos);
+				}
+				else
+				{
+					return STREAM_FORMAT_ERROR;
+				}
+			}
+			else
+			{
+				return STREAM_FORMAT_ERROR;
+			}
+			return OK;
 		}
 
 

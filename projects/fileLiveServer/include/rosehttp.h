@@ -42,7 +42,7 @@ namespace czq
 
 
 		ssize_t   readRoseHttpHeader( int sockFd, void *buffer, size_t bufferSize );
-		ssize_t parseSimpleRoseHttpHeader( const char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & requestInfo );
+		ssize_t parseSimpleRoseHttpHeader( char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & requestInfo );
 		ssize_t replyWithRoseHttpStatus( const int status, int sockFd, const std::string & responseHeader ="", Nana *nana=0);
 	};
 };
