@@ -10,16 +10,15 @@
 using std::string;
 namespace czq
 {
-	class NetUtil
+	namespace NetUtil
 	{
-		public:
-			static int registerTcpServer(const char *IP, int PORT );
-			static std::string getPeerInfo(int sockFd, int flag=2);
-			static void setReuseAddr(int listenFd ); 
-			static void setNonBlocking(int sockFd);
-			static size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
-			static void setSndBufferSize(int sockFd, unsigned int sndBufferSize);
-			static ssize_t writeSpecifySize2(int fd, const void *buffer, size_t total_bytes);
+			int registerTcpServer(const char *IP, int PORT );
+			std::string getPeerInfo(int sockFd, int flag=2);
+			void setReuseAddr(int listenFd ); 
+			void setNonBlocking(int sockFd);
+			size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
+			void setSndBufferSize(int sockFd, unsigned int sndBufferSize);
+			ssize_t writeSpecifySize2(int fd, const void *buffer, size_t total_bytes);
 	};
 }
 #endif

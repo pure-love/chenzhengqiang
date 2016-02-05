@@ -22,9 +22,9 @@ static const char *DEFAULT_CONFIG_FILE="/etc/xtrartmp/server.conf";
 
 int main( int ARGC, char ** ARGV )
 {
-    CmdOptions cmdOptions;
+	ServerUtil::CmdOptions cmdOptions;
     ServerUtil::handleCmdOptions( ARGC, ARGV, cmdOptions );
-    ServerConfig serverConfig;
+    ServerUtil::ServerConfig serverConfig;
 
     if ( ! cmdOptions.configFile.empty() )
     {

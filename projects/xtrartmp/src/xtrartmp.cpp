@@ -50,7 +50,7 @@ namespace czq
 	//just simply varify the app field
 	static const std::string APP="xtrartmp";
 	
-	XtraRtmp::XtraRtmp( const ServerConfig & serverConfig ):listenFd_(-1),serverConfig_(serverConfig),
+	XtraRtmp::XtraRtmp( const ServerUtil::ServerConfig & serverConfig ):listenFd_(-1),serverConfig_(serverConfig),
 														mainEventLoop_(0),listenWatcher_(0),acceptWatcher_(0)
 	{
 		;	
@@ -621,14 +621,6 @@ namespace czq
 			}
 
 			pointer +=AMFSize-1;
-			if ( AMFType == XtraRtmp::MESSAGE_INVOKE && format == 0 && channelID == 3)
-			{
-				while ( *pointer != 9 && *pointer != 5)
-				{
-					pointer +=1;
-					read(consultWatcher->fd, pointer, 1);
-				}
-			}
 		}
 
 		
@@ -901,14 +893,6 @@ namespace czq
 			
 			if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
 			{
-				if ( AMFSize > 128 )
-				{
-					previousAMFDataSize = AMFSize;
-					LEFT_READ_SIZE = AMFSize - 128;
-					AMFSize = 128;
-					TOTAL_READ_BYTES += 128;
-					AMFDataSizeGT128 = true;
-				}
 				
 				if ( msgType ==  XtraRtmp::MESSAGE_VIDEO )
 				{
@@ -943,7 +927,6 @@ namespace czq
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
 			}
 
-			
 			XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)msgType);
 			uint8_t * AmfData = new uint8_t[AMFSize];
 			memset(AmfData, 0, AMFSize);
@@ -988,32 +971,7 @@ namespace czq
 			AmfData = 0;
 			return;
 		}
-		else if ( format == 2 )
-		{
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
-			LEFT_READ_SIZE = previousAMFDataSize;
-			previousAMFDataSize = 0;
-			AMFDataSizeGT128 = true;
-		}
-
-		size_t bufferSize = 0;
-		if ( LEFT_READ_SIZE >= 128 )
-		{
-			bufferSize = 128;
-			LEFT_READ_SIZE -=128;
-		}
-		else
-		{
-			bufferSize = LEFT_READ_SIZE;
-			LEFT_READ_SIZE = 0;
-		}
-
-		if ( ! AMFDataSizeGT128 )
-		{
-			bufferSize = 128;
-		}
-
-		TOTAL_READ_BYTES += bufferSize;
+		
 		char rtmpStream[128];
 		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES START", bufferSize);
 		totalBytes = 0;
@@ -1030,11 +988,12 @@ namespace czq
 			totalBytes += static_cast<size_t>(readBytes);
 		}
 
+		
 		if ( LEFT_READ_SIZE == 0 )
 		{
 			AMFDataSizeGT128 = false;
 		}
-		
+
 		nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA  SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
 													bufferSize, TOTAL_READ_BYTES);
 
@@ -1156,10 +1115,7 @@ namespace czq
 							       };
 
 		
-		rtmpPacketHeader.flag = 0;
-		//the audio video channel
 		rtmpPacketHeader.chunkStreamID = 4;
-		rtmpPacketHeader.size = 12;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay1, 4, connFd);
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay2, 4, connFd);
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, OnPlay3, 1, connFd);
@@ -1219,8 +1175,6 @@ namespace czq
 		nana->say(Nana::HAPPY, ToOnConnect, "REPLY USER CONTROL MESSAGE DONE");
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, ConnectParameters, 4, connFd);
 		nana->say(Nana::HAPPY, ToOnConnect, "REPLY RTMP AMF COMMAND DONE:{_result,{code:NetConnection.Connect.Success}}");
-		rtmpPacketHeader.flag = 1;
-		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, 0, OnBWDone, 3, connFd);
 		nana->say(Nana::HAPPY, ToOnConnect, "REPLY RTMP AMF COMMAND DONE:onBWDone");
 		
@@ -1240,9 +1194,6 @@ namespace czq
 													{0, 0}
 												};
 		
-		rtmpPacketHeader.flag = 1;
-		rtmpPacketHeader.chunkStreamID = 3;
-		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, CreateStreamParameters, 2, connFd);
 		nana->say(Nana::HAPPY, ToOnCreateStream, "REPLY RTMP AMF COMMAND DONE:_result");
 									  
@@ -1254,7 +1205,7 @@ namespace czq
 	{
 		#define ToOnCheckbw __func__
 				
-		if (rtmpPacketHeader.size  < 8)
+		if ( rtmpPacketHeader.size  < 8 )
 		return;
 				
 		const char * CheckBWS[5][2]={ 
@@ -1265,9 +1216,6 @@ namespace czq
 									{"description", "call to function _checkbw failed"}
 								    };
 			
-		rtmpPacketHeader.flag = 1;
-		rtmpPacketHeader.chunkStreamID = 3;
-		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, CheckBWS, 5, connFd);
 		nana->say(Nana::HAPPY, ToOnCheckbw, "REPLY RTMP AMF COMMAND DONE:{_error,{code:NetConnection.Call.Failed}}");
 										  
@@ -1286,9 +1234,6 @@ namespace czq
 													{"code", "NetConnection.Call.Failed"},
 													{"description", "specified stream not found in call to releaseStream"}
 									   			   };
-		rtmpPacketHeader.flag = 1;
-		rtmpPacketHeader.chunkStreamID = 3;
-		rtmpPacketHeader.size = 8;
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, ReleaseStreamParametersS, 5, connFd);
 		nana->say(Nana::HAPPY, ToReleaseStream, "+++++++++++++++DONE+++++++++++++++");
 	}
@@ -1315,9 +1260,7 @@ namespace czq
 												{"code","NetStream.Publish.Start"},
 												{"description",0}
 										   	};
-		rtmpPacketHeader.flag = 0;
-		rtmpPacketHeader.chunkStreamID = 3;
-		rtmpPacketHeader.size = 12;
+		
 		FCPublishParametersC[3][1]=amfPacket.streamName.c_str();
 		onRtmpReply(rtmpPacketHeader, amfPacket.transactionID+1, FCPublishParametersS, 3, connFd);
 		onRtmpReply(rtmpPacketHeader, 0, FCPublishParametersC, 4, connFd);
@@ -1340,10 +1283,6 @@ namespace czq
 
 			
 		nana->say(Nana::HAPPY, ToOnPublish, "+++++++++++++++START+++++++++++++++");
-		rtmpPacketHeader.flag = 0;
-		//the audio video channel
-		rtmpPacketHeader.chunkStreamID = 4;
-		rtmpPacketHeader.size = 12;
 		onRtmpReply(rtmpPacketHeader, 0, PublishParametersS, 5, connFd);
 		nana->say(Nana::HAPPY, ToOnPublish, "+++++++++++++++DONE+++++++++++++++");
 										  

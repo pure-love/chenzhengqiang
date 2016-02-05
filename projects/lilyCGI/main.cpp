@@ -17,7 +17,7 @@ using std::cerr;
 using std::endl;
 using namespace czq;
 
-static const char *DEFAULT_CONFIG_FILE="/etc/simplecgi/server.conf";
+static const char *DEFAULT_CONFIG_FILE="/etc/lilycgi/server.conf";
 
 int main( int ARGC, char ** ARGV )
 {

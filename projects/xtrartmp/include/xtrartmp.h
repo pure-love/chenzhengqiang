@@ -20,7 +20,7 @@ namespace czq
 	class XtraRtmp
 	{
 	        public:
-			XtraRtmp(const ServerConfig & serverConfig);
+			XtraRtmp(const ServerUtil::ServerConfig & serverConfig);
 			~XtraRtmp();
 			void printHelp();
 			void printVersion();
@@ -142,7 +142,7 @@ namespace czq
 			
 		private:
 			int listenFd_;
-			ServerConfig serverConfig_;
+			ServerUtil::ServerConfig serverConfig_;
 			struct ev_loop *mainEventLoop_;
                     struct ev_io *listenWatcher_;
                     struct ev_io *acceptWatcher_;	

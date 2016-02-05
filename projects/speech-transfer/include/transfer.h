@@ -76,6 +76,7 @@ typedef std::map<ID,CONN_CLIENT>::iterator & client_referrence_iter;
 typedef std::string CHANNEL;
 typedef std::map<CHANNEL,CLIENTS>::iterator chat_room_iter;
 typedef std::map<CHANNEL,CLIENTS>::iterator & chat_room_referrence_iter;
+typedef std::map<ID,std::map<uint32_t, RTP_PACKET> > SPEAKERS_OPUS_RTP_PACKETS_POOL;
 
 
 //function's prototype here
@@ -93,5 +94,5 @@ bool parse_client_request( const uint8_t *packet, size_t size, CLIENT_REQUEST & 
 void do_mix_and_broadcast( int udp_sock_fd, chat_room_referrence_iter crr_iter );
 void do_mix_and_broadcast_C( int udp_sock_fd, chat_room_referrence_iter crr_iter );
 void do_mix_and_broadcast_S( int udp_sock_fd, chat_room_referrence_iter crr_iter );
-
+void do_mix_and_broadcast_S_C( int udp_sock_fd, chat_room_referrence_iter crr_iter );
 #endif
