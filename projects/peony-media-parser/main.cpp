@@ -9,11 +9,19 @@
 
 
 #include "peonymediaparser.h"
+#include <iostream>
 using namespace czq;
+
 
 int main( int argc, char ** argv )
 {
-	(void)argc;
+	if ( argc != 2 )
+	{
+		std::cerr<<"Usage:"<<argv[0]<<" <media file with suffix>"<<std::endl;
+		std::cerr<<"Example:./peonyMediaParser test.ts"<<std::endl;
+		return 1;
+	}
+
 	peony::PMFormatContext * pmFormatContext= peony::pmAllocFormatContext();
 	if ( pmFormatContext != 0 )
 	{
