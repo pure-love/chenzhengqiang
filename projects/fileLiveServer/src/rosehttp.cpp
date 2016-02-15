@@ -20,14 +20,15 @@ namespace czq
 	{
 		static const char * SimpleRoseHttpReply[]=
 		{   
-		    "HTTP/1.1 200 OK\r\n",
-		    "HTTP/1.1 301 Moved Permanently\r\n",		
-		    "HTTP/1.1 400 Bad Request\r\n",
-		    "HTTP/1.1 401 Unauthorized\r\n",
-		    "HTTP/1.1 404 Not Found\r\n",
-		    "HTTP/1.1 500 Internal Server Error\r\n",
-		    "HTTP/1.1 501 Not Implemented\r\n",
-		    "HTTP/1.1 503 Service Unavailable\r\n"
+		    "HTTP/1.1 200 OK\r\n\r\n",
+		    "HTTP/1.1 206 Partial Content\r\n\r\n",		
+		    "HTTP/1.1 301 Moved Permanently\r\n\r\n",		
+		    "HTTP/1.1 400 Bad Request\r\n\r\n",
+		    "HTTP/1.1 401 Unauthorized\r\n\r\n",
+		    "HTTP/1.1 404 Not Found\r\n\r\n",
+		    "HTTP/1.1 500 Internal Server Error\r\n\r\n",
+		    "HTTP/1.1 501 Not Implemented\r\n\r\n",
+		    "HTTP/1.1 503 Service Unavailable\r\n\r\n"
 		};
 
 
@@ -217,6 +218,7 @@ namespace czq
    				 }
 			}
 
+			
 			curPos = strstr(prevPos, "http/");
 			if ( curPos == 0 )
 			{
@@ -244,8 +246,7 @@ namespace czq
 		}
 
 
-		ssize_t replyWithRoseHttpStatus( const int status, int sockFd, 
-											const std::string & responseHeader, Nana* nana)
+		ssize_t replyWithRoseHttpStatus( int status, int sockFd )
 		{
 		    RoseHttpStatus roseHttpStatus;
 		    switch( status )
@@ -253,6 +254,9 @@ namespace czq
 		        case 200:
 		             roseHttpStatus = HTTP_STATUS_200;
 			      break;
+			 case 206:
+			 	roseHttpStatus = HTTP_STATUS_206;
+			 	break;
 			 case 301:
 			 	roseHttpStatus = HTTP_STATUS_301;
 			      break;
@@ -275,16 +279,6 @@ namespace czq
 		            roseHttpStatus = HTTP_STATUS_503;
 		            break;
 		    }
-
-		    
-		    if ( !responseHeader.empty() )
-		    {
-			  std::string response = "HTTP/1.1 301 Moved Permanently\r\n";
-			  response+=responseHeader;
-			  nana->say(Nana::HAPPY, __func__, "RESPONSE:%s", response.c_str());
-			  return NetUtil::writeSpecifySize2(sockFd, response.c_str(), response.length());
-		    }
-		    else
 		    return NetUtil::writeSpecifySize2( sockFd, SimpleRoseHttpReply[roseHttpStatus], strlen(SimpleRoseHttpReply[roseHttpStatus]));
 		}
 	}

@@ -11,7 +11,6 @@
 #ifndef _CZQ_ROSEHTTP_H_
 #define _CZQ_ROSEHTTP_H_
 //write the function prototypes or the declaration of variables here
-#include "nana.h"
 #include<string>
 #include<map>
 using std::string;
@@ -31,6 +30,7 @@ namespace czq
 		enum RoseHttpStatus
 		{
 		    HTTP_STATUS_200,
+		    HTTP_STATUS_206,
 		    HTTP_STATUS_301,		
 		    HTTP_STATUS_400,
 		    HTTP_STATUS_401,
@@ -43,7 +43,7 @@ namespace czq
 
 		ssize_t   readRoseHttpHeader( int sockFd, void *buffer, size_t bufferSize );
 		ssize_t parseSimpleRoseHttpHeader( char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & requestInfo );
-		ssize_t replyWithRoseHttpStatus( const int status, int sockFd, const std::string & responseHeader ="", Nana *nana=0);
+		ssize_t replyWithRoseHttpStatus( int status, int sockFd );
 	};
 };
 #endif

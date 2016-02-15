@@ -155,10 +155,11 @@ namespace czq
 			 {
 			 	while ( true )
 			 	{
-					odtainM3u8Source(dir.c_str());
-					M3u8Pool::const_iterator mp_citer = gM3u8Pool.begin();
+					obtainM3u8Source(dir.c_str());
+					/*
 					if ( nana->is(Nana::HAPPY) )
 					{
+						M3u8Pool::const_iterator mp_citer = gM3u8Pool.begin();
 						while ( mp_citer != gM3u8Pool.end() )
 						{
 							nana->say(Nana::HAPPY, ToUpgradeThreadEntry, "M3U8 SOURCE:%s", mp_citer->first.c_str());
@@ -172,14 +173,14 @@ namespace czq
 							}
 							++mp_citer;
 						}
-					}
-					sleep(300);
+					}*/
+					sleep(10);
 			 	}	
 			 }
 			 return arg;
 		}
 
-		void odtainM3u8Source( const char * dir )
+		void obtainM3u8Source( const char * dir )
 		{
 			if ( dir != 0 )
 			{
@@ -199,7 +200,8 @@ namespace czq
 					{
 						if (strstr(dirEntry->d_name, mediaType.c_str() ) != 0 )
 						{
-							if ( gM3u8Pool.find(std::string(dirEntry->d_name)) == gM3u8Pool.end() )
+							M3u8Pool::iterator iter = gM3u8Pool.find(std::string(dirEntry->d_name));
+							if ( iter == gM3u8Pool.end() )
 							{
 								std::string fullPath = std::string(dir)+"/"+dirEntry->d_name;
 								M3u8 m3u8;
@@ -238,6 +240,10 @@ namespace czq
 								{
 									break;
 								}
+							}
+							else
+							{
+								iter->second.pos = (iter->second.pos+1) % iter->second.tsUrlPool.size();
 							}
 							
 						}
@@ -532,6 +538,7 @@ namespace czq
                     			nana->say( Nana::PEACE, ToRequestCallback," READ 0 BYTE FROM %s CLIENT DISCONNECTED ALREADY",
                                                                                            peerInfo.c_str() );
               			}
+						
           			}
           			else if(  receivedBytes == LENGTH_OVERFLOW  )
           			{
@@ -542,8 +549,9 @@ namespace czq
                                                                                           peerInfo.c_str() );
               			}
           			}
-          
-          			RoseHttp::replyWithRoseHttpStatus( 400, requestWatcher->fd );
+
+				
+          			RoseHttp::replyWithRoseHttpStatus(400, requestWatcher->fd);
           			close( requestWatcher->fd );
           			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
     			}
@@ -559,29 +567,59 @@ namespace czq
         			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);	
     			}
 
-			nana->say(Nana::HAPPY, ToRequestCallback, "METHOD:%s", simpleRoseHttpHeader.method.c_str());
-			nana->say(Nana::HAPPY, ToRequestCallback, "HTTP VERSION:%s", simpleRoseHttpHeader.version.c_str());
+			
 			std::string::size_type pos = simpleRoseHttpHeader.serverPath.find_last_of('/');
-			std::string requestedSource = simpleRoseHttpHeader.serverPath.substr(pos+1, simpleRoseHttpHeader.serverPath.length()-pos);
+			std::string requestedSource = simpleRoseHttpHeader.serverPath.substr(pos+1);
 			nana->say(Nana::HAPPY, ToRequestCallback, "REQUESTED SOURCE:%s", requestedSource.c_str());
 
 			M3u8Pool::iterator iter = gM3u8Pool.find(requestedSource);
+			static int tsUrlPos = -1;
 			if ( iter != gM3u8Pool.end() )
 			{
-				iter->second.pos +=1;
-				if ( iter->second.pos == 0 )
+				if ( tsUrlPos == -1 )
 				{
-					nana->say(Nana::HAPPY, ToRequestCallback, "THIS IS THE FIRST PLAY REQUEST");
+					tsUrlPos = iter->second.pos;
+				}
+				
+				std::ostringstream Oreply;
+				Oreply<<"HTTP/1.1 206 Partial Content\r\nContent-Type:application/vnd.apple.mpegurl\r\n";
+				std::ostringstream Ocontent;
+				
+				Ocontent<<iter->second.header<<"#EXT-X-MEDIA-SEQUENCE:"<<tsUrlPos<<"\r\n";
+
+				int count = 0;
+				while ( true )
+				{
+					Ocontent<<iter->second.tsUrlPool[tsUrlPos];
+					++count;
+					if ( count == 4 )
+					break;
+					
+					tsUrlPos +=1;
+					if ( (size_t)tsUrlPos == iter->second.tsUrlPool.size() )
+					{
+						break;
+					}
+				}
+
+				Oreply<<"Content-Length:"<<Ocontent.str().length()<<"\r\n\r\n"<<Ocontent.str();
+				NetUtil::writeSpecifySize2( requestWatcher->fd, Oreply.str().c_str(), Oreply.str().length());
+				if ( (size_t)tsUrlPos == iter->second.tsUrlPool.size() )
+				{
+					tsUrlPos = -1;
 				}
 				else
 				{
-					nana->say(Nana::HAPPY, ToRequestCallback, "ANOTHER PLAYER COME");
+					tsUrlPos +=1;
 				}
+				nana->say(Nana::HAPPY, ToRequestCallback, "HTTP REPLY:%s", Oreply.str().c_str());
+			
 			}
 			else
 			{
+				nana->say(Nana::HAPPY, ToRequestCallback, "REQUESTED SOURCE:%s NOT EXISTS", requestedSource.c_str());
 				close(requestWatcher->fd);
-				RoseHttp::replyWithRoseHttpStatus( 404, requestWatcher->fd );
+				RoseHttp::replyWithRoseHttpStatus(404, requestWatcher->fd);
 			}
 			
 			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
