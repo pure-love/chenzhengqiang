@@ -115,29 +115,26 @@ namespace czq
 
 		ssize_t parseSimpleRoseHttpHeader( char *cstrHttpHeader, size_t length, SimpleRoseHttpHeader  & simpleRoseHttpHeader )
 		{
-			#define FILTER_SPACE() \
-			while ( *cstrHttpHeader )\
-			{\
-				if ( *(cstrHttpHeader) == ' ')\
-				{\
-					++(cstrHttpHeader);\
-				}\
-				else\
-				{\
-					break;\
-				}\
-			}\
-			if ( ! *cstrHttpHeader )\
-			{\
-				return STREAM_LENGTH_ERROR;\
-			}
-			
 		 	if( cstrHttpHeader == NULL || length == 0 )
 		    	{
 		       	return ARGUMENT_ERROR;
 		    	}
 
-			char *curPos = strstr(cstrHttpHeader, " ");
+			char requestLine[1024]={0};
+			char * pos = strstr(cstrHttpHeader, "\r\n");
+			if ( pos == 0 )
+			{
+				return STREAM_FORMAT_ERROR;
+			}
+
+			if ( (size_t) (pos - cstrHttpHeader+2) > sizeof(requestLine) )
+			{
+				return STREAM_LENGTH_ERROR;
+			}
+
+			strncpy(requestLine, cstrHttpHeader, pos - cstrHttpHeader+2);
+			
+			char *curPos = strchr(requestLine, ' ');
 			char *prevPos = curPos;
 			if ( curPos == 0 )
 			{
@@ -145,14 +142,13 @@ namespace czq
 			}
 
 			//GET /swwy.com http/1.1\r\n
-			simpleRoseHttpHeader.method.assign((char *)cstrHttpHeader, curPos-cstrHttpHeader);
-			FILTER_SPACE();
+			simpleRoseHttpHeader.method.assign(requestLine, curPos-requestLine);
 			bool hasArg = true;
-			curPos = strstr(prevPos+1, "?");
+			curPos = strchr(prevPos+1, '?');
 			if ( curPos == 0 )
 			{
-				 hasArg = false;
-				curPos = strstr(prevPos+1, "=");
+				hasArg = false;
+				curPos = strchr(prevPos+1, '=');
 				if ( curPos != 0 )
 				{
 					return STREAM_FORMAT_ERROR;
@@ -160,14 +156,14 @@ namespace czq
 				
 				else
 				{
-					curPos = strstr(prevPos+1, " ");
+					curPos = strchr(prevPos+1, ' ');
 					if ( curPos == 0 )
 					{
 						return STREAM_FORMAT_ERROR;
 					}
 				}
 			}
-
+			
 			simpleRoseHttpHeader.serverPath.assign(prevPos, curPos-prevPos);
 			prevPos = curPos+1;
 			
@@ -217,7 +213,7 @@ namespace czq
         				++prevPos;
    				 }
 			}
-
+			
 			
 			curPos = strstr(prevPos, "http/");
 			if ( curPos == 0 )

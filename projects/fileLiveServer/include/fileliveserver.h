@@ -62,10 +62,11 @@ namespace czq
 
 		
 		void *upgradeThreadEntry( void * arg );
-		void obtainM3u8Source( const char * dir );
+		int obtainM3u8Source( const char * dir );
 		void writeCallback( struct ev_loop * mainEventLoop, struct ev_io * readWatcher, int revents );
 		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
 		void requestCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents );
+		void sendM3u8Callback( struct ev_loop * mainEventLoop, struct ev_io * sendM3u8Watcher, int revents );
 	};
 };
 #endif
