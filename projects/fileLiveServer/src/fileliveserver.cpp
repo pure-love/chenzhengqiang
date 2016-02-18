@@ -153,10 +153,9 @@ namespace czq
 			 std::string dir = SERVER_CONFIG.server["media-file-dir"];
 			 if ( ! dir.empty() )
 			 {
-			 	int avgDuration;
 			 	while ( true )
 			 	{
-					avgDuration = obtainM3u8Source(dir.c_str());
+					obtainM3u8Source(dir.c_str());
 					/*
 					if ( nana->is(Nana::HAPPY) )
 					{
@@ -175,7 +174,7 @@ namespace czq
 							++mp_citer;
 						}
 					}*/
-					sleep(avgDuration);
+					sleep(10);
 			 	}	
 			 }
 			 return arg;
@@ -198,7 +197,6 @@ namespace czq
 					char line[1024];
 					std::string absUrl;
 					std::string tsItem;
-					
 					while ( (dirEntry = readdir(dirp)) != 0 )
 					{
 						if (strstr(dirEntry->d_name, mediaType.c_str() ) != 0 )
@@ -235,7 +233,7 @@ namespace czq
 										break;	
 									}
 								}
-								m3u8.tsUrlPool.push_back("#EXT-X-ENDLIST");
+								
 								fclose(fp);
 								gM3u8Pool.insert(std::make_pair(std::string(dirEntry->d_name), m3u8));
 								++count;
@@ -255,8 +253,8 @@ namespace czq
 				}
 				
 			}
-			
-			return (avgDuration==0) ? 10:avgDuration;
+
+			return avgDuration == 0 ? 12 : avgDuration;
 		}
 		
 		struct TData
@@ -528,60 +526,60 @@ namespace czq
 				DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
 	    		}
 
-			ssize_t ret;
+			 ssize_t receivedBytes;
     			//used to store those key-values parsed from http request
-    			char request[1024];
+    			char request[1024]={0};
     			//read the http header and then parse it
-    			ret = RoseHttp::readRoseHttpHeader( requestWatcher->fd, request, sizeof(request) );
-    			if(  ret > 0  )
-    			{     
-	          		request[ret]='\0';
-	    			nana->say( Nana::HAPPY, ToRequestCallback, "HTTP REQUEST HEADER:%s", request );
+    			receivedBytes = RoseHttp::readRoseHttpHeader( requestWatcher->fd, request, sizeof(request) );
+			
+			if ( receivedBytes > 0 )
+			{
+				request[receivedBytes]='\0';
+				nana->say( Nana::HAPPY, ToRequestCallback, "HTTP REQUEST HEADER:%s", request );
 				RoseHttp::SimpleRoseHttpHeader simpleRoseHttpHeader;
-				ret = RoseHttp::parseSimpleRoseHttpHeader( request, strlen( request ), simpleRoseHttpHeader);
-	    			if( ret != STREAM_FORMAT_ERROR )
-	    			{
+				ssize_t ret = RoseHttp::parseSimpleRoseHttpHeader( request, strlen( request ), simpleRoseHttpHeader);
+				if ( ret == OK )
+				{
 					std::string::size_type pos = simpleRoseHttpHeader.serverPath.find_last_of('/');
 					std::string requestedSource = simpleRoseHttpHeader.serverPath.substr(pos+1);
-					nana->say(Nana::HAPPY, ToRequestCallback, "REQUESTED CHANNEL:%s", simpleRoseHttpHeader.urlArgs["channel"].c_str());
 					nana->say(Nana::HAPPY, ToRequestCallback, "REQUESTED SOURCE:%s", requestedSource.c_str());
-		
 					M3u8Pool::iterator iter = gM3u8Pool.find(requestedSource);
 					
 					if ( iter != gM3u8Pool.end() )
 					{
-						size_t tsUrlPos = iter->second.pos;
+						int tsUrlPos = iter->second.pos;
 						std::ostringstream Oreply;
-						Oreply<<"HTTP/1.1 206 Partial Content\r\nContent-Type:application/vnd.apple.mpegurl\r\n";
+						Oreply<<"HTTP/1.1 200 OK\r\nContent-Type:application/vnd.apple.mpegurl\r\n";
 						std::ostringstream Ocontent;
-						
 						Ocontent<<iter->second.header<<"#EXT-X-MEDIA-SEQUENCE:"<<tsUrlPos<<"\r\n";
-		
-						size_t tsUrlPoolSize = iter->second.tsUrlPool.size();
-						while ( tsUrlPos != tsUrlPoolSize )
-						{
-							Ocontent<<iter->second.tsUrlPool[tsUrlPos];
-							++tsUrlPos;
-						}
+
+						size_t tsUrlsSize = iter->second.tsUrlPool.size();
+						Ocontent<<iter->second.tsUrlPool[tsUrlPos];
+						Ocontent<<iter->second.tsUrlPool[(tsUrlPos+1) % tsUrlsSize];
+						Ocontent<<iter->second.tsUrlPool[(tsUrlPos+2) % tsUrlsSize];
+						Ocontent<<iter->second.tsUrlPool[(tsUrlPos+3) % tsUrlsSize];
 						
 						Oreply<<"Content-Length:"<<Ocontent.str().length()<<"\r\n\r\n"<<Ocontent.str();
 						NetUtil::writeSpecifySize2( requestWatcher->fd, Oreply.str().c_str(), Oreply.str().length());
+						nana->say(Nana::HAPPY, ToRequestCallback, "HTTP REPLY:%s", Oreply.str().c_str());
+			
 					}
 					else
 					{
 						nana->say(Nana::HAPPY, ToRequestCallback, "REQUESTED SOURCE:%s NOT EXISTS", requestedSource.c_str());
+						close(requestWatcher->fd);
 						RoseHttp::replyWithRoseHttpStatus(404, requestWatcher->fd);
 					}
-	    			}
-				else
-				{
-					nana->say( Nana::COMPLAIN, ToRequestCallback, "HTTP REQUEST LINE FORMAT ERROR");
-	        			RoseHttp::replyWithRoseHttpStatus( 400, requestWatcher->fd );
 				}
-    			}
-			else
-			{
-				if(  ret == 0  )
+				else if ( ret == STREAM_FORMAT_ERROR )
+				{
+	    				nana->say( Nana::COMPLAIN, ToRequestCallback, "HTTP REQUEST LINE FORMAT ERROR");
+	    				RoseHttp::replyWithRoseHttpStatus( 400, requestWatcher->fd );
+				}
+			}
+    			else if (  receivedBytes <= 0  )
+    			{     
+          			if(  receivedBytes == 0  )
           			{
               			if( nana->is(Nana::PEACE) )
               			{
@@ -591,8 +589,7 @@ namespace czq
               			}
 						
           			}
-					
-          			else if(  ret == LENGTH_OVERFLOW  )
+          			else if(  receivedBytes == LENGTH_OVERFLOW  )
           			{
               			if( nana->is(Nana::PEACE) )
               			{
@@ -603,11 +600,10 @@ namespace czq
           			}
 					
           			RoseHttp::replyWithRoseHttpStatus(400, requestWatcher->fd);
-			}
-    		
-			close(requestWatcher->fd);
-			DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);
+    			}
+				
+			close( requestWatcher->fd );	
+	    		DO_EVENT_CB_CLEAN(mainEventLoop, requestWatcher);			
 		}
 	};
 };
-
