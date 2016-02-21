@@ -5,7 +5,7 @@
 #desc:auto generate the Makefile
 #!/bin/bash
 #########global configuration#######
-TARGET="write the target of compiler here"
+TARGET=tulip2pServer
 MAIN_FILE=main
 AUTHOR=chenzhengqiang
 DATE=`date '+%Y/%m/%d %H:%M:%S'`
@@ -14,14 +14,14 @@ COMPILER_FLAGS="-pg -g -W -Wall -Werror -Wshadow -Wconversion -Wextra -Wunused-p
 #define the optimize level
 OLEVEL=0
 MAKEFILE=./Makefile
-LDCONFIG="write the load config your program need here:e.g. -lpthread -lmath"
+LDCONFIG=
 SOURCE_DIR=./src
 INCLUDE_DIR=./include
 INSTALL_DIR=/usr/local/bin
 #you didn't have to configure this
-CONFIG_PATH=
-CONFIG_INSTALL_PATH=
-SERVICE=
+CONFIG_PATH=./config
+CONFIG_INSTALL_PATH=/etc/tulip2p
+SERVICE=./scripts/tulip2pServer
 #########global configuration#######
 `rm -rf $MAKEFILE`
 `touch $MAKEFILE`

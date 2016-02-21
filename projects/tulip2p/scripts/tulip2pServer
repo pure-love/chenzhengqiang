@@ -1,0 +1,76 @@
+#!/bin/bash
+#scripts name:
+#author:chenzhengqiang
+#generate date:2016/02/17 17:41:25
+#modified date:
+
+
+
+#information about this service
+#service name:#you must fill the service name right here
+service=tulip2pServer
+args=
+go=/usr/local/bin/$service $args
+
+
+
+function start(){
+pid=`pidof $service`
+if [ -n "$pid" ];then
+echo "Start failed,Service $service(pid $pid) Is Running."
+exit 0
+fi
+echo -n "Starting Service $service......"
+$go
+pid=`pidof $service`
+sleep 0.3
+echo "(pid $pid)          [    OK    ]"
+pid=`pidof $service`
+}
+
+
+
+function stop(){
+pid=`pidof $service`
+if [ -n "$pid" ];then
+echo -n "Shuting Down Service $service......"
+sleep 0.3
+kill -9 $pid
+if [ $? -eq 0 ];then
+echo "                    [    OK    ]"
+else
+echo "(pid $pid)	  [   FAILED ]"
+fi
+else
+echo "Error:Service $service Is Not Running."
+fi
+rm -rf $lock
+rm -rf $pid_file
+}
+
+
+
+function status(){
+pid=`pidof $service`
+if [ -n "$pid" ];then
+echo "Service $service(pid $pid) Is Running"
+else
+echo "Service $service Has Stoped"
+fi
+}
+
+
+
+function restart(){
+stop
+start
+}
+
+
+
+case "$1" in
+"start") start;;
+"stop")  stop;;
+"status") status;;
+"restart") restart;;
+esac
