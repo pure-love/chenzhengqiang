@@ -2753,7 +2753,7 @@ std::vector<CHANNEL_POOL> get_channel_list()
                 CHANNEL_POOL channel;
                 channel.channel = ci_iter->first;
                 channel.is_camera = true;
-                memcpy(channel.IP,ci_iter->second->IP,INET_ADDRSTRLEN);
+                strcpy(channel.IP, ci_iter->second->IP);
                 channel_pool.push_back(channel);
                 ++ci_iter;
             }
