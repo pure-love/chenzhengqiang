@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20160127-13:42:29
+#generate date:20160225-15:54:56
 
 
 INCLUDE_DIR:=./include/
@@ -13,7 +13,7 @@ TARGET:=streamer
 CC:=g++
 CFLAGS:=-O0 -g -W -Wall -Werror -Wshadow
 LDCONFIG:=-I$(INCLUDE_DIR) -lev -lpthread
-OBJS:=system_info streamerutility streamer state_server serverutility rosehttp parson netutility logging main
+OBJS:=system_info streamer state_server serverutility rosehttp parson netutility logging main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
