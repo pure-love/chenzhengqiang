@@ -6,19 +6,23 @@
  */
 #ifndef _CZQ_NETUTIL_H_
 #define _CZQ_NETUTIL_H_
-#include<string>
+#include "serverutil.h"
+#include <string>
 using std::string;
 namespace czq
 {
 	namespace NetUtil
 	{
-			int registerTcpServer(const char *IP, int PORT );
-			std::string getPeerInfo(int sockFd, int flag=2);
-			void setReuseAddr(int listenFd ); 
-			void setNonBlocking(int sockFd);
-			size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
-			void setSndBufferSize(int sockFd, unsigned int sndBufferSize);
-			ssize_t writeSpecifySize2(int fd, const void *buffer, size_t total_bytes);
+		int registerTcpServer(ServerUtil::ServerConfig & serverConfig);
+		std::string getPeerInfo(int sockFd, int flag=2);
+		int setReuseAddr(int listenFd ); 
+		int setNonBlocking(int sockFd);
+		int setTcpKeepAlive( int listenFd, int idle=30, int interval=5, int count=3);
+		int setTcpNodelay( int listenFd );
+		size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes);
+		int setSendBufferSize(int sockFd, unsigned int sendBufferSize);
+		int setRecvBufferSize(int sockFd, unsigned int recvBufferSize);
+		ssize_t writeSpecifySize2(int fd, const void *buffer, size_t total_bytes);
 	};
 }
 #endif

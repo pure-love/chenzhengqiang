@@ -80,6 +80,7 @@ namespace czq
 		void XtraRtmpServer::registerServer( int listenFd )
 		{
 			listenFd_ = listenFd;
+			
 		}
 
 		void XtraRtmpServer::serveForever()
@@ -123,11 +124,14 @@ namespace czq
 							ev_io_init( listenWatcher, service::acceptCallback, listenFd_, EV_READ );
 	             					ev_io_start( mainEventLoopEntry, listenWatcher);
 	            					ev_run( mainEventLoopEntry, 0 );
+							if ( mainEventLoopEntry != 0 )		
 							free(mainEventLoopEntry);
 							mainEventLoopEntry = 0;
+
+							if ( listenWatcher != 0 )
 							delete listenWatcher;
 							listenWatcher = 0;
-							 service::freeThreadsPool();
+							service::freeThreadsPool();
 							
 						}
 						else
@@ -177,18 +181,21 @@ namespace czq
 							service::WorkthreadInfoPool.insert(std::make_pair(threadId, workthreadInfoPtr));
 							if ( ! res.second )
 							{
+								nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "MAP INSERT FAILED");
 								ret = false;
 								break;
 							}
 						}
 						else
 						{
+							nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "PTHREAD_CREATE FAILED:%s", strerror(errno));
 							ret = false;
 							break;
 						}
 					}
 					else
 					{
+						nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "ALLOCATE MEMORY FAILED");
 						ret = false;
 						break;
 					}
@@ -263,65 +270,69 @@ namespace czq
 
 		
 		
-		void acceptCallback( struct ev_loop * mainEventLoop, struct ev_io * listenWatcher, int revents )
+		void acceptCallback( struct ev_loop * mainEventLoopEntry, struct ev_io * listenWatcher, int revents )
+		{
+			#define ToAcceptCallback __func__
+		
+			if ( EV_ERROR & revents )
 			{
-		#define ToAcceptCallback __func__
-		
-					if ( EV_ERROR & revents )
-					{
-						nana->say(Nana::COMPLAIN, ToAcceptCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
-						return;
-					}
-		
-					struct sockaddr_in clientAddr;
-					socklen_t len = sizeof( struct sockaddr_in );
-					int connFd = accept( listenWatcher->fd, (struct sockaddr *)&clientAddr, &len );
-					if ( connFd < 0 )
-					{
-						nana->say(Nana::COMPLAIN, ToAcceptCallback, "ACCEPT ERROR:%s", strerror(errno));   
-						return;
-					}
-					
-					struct ev_io * receiveRequestWatcher = new struct ev_io;
-					if ( receiveRequestWatcher == NULL )
-					{
-						nana->say(Nana::COMPLAIN, ToAcceptCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
-						close(connFd);
-						return;
-					}
-			
-					receiveRequestWatcher->active = 0;
-					receiveRequestWatcher->data = 0;   
-					if ( nana->is(Nana::PEACE))
-					{
-						std::string peerInfo = NetUtil::getPeerInfo(connFd);
-						nana->say(Nana::PEACE, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
-																	 peerInfo.c_str(), connFd);
-					}
-			
-					//register the socket io callback for reading client's request	  
-					ev_io_init(  receiveRequestWatcher, shakeHandCallback, connFd, EV_READ );
-					ev_io_start( mainEventLoop, receiveRequestWatcher );
+				nana->say(Nana::COMPLAIN, ToAcceptCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+				DO_LIBEV_CB_CLEAN(mainEventLoopEntry, listenWatcher);
 			}
 		
-			void shakeHandCallback( struct ev_loop * mainEventLoop, struct ev_io * receiveRequestWatcher, int revents )
+			struct sockaddr_in clientAddr;
+			socklen_t len = sizeof( struct sockaddr_in );
+			int connFd = accept( listenWatcher->fd, (struct sockaddr *)&clientAddr, &len );
+			if ( connFd < 0 )
 			{
-		#define ToShakeHandCallback __func__
-					char c0,s0;
-				XtraRtmpServer::C1 c1;
-				if ( EV_ERROR & revents )
-					{
-						nana->say(Nana::COMPLAIN, ToShakeHandCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
-						return;
-					}
+				nana->say(Nana::COMPLAIN, ToAcceptCallback, "ACCEPT ERROR:%s", strerror(errno));   
+				return;
+			}
 					
-					nana->say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND START++++++++++");
-				struct iovec iovRead[2];
-				iovRead[0].iov_base = &c0;
-				iovRead[0].iov_len = 1;
-				iovRead[1].iov_base = &c1;
-				iovRead[1].iov_len = sizeof(c1);
-				ssize_t readBytes = readv(receiveRequestWatcher->fd, iovRead, 2);
+			struct ev_io * receiveRequestWatcher = new struct ev_io;
+			if ( receiveRequestWatcher != 0 )
+			{
+				receiveRequestWatcher->active = 0;
+				receiveRequestWatcher->data = 0;   
+				if ( nana->is(Nana::HAPPY))
+				{
+					std::string peerInfo = NetUtil::getPeerInfo(connFd);
+					nana->say(Nana::HAPPY, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
+																	 peerInfo.c_str(), connFd);
+				}
+				
+				//register the socket io callback for reading client's request	  
+				ev_io_init(  receiveRequestWatcher, shakeHandCallback, connFd, EV_READ );
+				ev_io_start( mainEventLoopEntry, receiveRequestWatcher );
+			}
+			else
+			{
+				nana->say(Nana::COMPLAIN, ToAcceptCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
+				close(connFd);
+			}
+		}
+
+
+		
+		void shakeHandCallback( struct ev_loop * mainEventLoopEntry, struct ev_io * receiveRequestWatcher, int revents )
+		{
+			#define ToShakeHandCallback __func__
+			char c0,s0;
+			XtraRtmpServer::C1 c1;
+			if ( EV_ERROR & revents )
+			{
+				nana->say(Nana::COMPLAIN, ToShakeHandCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
+				return;
+			}
+					
+			nana->say(Nana::HAPPY, ToShakeHandCallback, "++++++++++RTMP SHAKE HAND START++++++++++");
+			struct iovec iovRead[2];
+			iovRead[0].iov_base = &c0;
+			iovRead[0].iov_len = 1;
+			iovRead[1].iov_base = &c1;
+			iovRead[1].iov_len = sizeof(c1);
+			
+			ssize_t readBytes = readv(receiveRequestWatcher->fd, iovRead, 2);
 					if ( readBytes != -1 )
 					{
 						nana->say(Nana::HAPPY, ToShakeHandCallback, "RECEIVE THE C0 AND C1 PACKET TOTAL BYTES:%d", readBytes);
@@ -365,17 +376,17 @@ namespace czq
 								if ( consultWatcher == NULL )
 								{
 									nana->say(Nana::COMPLAIN, ToShakeHandCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
-									DO_LIBEV_CB_CLEAN(mainEventLoop,receiveRequestWatcher);
+									DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveRequestWatcher);
 								}
 			
 								consultWatcher->active = 0;
 								consultWatcher->data = 0;	
 								ev_io_init(  consultWatcher, consultCallback, receiveRequestWatcher->fd, EV_READ );
-								ev_io_start( mainEventLoop, consultWatcher);
+								ev_io_start( mainEventLoopEntry, consultWatcher);
 						}
 					}
 					}
-				DO_LIBEV_CB_CLEAN(mainEventLoop,receiveRequestWatcher);
+				DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveRequestWatcher);
 			}
 		
 			int XtraRtmpServer::parseRtmpPacket(unsigned char *rtmpRequest, size_t len, std::vector<RtmpPacket> & rtmpPacketPool)
@@ -385,7 +396,7 @@ namespace czq
 				if ( len == 0 )
 				{
 					nana->say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
-					return ARGUMENT_ERROR;
+					return MISS_ARGUMENT_ERROR;
 				}
 		
 				size_t pos = 0;
@@ -438,7 +449,7 @@ namespace czq
 					{
 						if ( rtmpPacket.rtmpPacketHeader.AMFSize > MAX_PAYLOAD_SIZE )
 						{
-							return LENGTH_OVERFLOW;
+							return MISS_LENGTH_OVERFLOW;
 						}
 						memcpy(rtmpPacket.rtmpPacketPayload, rtmpRequest+pos, rtmpPacket.rtmpPacketHeader.AMFSize);
 					}
@@ -448,7 +459,7 @@ namespace czq
 				}
 				
 				nana->say(Nana::HAPPY, ToParseRtmpPacket, "++++++++++DONE++++++++++");
-				return OK;
+				return MISS_OK;
 			}
 		
 			void XtraRtmpServer::parseRtmpAMF0(unsigned char *buffer, size_t len, AmfPacket & amfPacket, 
@@ -641,14 +652,14 @@ namespace czq
 		
 		
 		
-			void  consultCallback(struct ev_loop * mainEventLoop, struct ev_io * consultWatcher, int revents)
+			void  consultCallback(struct ev_loop * mainEventLoopEntry, struct ev_io * consultWatcher, int revents)
 			{
 		#define ToConsultCallback __func__
 				if ( EV_ERROR & revents )
 					{
 						nana->say(Nana::COMPLAIN, ToConsultCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
 						close(consultWatcher->fd);	
-					DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 					}
 		
 				unsigned char consultRequest[1024]={0};
@@ -661,7 +672,7 @@ namespace czq
 					if ( readBytes <=0 )
 					{
 						close(consultWatcher->fd);	
-						DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);	
+						DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);	
 					}	
 					totalReadBytes +=readBytes;
 				}
@@ -735,7 +746,7 @@ namespace czq
 							nana->say(Nana::COMPLAIN, ToConsultCallback, "SOCKET READ ERROR:%s", strerror(errno));
 							close(consultWatcher->fd);
 							nana->say(Nana::HAPPY, ToConsultCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-							DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);
+							DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 						}
 						totalReadBytes+=static_cast<size_t>(readBytes);
 					}
@@ -757,7 +768,7 @@ namespace czq
 							nana->say(Nana::COMPLAIN, ToConsultCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 							close(consultWatcher->fd);
 							nana->say(Nana::HAPPY, ToConsultCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-							DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);
+							DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 						}
 						totalReadBytes += static_cast<size_t>(readBytes);
 					}
@@ -783,7 +794,7 @@ namespace czq
 				int ret = XtraRtmpServer::parseRtmpPacket(consultRequest, packetSize, rtmpPacketPool);
 				XtraRtmpServer::AmfPacket amfPacket;
 				
-				if ( ret == OK )
+				if ( ret == MISS_OK )
 				{
 					
 					std::vector<XtraRtmpServer::RtmpPacket>::iterator rpIter = rtmpPacketPool.begin();
@@ -844,7 +855,7 @@ namespace czq
 					nana->say(Nana::COMPLAIN, ToConsultCallback, "ERROR OCCURRED WHEN READ:%s", strerror(errno));
 					close(consultWatcher->fd);
 					nana->say(Nana::HAPPY, ToConsultCallback,"++++++++++RTMP INTERACTIVE SIGNALLING FAILED++++++++++");
-					DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 				}
 					
 				
@@ -861,9 +872,9 @@ namespace czq
 							receiveStreamWatcher->active = 0;
 							receiveStreamWatcher->data = 0;   
 							ev_io_init(  receiveStreamWatcher, receiveStreamCallback, consultWatcher->fd, EV_READ );
-							ev_io_start( mainEventLoop, receiveStreamWatcher);
+							ev_io_start( mainEventLoopEntry, receiveStreamWatcher);
 						}		
-					DO_LIBEV_CB_CLEAN(mainEventLoop, consultWatcher);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 				}
 			}
 		
@@ -915,7 +926,7 @@ namespace czq
 		
 		
 			
-			void  receiveStreamCallback(struct ev_loop * mainEventLoop, struct ev_io * receiveStreamWatcher, int revents)
+			void  receiveStreamCallback(struct ev_loop * mainEventLoopEntry, struct ev_io * receiveStreamWatcher, int revents)
 			{
 		#define ToReceiveStreamCallback __func__
 		
@@ -925,7 +936,7 @@ namespace czq
 						nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
 					close(receiveStreamWatcher->fd);
 					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-					DO_LIBEV_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
 					}
 		
 				static bool alreadyReadAvcSequenceHeader = false;
@@ -941,7 +952,7 @@ namespace czq
 				{
 					close(receiveStreamWatcher->fd);
 					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-					DO_LIBEV_CB_CLEAN(mainEventLoop, receiveStreamWatcher);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
 				}
 				static size_t TOTAL_READ_BYTES = 0;
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
@@ -1019,7 +1030,7 @@ namespace czq
 							nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
 							close(receiveStreamWatcher->fd);
 							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-							DO_LIBEV_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+							DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
 						}
 						totalBytes +=static_cast<size_t>(readBytes);
 					}
@@ -1099,7 +1110,7 @@ namespace czq
 							nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 							close(receiveStreamWatcher->fd);
 							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-							DO_LIBEV_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+							DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
 						}
 						totalBytes += static_cast<size_t>(readBytes);
 					}
@@ -1167,7 +1178,7 @@ namespace czq
 						nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
 						close(receiveStreamWatcher->fd);
 						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-						DO_LIBEV_CB_CLEAN(mainEventLoop,receiveStreamWatcher);
+						DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
 					}
 					totalBytes += static_cast<size_t>(readBytes);
 				}

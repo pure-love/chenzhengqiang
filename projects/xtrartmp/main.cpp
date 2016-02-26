@@ -46,7 +46,7 @@ int main( int ARGC, char ** ARGV )
 		xtraRtmpServer.printVersion();
     }
 
-    int listenFd = NetUtil::registerTcpServer( serverConfig.server["bind-address"].c_str(), atoi(serverConfig.server["bind-port"].c_str()));
+    int listenFd = NetUtil::registerTcpServer( serverConfig );
 	if ( listenFd > 0 )
 	{	
 		xtraRtmpServer.registerServer(listenFd);

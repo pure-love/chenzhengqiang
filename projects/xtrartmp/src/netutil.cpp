@@ -16,107 +16,185 @@ namespace czq
 {
 	namespace NetUtil
 	{
-		int registerTcpServer(const char *IP, int PORT)
+		int registerTcpServer(ServerUtil::ServerConfig & serverConfig)
 		{
-				int listenFd=-1;
-				struct sockaddr_in server_addr;
-				if (( listenFd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0)
-				{
-		    		return SYSTEM_ERROR;
-				}
+			int listenFd=-1;
+			struct sockaddr_in serverAddr;
+			if (( listenFd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0)
+			{
+	    			return MISS_SYSTEM_ERROR;
+			}
 
+			setReuseAddr(listenFd);
+			if ( serverConfig.server["non-blocking"].empty() || serverConfig.server["non-blocking"]=="yes" )
+			{
+				setNonBlocking(listenFd);
+			}
+
+			if ( serverConfig.server["nodelay"] == "yes" )
+			{
+				setTcpNodelay(listenFd);
+			}
+			
+			if ( serverConfig.server["keep-alive"] =="yes" )
+			{
+				int keepIdle = serverConfig.server["keep-idle"].empty() ? 
+								 30:atoi(serverConfig.server["keep-idle"].c_str());
+				int keepInterval = serverConfig.server["keep-interval"].empty() ? 
+								 5:atoi(serverConfig.server["keep-interval"].c_str());
+				int keepCount = serverConfig.server["keep-count"].empty() ? 
+								 3:atoi(serverConfig.server["keep-count"].c_str());
 				
-				setReuseAddr(listenFd);
-				setSndBufferSize(listenFd, 65535);
-				//setNonBlocking(listenFd);
-				bzero(server_addr.sin_zero, sizeof(server_addr.sin_zero));
-				server_addr.sin_family = AF_INET;
-				server_addr.sin_port = htons(static_cast<uint16_t>(PORT));
-				server_addr.sin_addr.s_addr = inet_addr(IP);
-				if (bind(listenFd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-				{
-		    		return SYSTEM_ERROR;
-				}
+				setTcpKeepAlive(listenFd, keepIdle, keepInterval, keepCount);
+			}
 
-				if (listen(listenFd, 10) < 0)
-				{
-		    		return SYSTEM_ERROR;
-				}
 
-				return listenFd;
+			if ( !serverConfig.server["recv-buffer-size"].empty() )
+			{
+				int recvBufferSize = atoi(serverConfig.server["recv-buffer-size"].c_str());
+				if ( recvBufferSize >= 0 )
+				{
+					setRecvBufferSize(listenFd, recvBufferSize);
+				}
+			}
+
+			if ( !serverConfig.server["send-buffer-size"].empty() )
+			{
+				int sendBufferSize = atoi(serverConfig.server["send-buffer-size"].c_str());
+				if ( sendBufferSize >= 0 )
+				{
+					setSendBufferSize(listenFd, sendBufferSize);
+				}
+			}
+
+			
+			bzero(serverAddr.sin_zero, sizeof(serverAddr.sin_zero));
+			serverAddr.sin_family = AF_INET;
+
+			
+			if ( serverConfig.server["bind-port"].empty() )
+			{
+				return MISS_CONFIG_ERROR;
+			}
+
+			int bindPort = atoi(serverConfig.server["bind-port"].c_str());
+			if ( bindPort <= 0 || bindPort > 65535 )
+			{
+				return MISS_CONFIG_ERROR;
+			}
+			
+			serverAddr.sin_port = htons(static_cast<uint16_t>(bindPort));
+			serverAddr.sin_addr.s_addr = inet_addr(serverConfig.server["bind-address"].empty() ? "0.0.0.0":
+											    serverConfig.server["bind-address"].c_str());
+												
+			if (bind(listenFd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
+			{
+	    			return MISS_SYSTEM_ERROR;
+			}
+
+			int backlog = atoi(serverConfig.server["backlog"].c_str());
+			if ( backlog <= 0 )
+			{
+				backlog = 10;
+			}
+			
+			if ( listen(listenFd, backlog ) < 0)
+			{
+	    			return MISS_SYSTEM_ERROR;
+			}
+
+			return listenFd;
 		}
+
 
 		std::string getPeerInfo(int sockFd, int flag)
 		{
 			std::ostringstream OSSPeerInfo;
-				if ( sockFd < 0 )    
-				return OSSPeerInfo.str();
-				struct sockaddr_in peer_addr;
-				socklen_t sock_len = sizeof( peer_addr );
-				int ret = getpeername( sockFd, (struct sockaddr *)&peer_addr, &sock_len );
-				if ( ret != 0 )
-				return OSSPeerInfo.str();
+			if ( sockFd < 0 )    
+			return OSSPeerInfo.str();
+			struct sockaddr_in peer_addr;
+			socklen_t sock_len = sizeof( peer_addr );
+			int ret = getpeername( sockFd, (struct sockaddr *)&peer_addr, &sock_len );
+			if ( ret != 0 )
+			return OSSPeerInfo.str();
 
-				char *ip = inet_ntoa( peer_addr.sin_addr );
-				int port = htons( peer_addr.sin_port );
+			char *ip = inet_ntoa( peer_addr.sin_addr );
+			int port = htons( peer_addr.sin_port );
 
-				if (flag == 0)
-				{
+			if ( flag == 0 )
+			{
 				OSSPeerInfo<<ip;
-				}
-				else if (flag == 1)
-				{
+			}
+			else if ( flag == 1 )
+			{
 				OSSPeerInfo<<port;
-				}
-				else if (flag == 2)
-				{
+			}
+			else if ( flag == 2 )
+			{
 				OSSPeerInfo<<ip<<":"<<port;
-				}
-
-				return OSSPeerInfo.str();
+			}
+			return OSSPeerInfo.str();
 		}
 
-		void setReuseAddr(int listenFd )
+
+		int setReuseAddr( int listenFd )
 		{
-			int REUSEADDR_ON=1;
-				int ret=setsockopt( listenFd, SOL_SOCKET, SO_REUSEADDR, &REUSEADDR_ON, sizeof(REUSEADDR_ON) );
-				if ( ret != 0 )
-				{
-		    		;//do the error log here	
-				}
-				
+			int reuse=1;
+			return setsockopt( listenFd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse) );	
 		}
 
 
-		void setNonBlocking(int sockFd)
+		int setTcpNodelay( int listenFd )
+		{
+			int nodelay;
+			socklen_t len;
+			nodelay = 1;
+			len = sizeof(nodelay);
+			return setsockopt(listenFd, IPPROTO_TCP, TCP_NODELAY, &nodelay, len);
+		}
+
+		
+		int setTcpKeepAlive( int listenFd, int idle, int interval, int count)
+		{
+    			int keepalive =1;
+    			setsockopt(listenFd, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepalive ,sizeof(keepalive ));
+    			setsockopt(listenFd, SOL_TCP, TCP_KEEPIDLE, (void*)&idle ,sizeof(idle ));
+    			setsockopt(listenFd, SOL_TCP, TCP_KEEPINTVL, (void*)&interval ,sizeof(interval ));
+    			setsockopt(listenFd, SOL_TCP, TCP_KEEPCNT, (void*)&count ,sizeof(count ));
+			return MISS_OK;	
+		}
+
+		
+		int setNonBlocking(int sockFd)
 		{
 			int flags = fcntl(sockFd, F_GETFL, 0);
-				if (flags < 0)
-				{
-		    		return;
-				}
-				fcntl(sockFd, F_SETFL, flags | O_NONBLOCK);
+			return fcntl(sockFd, F_SETFL, flags | O_NONBLOCK);
 		}
 
-		void setSndBufferSize(int sockFd, unsigned int sndBufferSize)
+		int setSendBufferSize(int sockFd, unsigned int sendBufferSize)
 		{
-			setsockopt(sockFd, SOL_SOCKET, SO_SNDBUF, &sndBufferSize, sizeof(sndBufferSize));
+			return setsockopt(sockFd, SOL_SOCKET, SO_SNDBUF, &sendBufferSize, sizeof(sendBufferSize));
 		}
 
+		int setRecvBufferSize(int sockFd, unsigned int recvBufferSize)
+		{
+			return setsockopt(sockFd, SOL_SOCKET, SO_RCVBUF, &recvBufferSize, sizeof(recvBufferSize));
+		}
 
+		
 		size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes)
 		{
-				size_t  leftBytes;
-				ssize_t receivedBytes;
-				uint8_t *bufferForward;
-				bufferForward = (uint8_t *)buffer;
-				leftBytes = totalBytes;
-				while (true)
-				{
+			size_t  leftBytes;
+			ssize_t receivedBytes;
+			uint8_t *bufferForward;
+			bufferForward = (uint8_t *)buffer;
+			leftBytes = totalBytes;
+			while (true)
+			{
 		    		if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
 		    		{
-		        			if ( receivedBytes < 0)
-		        			{
+		        		if ( receivedBytes < 0)
+		        		{
 		            			if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
 		            			{
 		                			receivedBytes = 0;
@@ -126,54 +204,53 @@ namespace czq
 		                		
 		                			return 0;
 		            			}
-		        			}
-		        			else
-		        			{
+		        		}
+		        		else
+		        		{
 		            			return 0; // it indicates the camera has  stoped to push 
-		        			}
+		        		}
 		    		}
 		    
 		    		leftBytes -= static_cast<size_t>(receivedBytes);
 		    		if (leftBytes == 0)
 		        		break;
 		    		bufferForward   += receivedBytes;
-				}
-				return (totalBytes-leftBytes);
+			}
+			return (totalBytes-leftBytes);
 		}
 
 
 		ssize_t  writeSpecifySize2(int fd, const void *buffer, size_t total_bytes)
 		{
-				size_t      left_bytes;
-				ssize_t     sent_bytes;
-				const uint8_t *buffer_forward= (const uint8_t *)buffer;
-				left_bytes = total_bytes;
-				while ( true )
-				{
-		    		if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
-		    		{
-		        			if ( sent_bytes < 0 )
-		        			{
-		            			if ( errno == EINTR  || errno == EAGAIN || errno == EWOULDBLOCK )
-		            			{
-		                			sent_bytes = 0;
-		            			}
-		            			else
-		            			{
-		                			return -1;
-		            			}
-		        			}
-		        			else
-		            		return -1;
-
-		    		}
-					
-		    		left_bytes -= sent_bytes;
-		    		if ( left_bytes == 0 )
-		        		break;
-		    		buffer_forward   += sent_bytes;
-				}
-				return(total_bytes);
+			size_t      left_bytes;
+			ssize_t     sent_bytes;
+			const uint8_t *buffer_forward= (const uint8_t *)buffer;
+			left_bytes = total_bytes;
+			while ( true )
+			{
+	    			if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+	    			{
+	        			if ( sent_bytes < 0 )
+	        			{
+	            				if ( errno == EINTR  || errno == EAGAIN || errno == EWOULDBLOCK )
+	            				{
+	                				sent_bytes = 0;
+	            				}
+	            				else
+	            				{
+	                				return -1;
+	            				}
+	        			}
+	        			else
+	            			return -1;
+	    			}
+				
+	    			left_bytes -= sent_bytes;
+	    			if ( left_bytes == 0 )
+	        		break;
+	    			buffer_forward   += sent_bytes;
+			}
+			return(total_bytes);
 		}
 	};
 }
