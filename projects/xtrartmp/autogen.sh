@@ -7,7 +7,7 @@
 #!/bin/bash
 
 ########global configuration#######
-TARGET="xtrartmp"
+TARGET="xtraRtmpServer"
 MAIN_FILE="main"
 AUTHOR="chenzhengqiang"
 DATE=`date '+%Y%m%d-%H:%M:%S'`

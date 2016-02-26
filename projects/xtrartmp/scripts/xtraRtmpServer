@@ -8,7 +8,7 @@
 
 #information about this service
 #service name:#you must fill the service name right here
-service=xtrartmp
+service=xtraRtmpServer
 args=
 go=/usr/local/bin/$service $args
 pid_file=/var/run/$service.pid
