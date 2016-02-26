@@ -11,12 +11,12 @@ vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 DEP_INCLUDE_DIR:=/usr/local/ffmpeg/include
 DEP_LIB_DIR:=/usr/local/ffmpeg/lib
-TARGET:=flv2ts
+TARGET:=avio_reading
 CC:=gcc
 CFLAGS:=-I$(INCLUDE_DIR) -I$(DEP_INCLUDE_DIR) -L$(DEP_LIB_DIR)
-LDCONFIG:=-lavcodec -lavformat -lavutil -lswscale -lpthread -lm -lz
+LDCONFIG:=-lavdevice -lavformat -lavcodec -lavutil -lswscale -lswresample -lpthread -lm -lz -lrt -lx264
 
-OBJS:=flv2ts
+OBJS:=avio_reading
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
