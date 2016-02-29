@@ -45,10 +45,10 @@ int main(int argc, char * *argv)
 	static int firstAVPacket = 1;
 	char outputFile[30];
 	char m3u8File[30];
-	int duration;
+	
 	print_usage(argc,argv);
-	snprintf(outputFile, sizeof(outputFile), "%s%03d.ts", OUTPUT_FILE);
-	snprintf(m3u8File, sizeof(m3u8File), "%.m3u8",M3U8_FILE);
+	snprintf(outputFile, sizeof(outputFile), "%s%%03d.ts", OUTPUT_FILE);
+	snprintf(m3u8File, sizeof(m3u8File), "%s.m3u8", M3U8_FILE);
 	const char *duration = argv[4];
 	av_register_all();
 	if (avformat_open_input(&iFormatContext, INPUT_FILE, NULL, NULL) < 0) 
