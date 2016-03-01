@@ -182,6 +182,51 @@ namespace czq
 		}
 
 		
+		size_t readSpecifySize( int fd, void *buffer, size_t totalBytes)
+		{
+    			size_t  leftBytes;
+    			ssize_t receivedBytes;
+    			uint8_t *bufferForward;
+    			bufferForward = (uint8_t *)buffer;
+    			leftBytes = totalBytes;
+
+    			while ( true )
+    			{
+        			if ( (receivedBytes = read(fd, bufferForward, leftBytes)) <= 0)
+        			{
+            				if (  receivedBytes < 0 )
+            				{
+                				if( errno == EINTR )
+                				{
+                    				receivedBytes = 0;
+                				}
+                				else if( errno == EAGAIN || errno == EWOULDBLOCK )
+                				{
+		        				if( (totalBytes-leftBytes) == 0 )
+		        				continue;		
+		        				return ( totalBytes-leftBytes );
+                				}
+                				else
+		   				{
+                     				return 0;
+		   				}
+            				}
+            				else
+	     				{
+                 				return 0; // it indicates the camera has  stoped to push 
+	     				}
+        			}
+        
+        			leftBytes -= receivedBytes;
+        			if( leftBytes == 0 )
+            			break;
+        			bufferForward   += receivedBytes;
+    			}
+
+    			return ( totalBytes-leftBytes );
+		}
+
+		
 		size_t readSpecifySize2( int fd, void *buffer, size_t totalBytes)
 		{
 			size_t  leftBytes;
@@ -220,21 +265,60 @@ namespace czq
 		}
 
 
-		ssize_t  writeSpecifySize2(int fd, const void *buffer, size_t total_bytes)
+		ssize_t   writeSpecifySize(int fd, const void *buffer, size_t totalBytes)
 		{
-			size_t      left_bytes;
-			ssize_t     sent_bytes;
-			const uint8_t *buffer_forward= (const uint8_t *)buffer;
-			left_bytes = total_bytes;
+    			size_t      leftBytes;
+    			ssize_t    sentBytes;
+    			const uint8_t *bufferForward= (const uint8_t *)buffer;
+    			leftBytes = totalBytes;
+
+			while ( true )
+    			{
+        			if ( (sentBytes = write( fd, bufferForward, leftBytes)) <= 0)
+        			{
+            				if ( sentBytes < 0 )
+            				{
+                				if( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK )
+                				{
+                    				return totalBytes-leftBytes;
+                				}
+                				else
+                				{
+                    				return -1;
+                				}
+            				}
+            				else
+            				{
+                				return totalBytes-leftBytes;
+            				}
+
+        			}
+        
+        			leftBytes -= sentBytes;
+        			if( leftBytes == 0 )
+            			break;
+        			bufferForward  += sentBytes;
+    			}
+    			return(totalBytes);
+		}
+
+
+		
+		ssize_t  writeSpecifySize2(int fd, const void *buffer, size_t totalBytes)
+		{
+			size_t      leftBytes;
+			ssize_t     sentBytes;
+			const uint8_t *bufferForward= (const uint8_t *)buffer;
+			leftBytes = totalBytes;
 			while ( true )
 			{
-	    			if ( (sent_bytes = write(fd, buffer_forward, left_bytes)) <= 0)
+	    			if ( (sentBytes = write(fd, bufferForward, leftBytes)) <= 0)
 	    			{
-	        			if ( sent_bytes < 0 )
+	        			if ( sentBytes < 0 )
 	        			{
 	            				if ( errno == EINTR  || errno == EAGAIN || errno == EWOULDBLOCK )
 	            				{
-	                				sent_bytes = 0;
+	                				sentBytes = 0;
 	            				}
 	            				else
 	            				{
@@ -245,12 +329,12 @@ namespace czq
 	            			return -1;
 	    			}
 				
-	    			left_bytes -= sent_bytes;
-	    			if ( left_bytes == 0 )
+	    			leftBytes -= sentBytes;
+	    			if ( leftBytes == 0 )
 	        		break;
-	    			buffer_forward   += sent_bytes;
+	    			bufferForward   += sentBytes;
 			}
-			return(total_bytes);
+			return(totalBytes);
 		}
 	};
 }

@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20160226-14:57:03
+#generate date:20160301-14:04:54
 
 
 INCLUDE_DIR:=./include/
@@ -13,7 +13,7 @@ TARGET:=xtraRtmpServer
 CC:=g++
 CFLAGS:=-O0 -pg -g -W -Wall -Werror -Wshadow -Wextra -Wunused-parameter -Wconversion -Wdeprecated
 LDCONFIG:=-I$(INCLUDE_DIR) -lev -lpthread
-OBJS:=xtrartmpserver serverutil netutil nana main
+OBJS:=xtrartmpserver xtrartmp serverutil netutil nana main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

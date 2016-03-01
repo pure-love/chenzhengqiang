@@ -166,6 +166,7 @@ namespace czq
 			}
 		}
 
+	
 		void generateSimpleRandomValue(unsigned char*buffer, unsigned int bufferLen)
 		{
 			int tmp=0;

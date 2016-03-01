@@ -51,7 +51,7 @@ namespace czq
             }
            
             void say(int emotion, const char *toWho, const char *about,...);
-            bool is(int emotion){ return emotion <= emotion_;}
+            bool is(int emotion) { return emotion <= emotion_;}
             void shutup();
             void die();
         private:
