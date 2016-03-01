@@ -5,18 +5,18 @@
 INCLUDE_DIR:=./
 SOURCE_DIR:=./
 
-SUFFIX:=c
+SUFFIX:=cpp
 vpath %.h $(INCLUDE_DIR)
 vpath %.$(SUFFIX) $(SOURCE_DIR)
 
 DEP_INCLUDE_DIR:=/usr/local/ffmpeg/include
 DEP_LIB_DIR:=/usr/local/ffmpeg/lib
-TARGET:=flv2ts
-CC:=gcc
-CFLAGS:=-I$(INCLUDE_DIR) -I$(DEP_INCLUDE_DIR) -L$(DEP_LIB_DIR)
-LDCONFIG:=-lavdevice -lavformat -lavcodec -lavutil -lswscale -lswresample -lpthread -lm -lz -lrt -lx264
+TARGET:=transcode
+CC:=g++
+CFLAGS:=-I$(INCLUDE_DIR) -I$(DEP_INCLUDE_DIR) -L$(DEP_LIB_DIR) -D__STDC_CONSTANT_MACROS
+LDCONFIG:=-lavfilter -lavdevice -lavformat -lavcodec -lavutil -lswscale -lswresample -lpostproc -lpthread -lm -lz -lrt	-lx264
 
-OBJS:=flv2ts
+OBJS:=transcode
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin

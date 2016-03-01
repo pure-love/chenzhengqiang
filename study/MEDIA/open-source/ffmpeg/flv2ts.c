@@ -90,6 +90,7 @@ int main(int argc, char * *argv)
 		}
 	}
 
+
 	avbsfContext = av_bitstream_filter_init("h264_mp4toannexb");
 	av_dump_format(oFormatContext, 0, outputFile, 1);
 	av_opt_set(oFormatContext->priv_data, "segment_list", m3u8File, 0);
@@ -106,7 +107,6 @@ int main(int argc, char * *argv)
 		ret = av_read_frame(iFormatContext, &avPacket);
 		if (ret < 0) 
 		{
-			av_log(NULL, AV_LOG_ERROR,"read frame error %d \n", ret);
 			break;
 		}
 
@@ -136,23 +136,26 @@ int main(int argc, char * *argv)
 			int a = av_bitstream_filter_filter(avbsfContext, OStream->codec, NULL,
 					&favPacket.data, &favPacket.size, avPacket.data, avPacket.size,
 					avPacket.flags & AV_PKT_FLAG_KEY);
-			if(a<0)
+			if(a >= 0)
 			{
-				;
+				avPacket.data = favPacket.data;
+				avPacket.size = favPacket.size;
 			}
-			avPacket.data = favPacket.data;
-			avPacket.size = favPacket.size;
+			else
+			{
+				break;
+			}
 
 		}
 
 		ret = av_write_frame(oFormatContext, &avPacket);
 		if (ret < 0) 
 		{
-			av_log(NULL, AV_LOG_ERROR, "Muxing Error\n");
+			av_log(NULL, AV_LOG_ERROR, "AV_WRITE_FRAME ERROR\n");
 			break;
 		}
 
-		av_free_packet(&avPacket);
+		av_packet_unref(&avPacket);
 	}
 
 	av_write_trailer(oFormatContext);
