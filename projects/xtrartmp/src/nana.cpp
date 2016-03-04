@@ -91,11 +91,11 @@ namespace czq
 
 	void Nana::say(int emotion, const char * toWho, const char *about, ...)
 	{
-    		if (emotion <= emotion_)
+    		if ( emotion <= emotion_ )
     		{
     			va_list valist;
     			va_start(valist, about);
-        		char timeBuffer[50];
+        		char timeBuffer[60]={0};
     			time_t now;
     			struct tm *loctime;
     			pthread_mutex_lock(&GuardianAngel);
@@ -110,7 +110,7 @@ namespace czq
     			
     			now = time (NULL);
     			loctime = localtime(&now);
-    			char detailedSay[1024];
+    			char detailedSay[1024]={0};
     			strftime (timeBuffer, sizeof(timeBuffer), "%F %T : ", loctime);
     			int saidQ = snprintf(detailedSay, sizeof(detailedSay),"%s %-15s : %-8s : ", timeBuffer, toWho, NANA_EMOTION[emotion]);
     			saidQ += vsnprintf(detailedSay+saidQ, sizeof(detailedSay)-saidQ, about, valist);

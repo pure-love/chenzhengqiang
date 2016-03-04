@@ -1,5 +1,5 @@
 #author:chenzhengqiang
-#generate date:20160105-09:02:34
+#generate date:20160301-14:04:54
 
 
 INCLUDE_DIR:=./include/
@@ -9,23 +9,23 @@ SUFFIX:=cpp
 vpath %.h $(INCLUDE_DIR)
 vpath %.$(SUFFIX) $(SOURCE_DIR)
 
-TARGET:=xtrartmp
+TARGET:=xtraRtmpServer
 CC:=g++
 CFLAGS:=-O0 -pg -g -W -Wall -Werror -Wshadow -Wextra -Wunused-parameter -Wconversion -Wdeprecated
 LDCONFIG:=-I$(INCLUDE_DIR) -lev -lpthread
-OBJS:=xtrartmp serverutil netutil nana main
+OBJS:=xtrartmpserver xtrartmp serverutil netutil nana main
 OBJS:=$(foreach obj,$(OBJS),$(obj).o)
 
 INSTALL_DIR:=/usr/local/bin
 CONFIG_PATH:=./config
-SERVICE:=./scripts/xtrartmp
-CONFIG_INSTALL_PATH:=/etc/xtrartmp
+SERVICE:=./scripts/xtraRtmpServer
+CONFIG_INSTALL_PATH:=/etc/xtraRtmpServer
 TAR_NAME=$(TARGET)-$(shell date '+%Y%m%d')
 
-.PHONEY:clean
-.PHONEY:install
-.PHONEY:test
-.PHONEY:tar
+.PHONEY=clean
+.PHONEY=install
+.PHONEY=test
+.PHONEY=tar
 
 all:$(TARGET)
 $(TARGET):$(OBJS)

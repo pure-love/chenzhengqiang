@@ -8,7 +8,7 @@
  * this is the implementation of the simple rtmp server named xtrartmp
 */
 
-#include "xtrartmp.h"
+#include "xtrartmpserver.h"
 #include "netutil.h"
 #include "serverutil.h"
 #include <iostream>
@@ -18,13 +18,13 @@ using std::endl;
 
 using namespace czq;
 
-static const char *DEFAULT_CONFIG_FILE="/etc/xtrartmp/server.conf";
+static const char *DEFAULT_CONFIG_FILE="/etc/xtraRtmpServer/server.conf";
 
 int main( int ARGC, char ** ARGV )
 {
-    CmdOptions cmdOptions;
+	ServerUtil::CmdOptions cmdOptions;
     ServerUtil::handleCmdOptions( ARGC, ARGV, cmdOptions );
-    ServerConfig serverConfig;
+    ServerUtil::ServerConfig serverConfig;
 
     if ( ! cmdOptions.configFile.empty() )
     {
@@ -35,22 +35,22 @@ int main( int ARGC, char ** ARGV )
 		ServerUtil::readConfig( DEFAULT_CONFIG_FILE, serverConfig );
     }
 
-    XtraRtmp xtraRtmp(serverConfig);
+	service::XtraRtmpServer xtraRtmpServer(serverConfig);
     if ( cmdOptions.needPrintHelp )
     {
-		xtraRtmp.printHelp();
+		xtraRtmpServer.printHelp();
     }
 
     if ( cmdOptions.needPrintVersion )
     {
-		xtraRtmp.printVersion();
+		xtraRtmpServer.printVersion();
     }
 
-    int listenFd = NetUtil::registerTcpServer( serverConfig.server["bind-address"].c_str(), atoi(serverConfig.server["bind-port"].c_str()));
+    int listenFd = NetUtil::registerTcpServer( serverConfig );
 	if ( listenFd > 0 )
 	{	
-		xtraRtmp.registerServer(listenFd);
-		xtraRtmp.serveForever();
+		xtraRtmpServer.registerServer(listenFd);
+		xtraRtmpServer.serveForever();
 	}
 	else
 	{
