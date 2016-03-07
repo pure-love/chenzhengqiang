@@ -50,8 +50,8 @@ static const size_t AUDIO_TAG = 8;
 static const size_t VIDEO_TAG = 9;
 static const size_t SCRIPT_TAG = 18;
 static const size_t TAG_DATA_SIZE=1024;
-static const size_t VIEWERS_LIMIT = 2000;
-static const size_t CHANNELS_LIMIT = 100;
+static size_t VIEWERS_LIMIT = 2000;
+static size_t CHANNELS_LIMIT = 100;
 static const size_t MAX_CHANNEL_SIZE=32;
 static const int ONLINE = 0;
 static const int OFFLINE = 1;
@@ -2753,7 +2753,7 @@ std::vector<CHANNEL_POOL> get_channel_list()
                 CHANNEL_POOL channel;
                 channel.channel = ci_iter->first;
                 channel.is_camera = true;
-                memcpy(channel.IP,ci_iter->second->IP,INET_ADDRSTRLEN);
+                strcpy(channel.IP, ci_iter->second->IP);
                 channel_pool.push_back(channel);
                 ++ci_iter;
             }
@@ -3057,6 +3057,10 @@ void serve_forever( ssize_t streamer_listen_fd, ssize_t state_server_fd, SERVER_
         bool state_ok = startup_state_server( state_server_fd );
         if( state_ok )
         {
+		VIEWERS_LIMIT = atoi(server_config.server["viewers"].c_str());
+		CHANNELS_LIMIT = atoi(server_config.server["channels"].c_str());
+		log_module( LOG_DEBUG, "SERVE_FOREVER", "VIEWERS LIMIT:%d CHANNELS LIMIT:%d", VIEWERS_LIMIT, CHANNELS_LIMIT);
+		
              ev_io_init( listen_watcher, accept_cb, streamer_listen_fd, EV_READ );
              ev_io_start( main_event_loop, listen_watcher );
              

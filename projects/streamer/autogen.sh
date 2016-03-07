@@ -89,10 +89,10 @@ fi
 
 echo "TAR_NAME=\$(TARGET)-\$(shell date '+%Y%m%d')" >> $MAKEFILE
 echo >> $MAKEFILE
-echo ".PHONEY=clean" >> $MAKEFILE
-echo ".PHONEY=install" >> $MAKEFILE
-echo ".PHONEY=test" >> $MAKEFILE
-echo ".PHONEY=tar" >> $MAKEFILE
+echo ".PHONEY:clean" >> $MAKEFILE
+echo ".PHONEY:install" >> $MAKEFILE
+echo ".PHONEY:test" >> $MAKEFILE
+echo ".PHONEY:tar" >> $MAKEFILE
 echo >> $MAKEFILE
 
 echo "all:\$(TARGET)" >> $MAKEFILE

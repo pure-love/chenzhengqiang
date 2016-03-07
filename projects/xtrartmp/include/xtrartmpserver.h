@@ -16,7 +16,6 @@
 #include <vector>
 #include <pthread.h>
 
-//write the function prototypes or the declaration of variables here
 namespace czq
 {
 	//the detailed definition of xtrartmp class
@@ -35,7 +34,6 @@ namespace czq
 			private:
 				XtraRtmpServer( const XtraRtmpServer &){}
 				XtraRtmpServer & operator=(const XtraRtmpServer &){ return *this;}
-
 				static ssize_t onConnect(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, XtraRtmp::AmfPacket &amfPacket, int connFd);
 				static ssize_t onCheckbw(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, XtraRtmp::AmfPacket &amfPacket, int connFd);
 				static ssize_t onCreateStream(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, XtraRtmp::AmfPacket &amfPacket, int connFd);
@@ -46,18 +44,42 @@ namespace czq
 				static ssize_t onGetStreamLength(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, XtraRtmp::AmfPacket &amfPacket, int connFd);
 				static size_t generateReply(unsigned char *reply, unsigned char *transactionID, const char * parameters[][2], int rows);
 				static ssize_t onRtmpReply(XtraRtmp::RtmpPacketHeader & rtmpPacketHeader, unsigned char *transactionID, const char *parameters[][2], int rows, int connFD);
-				static ssize_t onRtmpReply(const XtraRtmp::RtmpMessageType & rtmpMessageType, int connFD, size_t size=0);
-				
+				static ssize_t onRtmpReply(const XtraRtmp::RtmpMessageType & rtmpMessageType, int connFD, size_t size=0);				
 			private:
 				int listenFd_;
 				ServerUtil::ServerConfig serverConfig_;	
 		};
 		
 
+		//the viewer structure
+		typedef struct Viewer
+		{
+			ssize_t sockFd;
+    			struct ev_io * viewerWatcher;
+    			//CircularQueue viewerQueue;
+		}*ViewerPtr;
+
+		
 		//the channel structure
 		typedef struct Channel
 		{
-			;
+			bool receiveFirst;
+    			char IP[INET_ADDRSTRLEN];
+    			//for flv script tag
+    			uint8_t  *scriptTagBuffer;
+    			size_t  scriptTagTotalBytes;
+    			size_t  scriptTagSentBytes;
+
+    			//for flv's aac sequence header tag
+    			uint8_t  *aacSeqHeaderBuffer;
+    			size_t  aacSeqHeaderTotalBytes;
+    			size_t  aacSeqHeaderSentBytes;
+
+    			//for rtmp flv's avc sequence header tag
+    			uint8_t  *avcSeqHeaderBuffer;
+    			size_t  avcSeqHeaderTotalBytes;
+    			size_t  avcSeqHeaderSentBytes;
+    			std::map<int , ViewerPtr> viewers;
 		}*ChannelPtr;
 
 		

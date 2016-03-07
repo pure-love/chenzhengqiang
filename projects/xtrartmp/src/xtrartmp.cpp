@@ -207,44 +207,47 @@ namespace czq
 		void rtmpMessageDump(const XtraRtmp::RtmpMessageType & rtmpMessageType, Nana *nana)
 		{
 			#define ToRtmpMessageDump __func__
-			switch (rtmpMessageType)
+			if ( nana != 0 )
 			{
-				case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
-					break;
-				case XtraRtmp::MESSAGE_DROP_CHUNK:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
-					break;
-				case XtraRtmp::MESSAGE_SEND_BOTH_READ:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
-					break;
-				case XtraRtmp::MESSAGE_USER_CONTROL:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
-					break;
-				case XtraRtmp::MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
-					break;
-				case XtraRtmp::MESSAGE_SET_PEER_BANDWIDTH:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
-					break;
-				case XtraRtmp::MESSAGE_AUDIO:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
-					break;
-				case XtraRtmp::MESSAGE_VIDEO:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
-					break;
-				case XtraRtmp::MESSAGE_AMF0_DATA:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF AMF0 DATA");
-					break;
-				case XtraRtmp::MESSAGE_SUBTYPE:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
-					break;
-				case XtraRtmp::MESSAGE_INVOKE:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF INVOKE");
-					break;
-				default:
-					nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF UNKNOWN %x",rtmpMessageType);
-					break;
+				switch (rtmpMessageType)
+				{
+					case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF CHANGING THE CHUNK SIZE FOR PACKETS");
+						break;
+					case XtraRtmp::MESSAGE_DROP_CHUNK:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF DROPING THE CHUNK IDENTIFIED BY STREAM CHUNK ID");
+						break;
+					case XtraRtmp::MESSAGE_SEND_BOTH_READ:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SENDING EVERY X BYTES READ BY BOTH SIDES");
+						break;
+					case XtraRtmp::MESSAGE_USER_CONTROL:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PING,WHICH HAS SUBTYPES");
+						break;
+					case XtraRtmp::MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE SERVERS DOWNSTREAM BW");
+						break;
+					case XtraRtmp::MESSAGE_SET_PEER_BANDWIDTH:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF THE CLIENTS UPSTREAM BW");
+						break;
+					case XtraRtmp::MESSAGE_AUDIO:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING AUDIO");
+						break;
+					case XtraRtmp::MESSAGE_VIDEO:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF PACKET CONTAINING VIDEO");
+						break;
+					case XtraRtmp::MESSAGE_AMF0_DATA:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF AMF0 DATA");
+						break;
+					case XtraRtmp::MESSAGE_SUBTYPE:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF SHARED OBJECT WHICH HAS SUBTYPE");
+						break;
+					case XtraRtmp::MESSAGE_INVOKE:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF INVOKE");
+						break;
+					default:
+						nana->say(Nana::HAPPY, ToRtmpMessageDump, "THIS IS THE RTMP MESSAGE OF UNKNOWN %x",rtmpMessageType);
+						break;
+				}
 			}
 		}
 

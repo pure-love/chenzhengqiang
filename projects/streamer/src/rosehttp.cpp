@@ -111,100 +111,129 @@ int read_rosehttp_header( int sock_fd, void *buffer, size_t buffer_size )
 
 int parse_simple_rosehttp_header( const char *cstr_http_header, size_t http_header_length, SIMPLE_ROSEHTTP_HEADER  & simple_rosehttp_header )
 {
-    if( cstr_http_header == NULL )
-    {
-        return ARGUMENT_ERROR;
-    }
+ 	if( cstr_http_header == NULL || http_header_length == 0 )
+	{
+		 return ARGUMENT_ERROR;
+	}
 
-    const char *start = cstr_http_header;
-    while( *cstr_http_header )
-    {
-        if( *cstr_http_header != ' ' )
-            break;
-        ++cstr_http_header;
-        if( (size_t) ( cstr_http_header - start ) == http_header_length )
-        break;    
-    }
-    
-    if( (size_t) ( cstr_http_header - start ) == http_header_length )
-    {
-        return STREAM_FORMAT_ERROR;
-    }
-    std::string string_http_header( cstr_http_header );
-    if(
-     ( 
-	( string_http_header.find("get")  == std::string::npos && string_http_header.find("GET") == std::string::npos  )
-	&& 
-	( string_http_header.find("post") == std::string::npos && string_http_header.find("POST") == std::string::npos )
-     )	
-     ||( string_http_header.find("http/") == std::string::npos && string_http_header.find("HTTP/") == std::string::npos )
-     )
-     
-    {
-        return STREAM_FORMAT_ERROR;
-    }
+	char requestLine[1024]={0};
+	char * pos = (char *)strstr(cstr_http_header, "\r\n");
+	if ( pos == 0 )
+	{
+		return STREAM_FORMAT_ERROR;
+	}
 
-    size_t prev_pos=0,cur_pos=0;
-    cur_pos = string_http_header.find_first_of(' ',prev_pos);
-    if( cur_pos == std::string::npos )
-    {
-        return STREAM_FORMAT_ERROR;
-    }
+	if ( (size_t) (pos - cstr_http_header+2) > sizeof(requestLine) )
+	{
+		return STREAM_LENGTH_ERROR;
+	}
 
-    simple_rosehttp_header.method = string_http_header.substr( prev_pos,cur_pos );
-    std::string::iterator iter = simple_rosehttp_header.method.begin();
-    while( iter != simple_rosehttp_header.method.end() )
-    {
-        *iter = toupper( *iter );
-        ++iter;
-    }
-    prev_pos = cur_pos;
-    
-    cur_pos = string_http_header.find_first_of( '/', prev_pos );
-    if( cur_pos == std::string::npos )
-    {
-        return STREAM_FORMAT_ERROR;    
-    }
-    
-    simple_rosehttp_header.server_path = string_http_header.substr( prev_pos+1, cur_pos-prev_pos-1 );
-    prev_pos = cur_pos+1;
+	strncpy(requestLine, cstr_http_header, pos - cstr_http_header+2);
+			
+	char *curPos = strchr(requestLine, ' ');
+	char *prevPos = curPos;
+	if ( curPos == 0 )
+	{
+		return STREAM_FORMAT_ERROR;
+	}
 
-    cur_pos = string_http_header.find_first_of( '=',prev_pos);
-    std::string key;
-    std::string value;
-    
-    while( cur_pos != std::string::npos )
-    {
-        key="";
-        value="";
-        key = string_http_header.substr( prev_pos, cur_pos-prev_pos );
-        prev_pos=cur_pos+1;
-        cur_pos = string_http_header.find_first_of('&',prev_pos);
-        if( cur_pos == std::string::npos )
-        {
-            cur_pos = string_http_header.find_first_of(' ', prev_pos );
-            if( cur_pos == std::string::npos )
-            break;
-        }
-        
-        value = string_http_header.substr( prev_pos, cur_pos-prev_pos);
-        simple_rosehttp_header.url_args.insert(std::make_pair( key, value ));
-        prev_pos=cur_pos+1;
-        cur_pos = string_http_header.find_first_of( '=',prev_pos );
-    }
-    
-    cur_pos = string_http_header.find_first_of( '/',prev_pos );
-    if( cur_pos == std::string::npos )
-    return STREAM_FORMAT_ERROR;    
-    prev_pos = cur_pos;
-    cur_pos = string_http_header.find_first_of("\r\n",prev_pos);
-    if( cur_pos == std::string::npos )
-    {
-        return STREAM_FORMAT_ERROR;
-    }
+	//GET /swwy.com http/1.1\r\n
+	simple_rosehttp_header.method.assign(requestLine, curPos-requestLine);
+	bool hasArg = true;
+	curPos = strchr(prevPos+1, '?');
+	if ( curPos == 0 )
+	{
+		hasArg = false;
+		curPos = strchr(prevPos+1, '=');
+		if ( curPos != 0 )
+		{
+			return STREAM_FORMAT_ERROR;
+		}
+		else
+		{
+			curPos = strchr(prevPos+1, ' ');
+			if ( curPos == 0 )
+			{
+				return STREAM_FORMAT_ERROR;
+			}
+		}
+	}
+			
+	simple_rosehttp_header.server_path.assign(prevPos, curPos-prevPos);
+	prevPos = curPos+1;
+			
+	if ( hasArg )
+	{
+		std::string key,value;
+		while( *prevPos )
+		{
+			while( * prevPos && *prevPos != ' ' && *prevPos != '=')
+			{
+    				key.push_back(*prevPos);
+    				++prevPos;
+			}
 
-    simple_rosehttp_header.http_version = string_http_header.substr( prev_pos+1, cur_pos-prev_pos );
-    return OK;
+			if( *prevPos == ' ' )
+			{
+    				while( * prevPos && *prevPos==' ')
+    				{
+        				++prevPos;
+    				}
+				if ( ! *prevPos )
+				{
+					return STREAM_FORMAT_ERROR;
+				}
+			}
+			else if( *prevPos == '=' )
+			++prevPos;
+			else
+			{
+				return STREAM_FORMAT_ERROR;
+			}
+
+
+			while( *prevPos && *prevPos != ' ' && *prevPos != '&' )
+			{
+    				value.push_back(*prevPos);
+    				++prevPos;
+			}
+
+			simple_rosehttp_header.url_args.insert(std::make_pair(key,value));
+			key="";
+			value="";
+			if ( *prevPos == ' ')
+			break;
+			else if ( ! *prevPos )
+			return STREAM_FORMAT_ERROR;	
+			++prevPos;
+		}
+	}
+	
+	
+	curPos = strstr(prevPos, "http/");
+	if ( curPos == 0 )
+	{
+		curPos = strstr(prevPos, "HTTP/");
+	}
+	
+	if ( curPos != 0 )
+	{
+		prevPos = curPos+5;
+		curPos = strstr(prevPos,"\r\n");
+		if ( curPos != 0 )
+		{
+			simple_rosehttp_header.http_version.assign(prevPos, curPos-prevPos);
+		}
+		else
+		{
+			return STREAM_FORMAT_ERROR;
+		}
+	}
+	else
+	{
+		return STREAM_FORMAT_ERROR;
+	}
+	return OK;
 }
 
 

@@ -183,7 +183,6 @@ function create_service_scripts(){
 	echo 'sleep 0.3' >> scripts/service
 	echo 'echo "(pid $pid)          [    OK    ]"' >> scripts/service
 	echo 'pid=`pidof $service`' >> scripts/service
-	echo 'touch $lock' >> scripts/service
 	echo '}' >> scripts/service
 	echo >> scripts/service
 	echo >> scripts/service

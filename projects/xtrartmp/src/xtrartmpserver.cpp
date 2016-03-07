@@ -57,7 +57,8 @@ namespace czq
 			static const char *_checkbw = "_checkbw";
 			static const char *getStreamLength = "getStreamLength";
 	       };
-	       
+
+		   
 		//define the global variable for xtrartmp server's sake
 		//just simply varify the app field
 		static std::string APP="mycs/live";
@@ -66,11 +67,6 @@ namespace czq
 		 :listenFd_(-1),serverConfig_(serverConfig)
 		{
 			APP = serverConfig_.server["rtmp-app"];
-			if ( ! serverConfig_.server["threads"].empty() )
-			{
-				int threads = atoi(serverConfig_.server["threads"].c_str()); 
-				DEFAULT_WORKTHREADS_SIZE = threads > 0 ? (size_t)threads:DEFAULT_WORKTHREADS_SIZE;
-			}
 		}
 
 		void XtraRtmpServer::printHelp()
@@ -120,7 +116,11 @@ namespace czq
 				{
 					//startup the threads pool,each thread attach a event loop
 	    				//initialization on main event-loop
-	    				if ( service::startupThreadsPool(DEFAULT_WORKTHREADS_SIZE) )
+	    				size_t totalThreads = atoi(serverConfig_.server["threads"].c_str());
+					if ( totalThreads <= 0 )
+					totalThreads = DEFAULT_WORKTHREADS_SIZE;
+					
+	    				if ( service::startupThreadsPool(totalThreads) )
 	    				{
 						struct ev_loop * mainEventLoopEntry = EV_DEFAULT;
 	    					struct ev_io * listenWatcher = new ev_io;
@@ -129,11 +129,9 @@ namespace czq
 							ev_io_init( listenWatcher, service::acceptCallback, listenFd_, EV_READ );
 	             					ev_io_start( mainEventLoopEntry, listenWatcher);
 	            					ev_run( mainEventLoopEntry, 0 );
-							if ( mainEventLoopEntry != 0 )		
+									
 							free(mainEventLoopEntry);
 							mainEventLoopEntry = 0;
-
-							if ( listenWatcher != 0 )
 							delete listenWatcher;
 							listenWatcher = 0;
 							service::freeThreadsPool();
@@ -159,57 +157,52 @@ namespace czq
 		}
 
 
+
 		//startup a workthreads pool
 		//the workthread pool's size configured in config file
 		bool startupThreadsPool( size_t totalThreads )
 		{
 			#define ToStartupThreadsPool __func__
 			bool ret = true;
-			if ( totalThreads > 0 )
+			pthread_attr_t threadAttr;
+			pthread_t threadId;
+			
+			for ( size_t index = 0; index < totalThreads; ++index )
 			{
-				pthread_attr_t threadAttr;
-    				pthread_t threadId;
-				for ( size_t index = 0; index < totalThreads; ++index )
-				{
-					pthread_attr_init(&threadAttr);
-        				pthread_attr_setdetachstate( &threadAttr, PTHREAD_CREATE_DETACHED );
-					service::WorkthreadInfoPtr workthreadInfoPtr = new service::WorkthreadInfo;
-					workthreadInfoPtr->eventLoopEntry = ev_loop_new( EVBACKEND_EPOLL );
-					workthreadInfoPtr->asyncWatcher = new ev_async;
+				pthread_attr_init(&threadAttr);
+    				pthread_attr_setdetachstate( &threadAttr, PTHREAD_CREATE_DETACHED );
+				service::WorkthreadInfoPtr workthreadInfoPtr = new service::WorkthreadInfo;
+				workthreadInfoPtr->eventLoopEntry = ev_loop_new( EVBACKEND_EPOLL );
+				workthreadInfoPtr->asyncWatcher = new ev_async;
 
-					if ( workthreadInfoPtr->eventLoopEntry != 0 && workthreadInfoPtr->asyncWatcher != 0 )
+				if ( workthreadInfoPtr->eventLoopEntry != 0 && workthreadInfoPtr->asyncWatcher != 0 )
+				{
+					if ( pthread_create( &threadId, &threadAttr, service::workthreadEntry, 
+									static_cast<void *>(workthreadInfoPtr) ) == 0 )
 					{
-						if ( pthread_create( &threadId, &threadAttr, service::workthreadEntry, 
-										static_cast<void *>(workthreadInfoPtr) ) == 0 )
+						std::pair< std::map<pthread_t, service::WorkthreadInfoPtr>::iterator,bool> res = 
+						service::WorkthreadInfoPool.insert(std::make_pair(threadId, workthreadInfoPtr));
+						if ( ! res.second )
 						{
-							std::pair< std::map<pthread_t, service::WorkthreadInfoPtr>::iterator,bool> res = 
-							service::WorkthreadInfoPool.insert(std::make_pair(threadId, workthreadInfoPtr));
-							if ( ! res.second )
-							{
-								nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "MAP INSERT FAILED");
-								ret = false;
-								break;
-							}
-						}
-						else
-						{
-							nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "PTHREAD_CREATE FAILED:%s", strerror(errno));
+							nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "MAP INSERT FAILED");
 							ret = false;
 							break;
 						}
 					}
 					else
 					{
-						nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "ALLOCATE MEMORY FAILED");
+						nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "PTHREAD_CREATE FAILED:%s", strerror(errno));
 						ret = false;
 						break;
 					}
-					
 				}
-			}	
-			else
-			{
-				ret = false;
+				else
+				{
+					nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "ALLOCATE MEMORY FAILED");
+					ret = false;
+					break;
+				}
+				
 			}
 			return ret;
 		}
@@ -290,8 +283,8 @@ namespace czq
 				}
 				
 			}
-				
 		}
+
 
 		
 		//the work thread's entry
@@ -337,7 +330,7 @@ namespace czq
 			{
 				receiveRequestWatcher->active = 0;
 				receiveRequestWatcher->data = 0;   
-				if ( nana->is(Nana::HAPPY))
+				if ( nana->is(Nana::HAPPY) )
 				{
 					std::string peerInfo = NetUtil::getPeerInfo(connFd);
 					nana->say(Nana::HAPPY, ToAcceptCallback, "CLIENT %s CONNECTED SOCK FD IS:%d",
@@ -437,7 +430,7 @@ namespace czq
 							nana->say(Nana::COMPLAIN, ToShakeHandCallback, "ALLOCATE MEMORY FAILED:%s", strerror( errno ));
 						}
 						
-						DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveRequestWatcher);
+						DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveRequestWatcher);
 					}
 				}
 				else
@@ -541,7 +534,6 @@ namespace czq
 						nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
 						break;
 				}
-
 				nana->say(Nana::HAPPY, ToConsultCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
 				
 			}
@@ -606,7 +598,7 @@ namespace czq
 						nana->say( Nana::HAPPY, ToConsultCallback, "READ THE TOTAL RTMP PACKET %d BYTES", 
 															1+ chunkMsgHeaderSize +totalAmfSize);
 						XtraRtmp::RtmpPacket rtmpPacket;
-						ret = XtraRtmp::parseRtmpPacket(consultRequest, 
+						 ret = XtraRtmp::parseRtmpPacket(consultRequest, 
 													1+ chunkMsgHeaderSize +totalAmfSize, 
 													rtmpPacket);
 						if ( ret == MISS_OK )
@@ -619,10 +611,11 @@ namespace czq
 							
 							XtraRtmp::rtmpAMF0Dump(amfPacket, nana);
 							XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)rtmpPacket.rtmpPacketHeader.AMFType, nana);
-							switch ( rtmpPacket.rtmpPacketHeader.AMFType )
+
+							switch (rtmpPacket.rtmpPacketHeader.AMFType)
 							{
 								case XtraRtmp::MESSAGE_CHANGE_CHUNK_SIZE:
-									break;
+								break;
 								case XtraRtmp::MESSAGE_DROP_CHUNK:
 									break;
 								case XtraRtmp::MESSAGE_SEND_BOTH_READ:
@@ -688,6 +681,7 @@ namespace czq
 			
 			if ( consultDone )
 			{
+				nana->say(Nana::HAPPY, ToConsultCallback, "RTMP CONSULT DONE,STARTING RECEIVE THE RTMP STREAM");
 				DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 			}
 		}
@@ -705,22 +699,40 @@ namespace czq
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
 				DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
 			}
-	
+
 			static bool alreadyReadAvcSequenceHeader = false;
 			static bool alreadyReadAacSequenceHeader = false;
 			static bool AMFDataSizeGT128 = false;
-			static size_t LEFT_READ_SIZE = 0;
+			static size_t LeftReadSize = 0;
 			static size_t previousAMFDataSize = 0;
+			static bool readChunkBasicHeaderDone = false;
+			static char chunkBasicHeader = 0;
+
+			if ( ! readChunkBasicHeaderDone )
+			{
+				ssize_t ret = read(receiveStreamWatcher->fd, &chunkBasicHeader, 1);
+				if ( ret == 1 )
+				{
+					readChunkBasicHeaderDone = true;
+				}
+				else if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
+				{
+					return;
+				}
+				else
+				{
+					nana->say(Nana::PEACE, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
+					close(receiveStreamWatcher->fd);
+					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
+				}
+					
+			}
+
 			
 			unsigned char chunkBasicHeader;
 			size_t totalBytes = 0;
-			ssize_t readBytes=read(receiveStreamWatcher->fd, &chunkBasicHeader, 1);
-			if ( readBytes <= 0 )
-			{
-				close(receiveStreamWatcher->fd);
-				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-				DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
-			}
+			
+			
 			static size_t TOTAL_READ_BYTES = 0;
 			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
 			unsigned char format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
@@ -824,7 +836,7 @@ namespace czq
 					if ( AMFSize > 128 )
 					{
 						previousAMFDataSize = AMFSize;
-						LEFT_READ_SIZE = AMFSize - 128;
+						LeftReadSize = AMFSize - 128;
 						AMFSize = 128;
 						TOTAL_READ_BYTES += 128;
 						AMFDataSizeGT128 = true;
@@ -911,21 +923,21 @@ namespace czq
 			else if ( format == 2 )
 			{
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
-				LEFT_READ_SIZE = previousAMFDataSize;
+				LeftReadSize = previousAMFDataSize;
 				previousAMFDataSize = 0;
 				AMFDataSizeGT128 = true;
 			}
 	
 			size_t bufferSize = 0;
-			if ( LEFT_READ_SIZE >= 128 )
+			if ( LeftReadSize >= 128 )
 			{
 				bufferSize = 128;
-				LEFT_READ_SIZE -=128;
+				LeftReadSize -=128;
 			}
 			else
 			{
-				bufferSize = LEFT_READ_SIZE;
-				LEFT_READ_SIZE = 0;
+				bufferSize = LeftReadSize;
+				LeftReadSize = 0;
 			}
 	
 			if ( ! AMFDataSizeGT128 )
@@ -950,7 +962,7 @@ namespace czq
 				totalBytes += static_cast<size_t>(readBytes);
 			}
 	
-			if ( LEFT_READ_SIZE == 0 )
+			if ( LeftReadSize == 0 )
 			{
 				AMFDataSizeGT128 = false;
 			}
@@ -958,7 +970,7 @@ namespace czq
 			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA	SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
 														bufferSize, TOTAL_READ_BYTES);
 	
-			if (LEFT_READ_SIZE == 0 || !AMFDataSizeGT128 )
+			if (LeftReadSize == 0 || !AMFDataSizeGT128 )
 			{
 				TOTAL_READ_BYTES = 0;
 			}
@@ -1059,17 +1071,18 @@ namespace czq
 										{"code","NetStream.Play.Reset"}
 									};
 			
+			
 			const char * OnPlay2[4][2]={ 
-										{"onStatus",0},
-										{0, 0},
-										{"level", "status"},
-										{"code","NetStream.Play.Start"}
-									  };
+											{"onStatus",0},
+											{0, 0},
+											{"level", "status"},
+											{"code","NetStream.Play.Start"}
+									   };
 			
 			const char * OnPlay3[1][2]={
 									   {"|RtmpSampleAccess", 0},
 									};
-	
+
 			
 			rtmpPacketHeader.flag = 0;
 			//the audio video channel
@@ -1093,7 +1106,6 @@ namespace czq
 			
 			if (rtmpPacketHeader.size  < 8)
 			return -1;
-			
 			const char * GetStreamParameters[2][2]={ 
 													{"_result",0},
 													{0,0},
@@ -1116,18 +1128,17 @@ namespace czq
 			#define ToOnConnect __func__
 		
 			if ( rtmpPacketHeader.size  < 8 )
-			return -1;
-		
+			return -1;	
 			const char * ConnectParameters[4][2]={ 
-												{"_result", 0},
-												{"level", "status"},
-												{"code", "NetConnection.Connect.Success"},
-												{"description", "Connection succeeded."}
-											};
-
+										{"_result",0},
+										{"level", "status"},
+										{"code", "NetConnection.Connect.Success"},
+										{"description", "Connection succeeded."}
+									};
+	
 			const char number[8]={(const char)0x40,(const char)0xc0,(const char)0x0,(const char)0x0,(const char)0x0,
-							 (const char)0x0,(const char)0x0,(const char)0x00};
-		
+								 (const char)0x0,(const char)0x0,(const char)0x00};
+			
 			const char *OnBWDone[3][2]={
 										{"onBWDone",0},
 										{0,0},
@@ -1159,14 +1170,12 @@ namespace czq
 		}
 	
 	
-		
 		ssize_t XtraRtmpServer::onCreateStream(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, XtraRtmp::AmfPacket &amfPacket, int connFd)
 		{
 			#define ToOnCreateStream __func__
 				
 			if (rtmpPacketHeader.size  < 8)
 			return -1;
-				
 			const char * CreateStreamParameters[2][2]={ 
 														{"_result",0},
 														{0, 0}
@@ -1187,14 +1196,15 @@ namespace czq
 					
 			if (rtmpPacketHeader.size  < 8)
 			return -1;
-					
 			const char * CheckBWS[5][2]={ 
 										{"_error", 0},
 										{0, 0},
 										{"level", "error"},
 										{"code", "NetConnection.Call.Failed"},
 										{"description", "call to function _checkbw failed"}
+
 									};
+
 				
 			rtmpPacketHeader.flag = 1;
 			rtmpPacketHeader.chunkStreamID = 3;
@@ -1379,9 +1389,8 @@ namespace czq
 			}
 			return ret;
 		}
-	
-	
-		
+
+			
 		ssize_t XtraRtmpServer::onRtmpReply(XtraRtmp::RtmpPacketHeader &rtmpPacketHeader, unsigned char *transactionID, 
 										const char *parameters[][2], int rows, int connFd)
 		{
@@ -1396,7 +1405,7 @@ namespace czq
 			rtmpPack[6] = static_cast<unsigned char>(AMFSize & 0xff);
 			rtmpPack[7] = XtraRtmp::MESSAGE_INVOKE;
 	
-			if ( rtmpPacketHeader.size == 12 )
+			if (rtmpPacketHeader.size == 12)
 			{
 				int streamID = htonl(rtmpPacketHeader.streamID);
 				memcpy(rtmpPack+8, &streamID, 4); 
@@ -1404,6 +1413,7 @@ namespace czq
 			
 			memcpy(rtmpPack+rtmpPacketHeader.size, reply, AMFSize);
 			ssize_t wroteBytes = NetUtil::writeSpecifySize2(connFd, rtmpPack, rtmpPacketHeader.size+AMFSize);
+
 			ssize_t ret = 0;
 			
 			if ( wroteBytes < 0  )
@@ -1414,6 +1424,7 @@ namespace czq
 			
 			delete [] rtmpPack;
 			return ret;
+
 		}
 	
 	
@@ -1443,7 +1454,7 @@ namespace czq
 			{
 				memset(reply+AMFSize, 0, 8);
 			}
-
+			
 			AMFSize += 8;
 			bool object = false;
 			
@@ -1511,7 +1522,7 @@ namespace czq
 		}
 	
 	
-	
+
 		ssize_t XtraRtmpServer::onRtmpReply(const XtraRtmp::RtmpMessageType & rtmpMessageType, int connFD,  size_t size)
 		{
 			unsigned char reply[250]={0};
