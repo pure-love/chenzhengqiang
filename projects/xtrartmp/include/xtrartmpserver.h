@@ -15,6 +15,7 @@
 #include <ev++.h>
 #include <vector>
 #include <pthread.h>
+#include <stdint.h>
 
 namespace czq
 {
@@ -54,7 +55,6 @@ namespace czq
 		//the viewer structure
 		typedef struct Viewer
 		{
-			ssize_t sockFd;
     			struct ev_io * viewerWatcher;
     			//CircularQueue viewerQueue;
 		}*ViewerPtr;
@@ -64,7 +64,6 @@ namespace czq
 		typedef struct Channel
 		{
 			bool receiveFirst;
-    			char IP[INET_ADDRSTRLEN];
     			//for flv script tag
     			uint8_t  *scriptTagBuffer;
     			size_t  scriptTagTotalBytes;
@@ -87,13 +86,14 @@ namespace czq
 		{
     			int type;
     			int sockFd;
-    			void *data;
+			char *channel;	
 		};
 
 		
 		//each single thread is related to a WorkthreadInfo structure
 		struct WorkthreadInfo
 		{
+			pthread_t threadID;
     			struct ev_loop *eventLoopEntry;
     			struct ev_async *asyncWatcher;
     			std::map<std::string, ChannelPtr> channelsPool;

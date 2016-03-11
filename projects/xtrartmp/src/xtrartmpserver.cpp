@@ -31,13 +31,23 @@ namespace czq
 		//the global logger
 		Nana *nana=0;
 
+		//the max rtmp package's size
+		static const size_t MAX_RTMP_PACKAGE_SIZE=128;
 		//the default workthread pool's size
 		static  size_t DEFAULT_WORKTHREADS_SIZE = 8;
+		//the default channel's length
+		static size_t MAX_CHANNEL_LENGTH=32;
 		static const int CAMERA = 1;
 		static const int VIEWER = 2;
-		std::map<pthread_t, WorkthreadInfoPtr> WorkthreadInfoPool;
-		typedef std::map<pthread_t, WorkthreadInfoPtr>::iterator WorkthreadInfoIterator;
-		typedef std::map<pthread_t, WorkthreadInfoPtr>::iterator & WorkthreadInfoReferenceIterator;
+		std::vector<WorkthreadInfoPtr> WorkthreadInfoPool;
+
+		//usefull aliases
+		typedef std::vector<WorkthreadInfoPtr>::iterator WorkthreadInfoIterator;
+		typedef std::vector<WorkthreadInfoPtr>::iterator & WorkthreadInfoReferenceIterator;
+		typedef std::map<std::string, ChannelPtr>::iterator ChannelInfoIterator;
+		typedef std::map<std::string, ChannelPtr>::iterator & ChannelInfoReferenceIterator;
+		typedef std::map<int , ViewerPtr>::iterator ViewerInfoIterator;
+		typedef std::map<int , ViewerPtr>::iterator & ViewerInfoReferenceIterator;
 		
 		//the amf command
 		namespace AmfCommand
@@ -58,6 +68,7 @@ namespace czq
 			static const char *getStreamLength = "getStreamLength";
 	       };
 
+
 		   
 		//define the global variable for xtrartmp server's sake
 		//just simply varify the app field
@@ -67,6 +78,14 @@ namespace czq
 		 :listenFd_(-1),serverConfig_(serverConfig)
 		{
 			APP = serverConfig_.server["rtmp-app"];
+			if ( ! serverConfig_.server["channel-length-max"].empty() )
+			{
+				int channelLength = atoi(serverConfig_.server["channel-length-max"].c_str());
+				if ( channelLength > 0 && (size_t) channelLength < MAX_CHANNEL_LENGTH )
+				{
+					MAX_CHANNEL_LENGTH = static_cast<size_t>(channelLength);
+				}
+			}
 		}
 
 		void XtraRtmpServer::printHelp()
@@ -87,6 +106,7 @@ namespace czq
 			listenFd_ = listenFd;
 			
 		}
+
 
 		void XtraRtmpServer::serveForever()
 		{
@@ -157,7 +177,7 @@ namespace czq
 		}
 
 
-
+		
 		//startup a workthreads pool
 		//the workthread pool's size configured in config file
 		bool startupThreadsPool( size_t totalThreads )
@@ -165,7 +185,6 @@ namespace czq
 			#define ToStartupThreadsPool __func__
 			bool ret = true;
 			pthread_attr_t threadAttr;
-			pthread_t threadId;
 			
 			for ( size_t index = 0; index < totalThreads; ++index )
 			{
@@ -177,17 +196,10 @@ namespace czq
 
 				if ( workthreadInfoPtr->eventLoopEntry != 0 && workthreadInfoPtr->asyncWatcher != 0 )
 				{
-					if ( pthread_create( &threadId, &threadAttr, service::workthreadEntry, 
+					if ( pthread_create( &workthreadInfoPtr->threadID, &threadAttr, service::workthreadEntry, 
 									static_cast<void *>(workthreadInfoPtr) ) == 0 )
 					{
-						std::pair< std::map<pthread_t, service::WorkthreadInfoPtr>::iterator,bool> res = 
-						service::WorkthreadInfoPool.insert(std::make_pair(threadId, workthreadInfoPtr));
-						if ( ! res.second )
-						{
-							nana->say(Nana::COMPLAIN, ToStartupThreadsPool, "MAP INSERT FAILED");
-							ret = false;
-							break;
-						}
+						service::WorkthreadInfoPool.push_back(workthreadInfoPtr);
 					}
 					else
 					{
@@ -210,27 +222,50 @@ namespace czq
 
 		void freeThreadsPool()
 		{
-			std::map<pthread_t, service::WorkthreadInfoPtr>::iterator pwIter = WorkthreadInfoPool.begin();
-			while ( pwIter != WorkthreadInfoPool.end() )
+			WorkthreadInfoIterator wiIter = WorkthreadInfoPool.begin();
+			while ( wiIter != WorkthreadInfoPool.end() )
 			{
-				if ( pwIter->second != 0 )
+				if ( *wiIter != 0 )
 				{
-					if ( pwIter->second->eventLoopEntry != 0 )
+					if ( (*wiIter)->eventLoopEntry != 0 )
 					{
-						free(pwIter->second->eventLoopEntry);
-						pwIter->second->eventLoopEntry = 0;
+						free((*wiIter)->eventLoopEntry);
+						(*wiIter)->eventLoopEntry = 0;
 					}
 
-					if ( pwIter->second->asyncWatcher != 0 )
+					if ( (*wiIter)->asyncWatcher != 0 )
 					{
-						delete pwIter->second->asyncWatcher;
-						pwIter->second->asyncWatcher = 0;
+						delete (*wiIter)->asyncWatcher;
+						(*wiIter)->asyncWatcher = 0;
 					}
 
-					delete pwIter->second;
-					pwIter->second = 0;
+					delete (*wiIter);
+					(*wiIter) = 0;
+				}
+				++wiIter;
+			}
+		}
+
+
+		/*
+		*returns:return the iterator points to the workthread item
+		*desc:get the workthread item through the thread's ID
+		*/
+		WorkthreadInfoIterator getWorkthreadInfoItem( pthread_t threadID )
+		{
+			WorkthreadInfoIterator wiIter = WorkthreadInfoPool.begin();
+			if ( ! WorkthreadInfoPool.empty() )
+			{
+				while ( wiIter != WorkthreadInfoPool.end() )
+				{
+					if ( pthread_equal(threadID, (*wiIter)->threadID ))
+					{
+						break;
+					}
+					++wiIter;
 				}
 			}
+			return wiIter;
 		}
 
 
@@ -263,7 +298,7 @@ namespace czq
 						if ( receiveStreamWatcher != 0 )
 						{	
 							receiveStreamWatcher->active = 0;
-							receiveStreamWatcher->data = 0;   
+							receiveStreamWatcher->data = static_cast<void *>(asyncData->channel);   
 							ev_io_init(  receiveStreamWatcher, receiveStreamCallback, asyncData->sockFd, EV_READ );
 							ev_io_start( eventloopEntry, receiveStreamWatcher);
 						}
@@ -472,69 +507,75 @@ namespace czq
 			
 			if ( ! readChunkBasicHeaderDone )
 			{
-				readBytes = NetUtil::readSpecifySize(consultWatcher->fd, consultRequest, 1);
-				if ( readBytes == 0 )
+				readBytes = read(consultWatcher->fd, consultRequest, 1);
+				if ( readBytes == 1 )
+				{
+					readChunkBasicHeaderDone = true;
+					pointer+=1;
+					unsigned char chunkBasicHeader = consultRequest[0];
+					nana->say(Nana::HAPPY, ToConsultCallback, "CHUNK BASIC HEADER:%u", consultRequest[0]);
+					format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
+					channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
+
+					switch( channelID )
+					{
+						case 0:
+							//just read one byte more
+							nana->say(Nana::HAPPY, ToConsultCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
+							NetUtil::readSpecifySize2(consultWatcher->fd, &channelID, 1);
+							channelID = static_cast<unsigned char>(channelID +64);
+							break;
+						case 1: 
+							break;
+						case 2:
+						case 3:
+						case 4: 
+							nana->say(Nana::HAPPY, ToConsultCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
+							break;	
+						default:
+							nana->say(Nana::COMPLAIN, ToConsultCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
+							break;	
+					}
+
+					switch ( format )
+					{
+						case 0:
+							chunkMsgHeaderSize = 11;
+							break;
+						case 1:
+							chunkMsgHeaderSize = 7;
+							break;
+						case 2:
+							chunkMsgHeaderSize = 3;
+							break;
+						case 3:
+							chunkMsgHeaderSize = 0;
+							break;
+					}
+
+					switch ( channelID )
+					{
+						case XtraRtmp::CHANNEL_PING_BYTEREAD:
+							nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
+							break;
+						case XtraRtmp::CHANNEL_INVOKE:
+							nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF INVOKE");
+							break;
+						case XtraRtmp::CHANNEL_AUDIO_VIDEO:
+							nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
+							break;
+					}
+					nana->say(Nana::HAPPY, ToConsultCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
+				}
+				else if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
+				{
+					return;
+				}
+				else 
 				{
 					close(consultWatcher->fd);
 					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, consultWatcher);
 				}
-				
-				readChunkBasicHeaderDone = true;
-				pointer+=1;
-				unsigned char chunkBasicHeader = consultRequest[0];
-				nana->say(Nana::HAPPY, ToConsultCallback, "CHUNK BASIC HEADER:%u", consultRequest[0]);
-				format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
-				channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
-
-				switch( channelID )
-				{
-					case 0:
-						//just read one byte more
-						nana->say(Nana::HAPPY, ToConsultCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
-						NetUtil::readSpecifySize2(consultWatcher->fd, &channelID, 1);
-						channelID = static_cast<unsigned char>(channelID +64);
-						break;
-					case 1: 
-						break;
-					case 2:
-					case 3:
-					case 4: 
-						nana->say(Nana::HAPPY, ToConsultCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
-						break;	
-					default:
-						nana->say(Nana::COMPLAIN, ToConsultCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
-						break;	
-				}
-
-				switch ( format )
-				{
-					case 0:
-						chunkMsgHeaderSize = 11;
-						break;
-					case 1:
-						chunkMsgHeaderSize = 7;
-						break;
-					case 2:
-						chunkMsgHeaderSize = 3;
-						break;
-					case 3:
-						chunkMsgHeaderSize = 0;
-						break;
-				}
-
-				switch ( channelID )
-				{
-					case XtraRtmp::CHANNEL_PING_BYTEREAD:
-						nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
-						break;
-					case XtraRtmp::CHANNEL_INVOKE:
-						nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF INVOKE");
-						break;
-					case XtraRtmp::CHANNEL_AUDIO_VIDEO:
-						nana->say(Nana::HAPPY, ToConsultCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
-						break;
-				}
-				nana->say(Nana::HAPPY, ToConsultCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
 				
 			}
 
@@ -687,9 +728,75 @@ namespace czq
 		}
 
 
-		void  receiveStreamCallback(struct ev_loop * mainEventLoopEntry, struct ev_io * receiveStreamWatcher, int revents)
+
+		void removeChannel( struct ev_loop * eventLoopEntry, struct  ev_io *ioWatcher, 
+                                    WorkthreadInfoReferenceIterator wirIter, ChannelInfoReferenceIterator cirIter )
+
+		{
+			if ( eventLoopEntry != 0 && ioWatcher != 0 )
+        		{
+            			if ( !cirIter->second->viewers.empty() )
+        			{
+            				ViewerInfoIterator viIter = cirIter->second->viewers.begin();
+            				while ( viIter != cirIter->second->viewers.end() )
+            				{
+               				 if ( viIter->second->viewerWatcher != 0 )
+                				{	
+							close( viIter->second->viewerWatcher->fd );
+							if ( viIter->second->viewerWatcher->active == 1 )		
+                        				ev_io_stop( eventLoopEntry, viIter->second->viewerWatcher );
+							delete viIter->second->viewerWatcher;
+							viIter->second->viewerWatcher = 0;
+                				}
+                
+                				//deleteViewerQueue( viIter->second->viewerQueue );
+                				delete viIter->second;
+                				viIter->second = 0;
+                				++viIter;
+            				}
+							
+            				cirIter->second->viewers.clear();
+        			}
+
+
+        			if ( ioWatcher->fd > 0 )
+        			{
+            				close( ioWatcher->fd );
+        			}
+        
+        			ev_io_stop(eventLoopEntry, ioWatcher);
+        			delete ioWatcher;
+        			ioWatcher = 0;
+
+       			 if( cirIter->second->scriptTagBuffer != 0 )
+        			delete [] cirIter->second->scriptTagBuffer;
+        			cirIter->second->scriptTagBuffer = 0;
+					
+        			if( cirIter->second->avcSeqHeaderBuffer != 0 )
+        			delete [] cirIter->second->avcSeqHeaderBuffer;
+        			cirIter->second->avcSeqHeaderBuffer = 0;
+					
+        			if( cirIter->second->aacSeqHeaderBuffer != 0 )
+        			delete [] cirIter->second->aacSeqHeaderBuffer;
+        			cirIter->second->aacSeqHeaderBuffer = 0;
+
+				delete cirIter->second;
+        			cirIter->second = 0;
+
+				(*wirIter)->channelsPool.erase( cirIter );	
+        		}
+		}
+
+
+		
+		void  receiveStreamCallback(struct ev_loop * eventLoopEntry, struct ev_io * receiveStreamWatcher, int revents)
 		{
 			#define ToReceiveStreamCallback __func__
+			#define DELETE_CHANNEL() \
+			removeChannel(eventLoopEntry, receiveStreamWatcher, wiIter, ciIter);\
+			delete [] channel;\
+			nana->say(Nana::PEACE, ToReceiveStreamCallback, "CLIENT DISCONNECTED OR UNKNOWN ERROR OCCURRED");\
+			return;	
 	
 			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++START++++++++++++++++++++");
 			if ( EV_ERROR & revents )
@@ -697,287 +804,311 @@ namespace czq
 				nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "LIBEV ERROR FOR EV_ERROR:%d", EV_ERROR);
 				close(receiveStreamWatcher->fd);
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-				DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
+				DO_LIBEV_CB_CLEAN(eventLoopEntry, receiveStreamWatcher);
 			}
-
+	
 			static bool alreadyReadAvcSequenceHeader = false;
 			static bool alreadyReadAacSequenceHeader = false;
-			static bool AMFDataSizeGT128 = false;
-			static size_t LeftReadSize = 0;
-			static size_t previousAMFDataSize = 0;
 			static bool readChunkBasicHeaderDone = false;
-			static char chunkBasicHeader = 0;
+			static bool AMFDataSizeGT128 = false;
 
-			if ( ! readChunkBasicHeaderDone )
+			static unsigned char format = 0;
+			static size_t leftReadSize = 0;
+			static size_t previousAMFDataSize = 0;
+			static unsigned char chunkBasicHeader = 0;
+			static size_t chunkMsgHeaderSize = 0;
+			static size_t readChunkMsgHeaderSize = 0;
+			static unsigned char chunkMsgHeaderBuffer[11]={0};
+			static size_t amfPayloadSize = 0;
+			static size_t readAmfPayloadSize = 0;
+			static unsigned char amfPayloadBuffer[512];
+			static size_t totalReadBytes = 0;
+			static size_t segmentSize = 0;
+			static size_t readSegmentSize = 0;
+			size_t readBytes = 0;
+			
+			WorkthreadInfoIterator wiIter = getWorkthreadInfoItem(pthread_self());
+			char *channel = static_cast<char *>(receiveStreamWatcher->data);
+			ChannelInfoIterator ciIter = (*wiIter)->channelsPool.find(channel);
+
+			//read the first one byte of rtmp packet
+			if ( !readChunkBasicHeaderDone )
 			{
-				ssize_t ret = read(receiveStreamWatcher->fd, &chunkBasicHeader, 1);
-				if ( ret == 1 )
+				readBytes=NetUtil::readSpecifySize(receiveStreamWatcher->fd, &chunkBasicHeader, 1);
+				if ( 1 == readBytes )
 				{
 					readChunkBasicHeaderDone = true;
+					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
+					format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
+					unsigned char channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
+					unsigned char channelID2[2];
+
+					switch( channelID )
+					{
+						case 0:
+							//just read one byte more
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
+							NetUtil::readSpecifySize(receiveStreamWatcher->fd, &channelID, 1);
+							channelID = static_cast<unsigned char>(channelID +64);
+							break;
+						case 1: 
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
+							NetUtil::readSpecifySize2(receiveStreamWatcher->fd, channelID2, 2);
+							//channelID = channelID2[0]*256+ channelID2[1]*64;
+							break;
+						case 2:
+						case 3:
+						case 4: 
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
+							break;	
+						default:
+							nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
+							break;	
+					}	
+
+	
+					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
+					//according to the format,you can compute the chunk message header size
+					switch ( format )
+					{
+						case 0:
+							chunkMsgHeaderSize = 11;
+							break;
+						case 1:
+							chunkMsgHeaderSize = 7;
+							break;
+						case 2:
+							chunkMsgHeaderSize = 3;
+							break;
+						case 3:
+							chunkMsgHeaderSize = 0;
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
+							break;
+					}
+
+					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
+					switch (channelID)
+					{
+						case XtraRtmp::CHANNEL_PING_BYTEREAD:
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
+							break;
+						case XtraRtmp::CHANNEL_INVOKE:
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF INVOKE");
+							break;
+						case XtraRtmp::CHANNEL_AUDIO_VIDEO:
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
+							break;
+					}
 				}
-				else if ( errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR )
+				else
 				{
+					DELETE_CHANNEL();
+				}
+			}
+
+
+			//read the chunk message header size 
+			if ( ( chunkMsgHeaderSize > 0 ) && ( readChunkMsgHeaderSize < chunkMsgHeaderSize ) )
+			{
+				
+				readBytes = NetUtil::readSpecifySize(receiveStreamWatcher->fd, 
+											      chunkMsgHeaderBuffer + readChunkMsgHeaderSize,
+											      chunkMsgHeaderSize - readChunkMsgHeaderSize);
+				if ( readBytes > 0 )
+				{
+					readChunkMsgHeaderSize += readBytes;
+					if ( readChunkMsgHeaderSize == chunkMsgHeaderSize )
+					{
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ CHUNK MESSAGE HEADER DONE,TOTAL READ %u BYTES",chunkMsgHeaderSize);
+						int timestamp = chunkMsgHeaderBuffer[0]*65536+chunkMsgHeaderBuffer[1]*256+chunkMsgHeaderBuffer[2];
+				 		amfPayloadSize = static_cast<size_t>(chunkMsgHeaderBuffer[3]*65536+chunkMsgHeaderBuffer[4]*256+chunkMsgHeaderBuffer[5]);
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d HEX:%x %x %x DECIMAL:%d %d %d", 
+																	timestamp, amfPayloadSize,  chunkMsgHeaderBuffer[3], chunkMsgHeaderBuffer[4], chunkMsgHeaderBuffer[5],
+																	chunkMsgHeaderBuffer[3],chunkMsgHeaderBuffer[4],chunkMsgHeaderBuffer[5]);
+						unsigned char msgType = chunkMsgHeaderBuffer[6];
+						if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
+						{
+							if ( amfPayloadSize > MAX_RTMP_PACKAGE_SIZE )
+							{
+								previousAMFDataSize = amfPayloadSize;
+								leftReadSize = amfPayloadSize - MAX_RTMP_PACKAGE_SIZE;
+								amfPayloadSize = MAX_RTMP_PACKAGE_SIZE;
+								totalReadBytes += MAX_RTMP_PACKAGE_SIZE;
+								AMFDataSizeGT128 = true;
+							}
+							
+							if ( msgType ==  XtraRtmp::MESSAGE_VIDEO )
+							{
+								if (!alreadyReadAvcSequenceHeader)
+								{
+									alreadyReadAvcSequenceHeader = true;
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
+								}
+								else
+								{
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", amfPayloadSize);
+								}	
+							}
+							else
+							{
+								if ( !alreadyReadAacSequenceHeader )
+								{
+									alreadyReadAacSequenceHeader = true;
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AAC SEQUENCE HEADER");
+								}
+								else
+								{
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE RTMP AUDIO DATA");
+								}
+							}
+					
+						}
+						else
+						{
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
+						}
+					}
+					else
+					{
+						return;
+					}
+				}
+				else
+				{
+					DELETE_CHANNEL();
+				}
+				
+			}
+
+			//and if the chunk message header size is greater than 7,you have to calculate the amf payload's size	
+			if ( chunkMsgHeaderSize >= 7 && readAmfPayloadSize < amfPayloadSize )
+			{
+				readBytes = NetUtil::readSpecifySize(receiveStreamWatcher->fd, 
+												amfPayloadBuffer+readAmfPayloadSize,
+												amfPayloadSize - readAmfPayloadSize);
+				if ( readBytes > 0 )
+				{
+					readAmfPayloadSize += readBytes;
+					if ( readAmfPayloadSize == amfPayloadSize )
+					{
+							unsigned char msgType = chunkMsgHeaderBuffer[6];
+							if ( msgType == XtraRtmp::MESSAGE_AMF0_DATA )
+							{
+								unsigned char trailer[3];
+								readBytes=NetUtil::readSpecifySize2(receiveStreamWatcher->fd, trailer, 2);
+								if ( readBytes == 0 )
+								{
+									DELETE_CHANNEL();
+								}
+								
+								if ( trailer[0] == 0 && trailer[1] == 9 )
+								{
+									;
+								}
+								else
+								{
+									readBytes = NetUtil::readSpecifySize(receiveStreamWatcher->fd, trailer+2, 1);
+									if ( readBytes == 0 )
+									{
+										DELETE_CHANNEL();
+									}
+								}
+								nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ RTMP SET DATA FRAME MESSAGE DONE");
+							}
+							
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF PAYLOAD DONE:%d BYTES", amfPayloadSize);
+							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+							readChunkBasicHeaderDone = false;
+							readChunkMsgHeaderSize = 0;
+							readAmfPayloadSize = 0;
+							return;
+					}
 					return;
 				}
 				else
 				{
-					nana->say(Nana::PEACE, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
-					close(receiveStreamWatcher->fd);
-					DO_LIBEV_CB_CLEAN(mainEventLoopEntry, receiveStreamWatcher);
+					DELETE_CHANNEL();
 				}
-					
-			}
-
-			
-			unsigned char chunkBasicHeader;
-			size_t totalBytes = 0;
-			
-			
-			static size_t TOTAL_READ_BYTES = 0;
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER:%x", chunkBasicHeader);
-			unsigned char format = static_cast<unsigned char>((chunkBasicHeader & 0xc0) >> 6);
-			unsigned char channelID = static_cast<unsigned char>(chunkBasicHeader & 0x3f);
-			unsigned char channelID2[2];
-			switch( channelID )
-			{
-				case 0:
-					//just read one byte more
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
-					read(receiveStreamWatcher->fd, &channelID, 1);
-					channelID = static_cast<unsigned char>(channelID +64);
-					break;
-				case 1: 
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
-					read(receiveStreamWatcher->fd, channelID2, 2);
-					//channelID = channelID2[0]*256+ channelID2[1]*64;
-					break;
-				case 2:
-				case 3:
-				case 4: 
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS [234],CONTROL MESSAGE");
-					break;	
-				default:
-					nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "RECEIVE THE COMPLETE CHANNEL ID:%d", channelID);
-					break;	
-			}	
-	
-			
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
-			unsigned char chunkMsgHeader[11];
-			memset(chunkMsgHeader, 0, 11);
-			size_t chunkMsgHeaderSize;
-			switch ( format )
-			{
-				case 0:
-					chunkMsgHeaderSize = 11;
-					break;
-				case 1:
-					chunkMsgHeaderSize = 7;
-					break;
-				case 2:
-					chunkMsgHeaderSize = 3;
-					break;
-				case 3:
-					chunkMsgHeaderSize = 0;
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
-					break;
-			}
-	
-			switch (channelID)
-			{
-				case XtraRtmp::CHANNEL_PING_BYTEREAD:
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF PING & BYTE READ");
-					break;
-				case XtraRtmp::CHANNEL_INVOKE:
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF INVOKE");
-					break;
-				case XtraRtmp::CHANNEL_AUDIO_VIDEO:
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "WELCOME TO THE CHANNEL OF AUDIO & VIDEO");
-					break;
-			}
-	
-			
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK MESSAGE HEADER SIZE:%u", chunkMsgHeaderSize);
-			if ( chunkMsgHeaderSize > 0 )
-			{
-				while( totalBytes != chunkMsgHeaderSize )
-				{
-					readBytes=read(receiveStreamWatcher->fd, chunkMsgHeader+totalBytes, 
-														 chunkMsgHeaderSize-totalBytes);
-					if ( readBytes <= 0 )
-					{
-						nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "SOCKET READ ERROR:%s", strerror(errno));
-						close(receiveStreamWatcher->fd);
-						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-						DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
-					}
-					totalBytes +=static_cast<size_t>(readBytes);
-				}
-				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ CHUNK MESSAGE HEADER DONE");
-			}
-	
-			if ( chunkMsgHeaderSize >= 7 )
-			{
-				int timestamp = chunkMsgHeader[0]*65536+chunkMsgHeader[1]*256+chunkMsgHeader[2];
-				size_t AMFSize = static_cast<size_t>(chunkMsgHeader[3]*65536+chunkMsgHeader[4]*256+chunkMsgHeader[5]);
-				if ( AMFSize == 0 )
-				{
-					nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "RTMP PACKET ERROR");
-					exit(EXIT_FAILURE);
-				}
-				
-				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "TIMESTAMP:%d AMF SIZE:%d HEX:%x %x %x DECIMAL:%d %d %d", 
-							timestamp, AMFSize,  chunkMsgHeader[3], chunkMsgHeader[4], chunkMsgHeader[5],
-							chunkMsgHeader[3],chunkMsgHeader[4],chunkMsgHeader[5]);
-				unsigned char msgType = chunkMsgHeader[6];
-				
-				if ( msgType ==  XtraRtmp::MESSAGE_VIDEO || msgType == XtraRtmp::MESSAGE_AUDIO )
-				{
-					if ( AMFSize > 128 )
-					{
-						previousAMFDataSize = AMFSize;
-						LeftReadSize = AMFSize - 128;
-						AMFSize = 128;
-						TOTAL_READ_BYTES += 128;
-						AMFDataSizeGT128 = true;
-					}
-					
-					if ( msgType ==  XtraRtmp::MESSAGE_VIDEO )
-					{
-						
-						if (!alreadyReadAvcSequenceHeader)
-						{
-							alreadyReadAvcSequenceHeader = true;
-							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
-						}
-						else
-						{
-							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", AMFSize);
-							
-						}	
-					}
-					else
-					{
-						if (!alreadyReadAacSequenceHeader)
-						{
-							alreadyReadAacSequenceHeader = true;
-							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AAC SEQUENCE HEADER");
-						}
-						else
-						{
-							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE RTMP AUDIO DATA");
-						}
-					}
-					
-				}
-				else
-				{
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE UNKNOWN RTMP  DATA");
-				}
-	
-				
-				XtraRtmp::rtmpMessageDump((XtraRtmp::RtmpMessageType)msgType, nana);
-				uint8_t * AmfData = new uint8_t[AMFSize];
-				memset(AmfData, 0, AMFSize);
-				totalBytes = 0;
-	
-				while ( totalBytes != AMFSize )
-				{
-					readBytes=read(receiveStreamWatcher->fd, AmfData+totalBytes, AMFSize-totalBytes);
-					if ( readBytes <= 0 )
-					{
-						nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
-						close(receiveStreamWatcher->fd);
-						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-						DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
-					}
-					totalBytes += static_cast<size_t>(readBytes);
-				}
-	
-				if ( msgType == XtraRtmp::MESSAGE_AMF0_DATA )
-				{
-					totalBytes = 0;
-					unsigned char trailer[3];
-					while( totalBytes != 2 )
-					{
-						readBytes=read(receiveStreamWatcher->fd, trailer+totalBytes, 2-totalBytes);
-						totalBytes += readBytes;
-					}
-					
-					if ( trailer[0] == 0 && trailer[1] == 9 )
-					{
-						;
-					}
-					else
-					{
-						read(receiveStreamWatcher->fd, trailer+2, 1);
-					}
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ RTMP SET DATA FRAME MESSAGE DONE");
-				}
-				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA DONE:%d BYTES", totalBytes);
-				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-				delete [] AmfData;
-				AmfData = 0;
-				return;
 			}
 			else if ( format == 2 )
 			{
 				nana->say(Nana::HAPPY, ToReceiveStreamCallback, "THIS AMF DATA SIZE IS EQUAL TO PREVIOUS DATA SIZE:%u", previousAMFDataSize);
-				LeftReadSize = previousAMFDataSize;
-				previousAMFDataSize = 0;
+				leftReadSize = previousAMFDataSize;
 				AMFDataSizeGT128 = true;
+				totalReadBytes = 0;
 			}
-	
-			size_t bufferSize = 0;
-			if ( LeftReadSize >= 128 )
+
+			if ( segmentSize == 0 )
 			{
-				bufferSize = 128;
-				LeftReadSize -=128;
-			}
-			else
-			{
-				bufferSize = LeftReadSize;
-				LeftReadSize = 0;
-			}
-	
-			if ( ! AMFDataSizeGT128 )
-			{
-				bufferSize = 128;
-			}
-	
-			TOTAL_READ_BYTES += bufferSize;
-			char rtmpStream[128];
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA	SIZE %u BYTES START", bufferSize);
-			totalBytes = 0;
-			while ( totalBytes != bufferSize )
-			{
-				readBytes=read(receiveStreamWatcher->fd, rtmpStream+totalBytes, bufferSize-totalBytes);
-				if ( readBytes <= 0 )
+				if ( leftReadSize >= MAX_RTMP_PACKAGE_SIZE )
 				{
-					nana->say(Nana::COMPLAIN, ToReceiveStreamCallback, "READ ERROR OCCURRED:%s", strerror(errno));
-					close(receiveStreamWatcher->fd);
-					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
-					DO_LIBEV_CB_CLEAN(mainEventLoopEntry,receiveStreamWatcher);
+					segmentSize = MAX_RTMP_PACKAGE_SIZE;
+					leftReadSize -=MAX_RTMP_PACKAGE_SIZE;
 				}
-				totalBytes += static_cast<size_t>(readBytes);
-			}
+				else
+				{
+					segmentSize = leftReadSize;
+					leftReadSize = 0;
+				}
 	
-			if ( LeftReadSize == 0 )
+				if ( ! AMFDataSizeGT128 )
+				{
+					segmentSize = MAX_RTMP_PACKAGE_SIZE;
+				}
+			}
+
+			
+			
+			if ( segmentSize > 0 && readSegmentSize < segmentSize )
 			{
-				AMFDataSizeGT128 = false;
+				readBytes = NetUtil::readSpecifySize( receiveStreamWatcher->fd, 
+												amfPayloadBuffer+readSegmentSize,
+												segmentSize-readSegmentSize);
+				if ( readBytes > 0 )
+				{
+					readSegmentSize += readBytes;
+					if ( readSegmentSize == segmentSize )
+					{
+						totalReadBytes += segmentSize;
+						nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ RTMP SEGMENT SIZE %u DONE, TOTAL READ BYTES:%u",
+														segmentSize, totalReadBytes);
+						segmentSize = 0;
+						readSegmentSize = 0;
+						readChunkBasicHeaderDone = false;
+						
+						if ( leftReadSize == 0 )
+						{
+							AMFDataSizeGT128 = false;
+						}
+			
+						if (leftReadSize == 0 || !AMFDataSizeGT128 )
+						{
+							totalReadBytes = 0;
+							segmentSize = 0;
+							readSegmentSize = 0;
+							readChunkBasicHeaderDone = false;
+							chunkMsgHeaderSize = 0;
+							readChunkMsgHeaderSize = 0;
+							amfPayloadSize = 0;
+							readAmfPayloadSize = 0;
+						}
+					}
+					else
+					{
+						return;
+					}
+				}
+				else
+				{
+					DELETE_CHANNEL();
+				}
 			}
 			
-			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "READ AMF DATA	SIZE %u BYTES DONE, TOTAL READ BYTES:%u",
-														bufferSize, TOTAL_READ_BYTES);
-	
-			if (LeftReadSize == 0 || !AMFDataSizeGT128 )
-			{
-				TOTAL_READ_BYTES = 0;
-			}
 			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++DONE++++++++++++++++++++");
+	
 		}
-	
-	
+
+
 		
 		ssize_t XtraRtmpServer::onRtmpInvoke(XtraRtmp::RtmpPacketHeader & rtmpPacketHeader, XtraRtmp::AmfPacket & amfPacket, int connFd)
 		{
@@ -1035,7 +1166,14 @@ namespace czq
 			else if (amfPacket.command == AmfCommand::publish)
 			{
 				nana->say(Nana::HAPPY, onRtmpInvoke, "RECEIVE THE AMF publish COMMAND");
-				ret = onPublish(rtmpPacketHeader, amfPacket, connFd);
+				if ( amfPacket.streamName.length() <= MAX_CHANNEL_LENGTH )
+				{
+					ret = onPublish(rtmpPacketHeader, amfPacket, connFd);
+				}
+				else
+				{
+					ret = -1;
+				}
 			}
 			else if (amfPacket.command == AmfCommand::seek)
 			{
@@ -1300,15 +1438,15 @@ namespace czq
 			#define ToOnPublish __func__
 
 			ssize_t ret = 0;
-			std::map<pthread_t, WorkthreadInfoPtr>::iterator pwIter = WorkthreadInfoPool.begin();
-			while ( pwIter != WorkthreadInfoPool.end() )
+			WorkthreadInfoIterator wiIter= WorkthreadInfoPool.begin();
+			while ( wiIter != WorkthreadInfoPool.end() )
 			{
-				if ( pwIter->second->channelsPool.find( amfPacket.streamName ) != pwIter->second->channelsPool.end() )
+				if ( (*wiIter)->channelsPool.find( amfPacket.streamName ) != (*wiIter)->channelsPool.end() )
 				break;	
-				++pwIter;
+				++wiIter;
 			}
 
-			if ( pwIter == WorkthreadInfoPool.end () )
+			if ( wiIter == WorkthreadInfoPool.end () )
 			{
 				nana->say(Nana::HAPPY, ToOnPublish, "+++++++++++++++START+++++++++++++++");
 				nana->say(Nana::HAPPY, ToOnPublish, "CHANNEL %s NOT EXISTS,JUST CREATE IT", 
@@ -1330,14 +1468,18 @@ namespace czq
 				ret = onRtmpReply(rtmpPacketHeader, 0, PublishParametersS, 5, connFd);
 				if ( ret >= 0 )
 				{
-					WorkthreadInfoIterator wiIter = getWorkthreadThroughRoundrobin();
-					if( ev_async_pending( wiIter->second->asyncWatcher ) == 0 )
+					wiIter = getWorkthreadThroughRoundrobin();
+					if( ev_async_pending( (*wiIter)->asyncWatcher ) == 0 )
 					{
 						ChannelPtr channelPtr = new Channel;
 						if ( channelPtr != 0 )
 						{
+							channelPtr->scriptTagBuffer = 0;
+							channelPtr->avcSeqHeaderBuffer = 0;
+							channelPtr->aacSeqHeaderBuffer = 0;
+							
 							std::pair<std::map<std::string, ChannelPtr>::iterator,bool> mapInsert = 
-							wiIter->second->channelsPool.insert(std::make_pair(amfPacket.streamName, channelPtr));
+							(*wiIter)->channelsPool.insert(std::make_pair(amfPacket.streamName, channelPtr));
 							if ( mapInsert.second )
 							{
 								service::LibevAsyncData *asyncData = new service::LibevAsyncData;
@@ -1345,8 +1487,18 @@ namespace czq
 								{
 									asyncData->type = CAMERA;
 									asyncData->sockFd = connFd;
-									wiIter->second->asyncWatcher->data=(void *)asyncData;
-                    						ev_async_send(wiIter->second->eventLoopEntry, wiIter->second->asyncWatcher );
+									asyncData->channel = new char[amfPacket.streamName.length()+1];
+									if ( asyncData->channel != 0 )
+									{
+										strcpy(asyncData->channel, amfPacket.streamName.c_str());
+										(*wiIter)->asyncWatcher->data=(void *)asyncData;
+                    							ev_async_send((*wiIter)->eventLoopEntry, (*wiIter)->asyncWatcher );
+									}
+									else
+									{
+										(*wiIter)->channelsPool.erase(amfPacket.streamName);
+										ret = -1;
+									}
 								}
 								else
 								{
