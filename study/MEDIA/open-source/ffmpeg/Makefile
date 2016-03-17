@@ -13,7 +13,7 @@ DEP_INCLUDE_DIR:=/usr/local/ffmpeg/include
 DEP_LIB_DIR:=/usr/local/ffmpeg/lib
 TARGET:=transcode
 CC:=g++
-CFLAGS:=-I$(INCLUDE_DIR) -I$(DEP_INCLUDE_DIR) -L$(DEP_LIB_DIR) -D__STDC_CONSTANT_MACROS
+CFLAGS:=-O0 -g -I$(INCLUDE_DIR) -I$(DEP_INCLUDE_DIR) -L$(DEP_LIB_DIR) -D__STDC_CONSTANT_MACROS
 LDCONFIG:=-lavfilter -lavdevice -lavformat -lavcodec -lavutil -lswscale -lswresample -lpostproc -lpthread -lm -lz -lrt	-lx264
 
 OBJS:=transcode
