@@ -247,6 +247,7 @@ namespace czq
 		}
 
 
+
 		/*
 		*returns:return the iterator points to the workthread item
 		*desc:get the workthread item through the thread's ID
@@ -748,7 +749,6 @@ namespace czq
 							delete viIter->second->viewerWatcher;
 							viIter->second->viewerWatcher = 0;
                 				}
-                
                 				//deleteViewerQueue( viIter->second->viewerQueue );
                 				delete viIter->second;
                 				viIter->second = 0;
@@ -796,7 +796,7 @@ namespace czq
 			removeChannel(eventLoopEntry, receiveStreamWatcher, wiIter, ciIter);\
 			delete [] channel;\
 			nana->say(Nana::PEACE, ToReceiveStreamCallback, "CLIENT DISCONNECTED OR UNKNOWN ERROR OCCURRED");\
-			return;	
+			return;
 	
 			nana->say(Nana::HAPPY, ToReceiveStreamCallback, "++++++++++++++++++++START++++++++++++++++++++");
 			if ( EV_ERROR & revents )
@@ -849,7 +849,7 @@ namespace czq
 							//just read one byte more
 							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 0,JUST READ ONE MORE BYTE");
 							NetUtil::readSpecifySize(receiveStreamWatcher->fd, &channelID, 1);
-							channelID = static_cast<unsigned char>(channelID +64);
+							channelID = static_cast<unsigned char>(channelID + 64);
 							break;
 						case 1: 
 							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHANNEL ID IS 1,JUST READ TWO MORE BYTES");
@@ -868,7 +868,7 @@ namespace czq
 
 	
 					nana->say(Nana::HAPPY, ToReceiveStreamCallback, "CHUNK BASIC HEADER PARSED.FORMAT:%x CHANNEL ID:%x", format, channelID);
-					//according to the format,you can compute the chunk message header size
+					//according to the format, you can compute the chunk message header size
 					switch ( format )
 					{
 						case 0:
@@ -882,7 +882,6 @@ namespace czq
 							break;
 						case 3:
 							chunkMsgHeaderSize = 0;
-							nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE NONE KEY FRAME,JUST RETRIEVE 128 BYTES");
 							break;
 					}
 
@@ -915,6 +914,8 @@ namespace czq
 											      chunkMsgHeaderBuffer + readChunkMsgHeaderSize,
 											      chunkMsgHeaderSize - readChunkMsgHeaderSize);
 				if ( readBytes > 0 )
+
+				
 				{
 					readChunkMsgHeaderSize += readBytes;
 					if ( readChunkMsgHeaderSize == chunkMsgHeaderSize )
@@ -944,10 +945,14 @@ namespace czq
 									alreadyReadAvcSequenceHeader = true;
 									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE AVC SEQUENCE HEADER");
 								}
+								else if ( format == 0 )
+								{
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE FRAME'S SIZE IS %d", amfPayloadSize);
+								}
 								else
 								{
-									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE KEY FRAME & THE KEY FRAME'S SIZE IS %d", amfPayloadSize);
-								}	
+									nana->say(Nana::HAPPY, ToReceiveStreamCallback, "RECEIVE THE INTER FRAME & THE FRAME'S SIZE IS %d", amfPayloadSize);
+								}
 							}
 							else
 							{

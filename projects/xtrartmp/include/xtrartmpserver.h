@@ -50,8 +50,24 @@ namespace czq
 				int listenFd_;
 				ServerUtil::ServerConfig serverConfig_;	
 		};
-		
 
+		enum {MAX_CHUNK_SIZE=128};
+		struct RtmpChunk
+		{
+			//only support the size max for 128*2
+			unsigned char buffer[MAX_CHUNK_SIZE];
+			int pos;
+		};
+		//the global structure audio video frame
+		struct AVFrame
+		{
+			bool isKeyFrame;//true key frame,otherwise non key-frame
+			int chunkSize;
+			std::vector<RtmpChunk> chunkList;
+			int index;
+			int lastChunkSize;
+		};
+		
 		//the viewer structure
 		typedef struct Viewer
 		{
@@ -59,7 +75,6 @@ namespace czq
     			//CircularQueue viewerQueue;
 		}*ViewerPtr;
 
-		
 		//the channel structure
 		typedef struct Channel
 		{
@@ -81,7 +96,6 @@ namespace czq
     			std::map<int , ViewerPtr> viewers;
 		}*ChannelPtr;
 
-		
 		struct LibevAsyncData
 		{
     			int type;
@@ -89,7 +103,6 @@ namespace czq
 			char *channel;	
 		};
 
-		
 		//each single thread is related to a WorkthreadInfo structure
 		struct WorkthreadInfo
 		{
