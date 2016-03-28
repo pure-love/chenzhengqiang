@@ -107,8 +107,8 @@ static int openOutputFile(const char *filename)
 			encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
 			if ( encoder != 0 ) 
 			{
-				enc_ctx->height = dec_ctx->height;
-				enc_ctx->width = dec_ctx->width;
+				enc_ctx->height = dec_ctx->height -50;
+				enc_ctx->width = dec_ctx->width -50;
 				enc_ctx->sample_aspect_ratio = dec_ctx->sample_aspect_ratio;
 				enc_ctx->pix_fmt = encoder->pix_fmts[0];
 				enc_ctx->time_base = dec_ctx->time_base;
@@ -209,7 +209,7 @@ static int init_filter(FilteringContext* fctx, AVCodecContext *dec_ctx,
 	AVFilterInOut *inputs = avfilter_inout_alloc();
 	AVFilterGraph *afGraph = avfilter_graph_alloc();
 
-	if (!outputs || !inputs || !afGraph) 
+	if ( !outputs || !inputs || !afGraph ) 
 	{
 		ret = AVERROR(ENOMEM);
 		goto end;
@@ -233,8 +233,7 @@ static int init_filter(FilteringContext* fctx, AVCodecContext *dec_ctx,
 			dec_ctx->sample_aspect_ratio.num,
 			dec_ctx->sample_aspect_ratio.den);
 
-		ret = avfilter_graph_create_filter(&afSrcContext, buffersrc, "in",
-			args, NULL, afGraph);
+		ret = avfilter_graph_create_filter(&afSrcContext, buffersrc, "in", args, NULL, afGraph);
 		if (ret < 0) 
 		{
 			av_log(NULL, AV_LOG_ERROR, "Cannot create buffer source\n");
@@ -243,6 +242,7 @@ static int init_filter(FilteringContext* fctx, AVCodecContext *dec_ctx,
 
 		ret = avfilter_graph_create_filter(&afSinkContext, buffersink, "out",
 			NULL, NULL, afGraph);
+		
 		if (ret < 0) 
 		{
 			av_log(NULL, AV_LOG_ERROR, "Cannot create buffer sink\n");
@@ -370,16 +370,17 @@ static int init_filters(void)
 	int ret;
 	avFilterContext = (FilteringContext*)av_malloc_array(iFormatContext->nb_streams, sizeof(*avFilterContext));
 	if (!avFilterContext)
-		return AVERROR(ENOMEM);
+	return AVERROR(ENOMEM);
 
 	for (i = 0; i < iFormatContext->nb_streams; i++) 
 	{
 		avFilterContext[i].afSrcContext = NULL;
 		avFilterContext[i].afSinkContext = NULL;
 		avFilterContext[i].afGraph = NULL;
-		if (!(iFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO
-			|| iFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO))
-			continue;
+		if (   !( iFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO
+			|| iFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+		   )
+		continue;
 
 
 		if (iFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
@@ -388,11 +389,13 @@ static int init_filters(void)
 			filter_spec = "anull"; /* passthrough (dummy) filter for audio */
 		ret = init_filter(&avFilterContext[i], iFormatContext->streams[i]->codec,
 			oFormatContext->streams[i]->codec, filter_spec);
-		if (ret)
-			return ret;
+		if ( ret )
+		return ret;
 	}
 	return 0;
 }
+
+
 
 static int encode_write_frame(AVFrame *filt_frame, unsigned int stream_index, int *got_frame) {
 	int ret;
@@ -438,8 +441,7 @@ static int filter_encode_write_frame(AVFrame *frame, unsigned int stream_index)
 
 	av_log(NULL, AV_LOG_INFO, "Pushing decoded frame to filters\n");
 	/* push the decoded frame into the filtergraph */
-	ret = av_buffersrc_add_frame_flags(avFilterContext[stream_index].afSrcContext,
-		frame, 0);
+	ret = av_buffersrc_add_frame_flags(avFilterContext[stream_index].afSrcContext, frame, 0);
 	if (ret < 0) 
 	{
 		av_log(NULL, AV_LOG_ERROR, "Error while feeding the filtergraph\n");

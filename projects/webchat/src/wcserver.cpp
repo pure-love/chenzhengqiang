@@ -26,6 +26,7 @@ namespace czq
 	namespace service
 	{	
 
+		std::map<int, struct ev_io *> ClientsPool;
 		//define the global macro for libev's event clean
 		#define DO_LIBEV_CB_CLEAN(M,W) \
 	    	ev_io_stop(M, W);\
@@ -331,8 +332,23 @@ namespace czq
 			  	printf("data is empty!\n");
 			  	return;
 			} 
-			printf("response:%s\n", data);
-		  	write(connfd,data,n);
+
+			std::map<int, struct ev_io *>::iterator ciIter = ClientsPool.begin();
+			while ( ciIter != ClientsPool.end() )
+			{
+				if ( ciIter->first != connfd )
+				{
+					ssize_t ret = write(ciIter->first, data,n);
+					if ( ret < 0 )
+					{
+						close(ciIter->first);
+					}
+				}
+				++ciIter;
+			}
+			
+			nana->say(Nana::HAPPY, __func__, "BROADCAST MESSAGE DONE");
+		  	
 		}
 
 
@@ -399,10 +415,11 @@ namespace czq
 				nana->say(Nana::HAPPY, ToRecvRequestCallback, "REQUEST IS:%s", request);
 			    	secWebSocketKey=wcServer->computeAcceptKey(request);	
 			    	wcServer->shakeHand(shakeHandWatcher->fd, secWebSocketKey);
-
+				
 				struct ev_io * recvMessageWatcher = new struct ev_io;
 				if ( recvMessageWatcher != 0 )
 				{
+					ClientsPool.insert(std::make_pair(shakeHandWatcher->fd, shakeHandWatcher));
 					recvMessageWatcher->data = shakeHandWatcher->data;
 					ev_io_init(  shakeHandWatcher, recvMessageCallback, shakeHandWatcher->fd, EV_READ );
 					ev_io_start( eventLoopEntry, recvMessageWatcher );
@@ -434,11 +451,13 @@ namespace czq
 			WcServer *wcServer = static_cast<WcServer *>(recvMessageWatcher->data);
 			char *data;
 			char *secWebSocketKey;
-			char request[2048]={0};
-			ssize_t readBytes = read(recvMessageWatcher->fd, request, sizeof(request));	
+			char message[2048]={0};
+			ssize_t readBytes = read(recvMessageWatcher->fd, message, sizeof(message));	
 			if ( readBytes > 0 )
 			{
-				data=wcServer->analyData(request, readBytes);
+				message[readBytes]='\0';
+				nana->say(Nana::HAPPY, ToRecvMessageCallback, "MESSAGE IS:%s", message);
+				data=wcServer->analyData(message, readBytes);
 				wcServer->response(recvMessageWatcher->fd, data);
 			}
 			else
