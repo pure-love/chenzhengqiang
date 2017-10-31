@@ -1,0 +1,68 @@
+Traceback (most recent call last):
+  File "relative_the_remain.py", line 40, in <module>
+    for res in ask_good.find():
+  File "/usr/lib64/python2.7/site-packages/pymongo/cursor.py", line 1132, in next
+    if len(self.__data) or self._refresh():
+  File "/usr/lib64/python2.7/site-packages/pymongo/cursor.py", line 1075, in _refresh
+    self.__max_await_time_ms))
+  File "/usr/lib64/python2.7/site-packages/pymongo/cursor.py", line 892, in __send_message
+    **kwargs)
+  File "/usr/lib64/python2.7/site-packages/pymongo/mongo_client.py", line 950, in _send_message_with_response
+    exhaust)
+  File "/usr/lib64/python2.7/site-packages/pymongo/mongo_client.py", line 961, in _reset_on_error
+    return func(*args, **kwargs)
+  File "/usr/lib64/python2.7/site-packages/pymongo/server.py", line 136, in send_message_with_response
+    response_data = sock_info.receive_message(1, request_id)
+  File "/usr/lib64/python2.7/site-packages/pymongo/pool.py", line 510, in receive_message
+    self._raise_connection_failure(error)
+  File "/usr/lib64/python2.7/site-packages/pymongo/pool.py", line 610, in _raise_connection_failure
+    raise error
+pymongo.errors.AutoReconnect: connection closed
+Traceback (most recent call last):
+  File "relative_the_remain.py", line 41, in <module>
+    mongo14 = MngoClient("10.15.0.14", 38000)
+NameError: name 'MngoClient' is not defined
+Traceback (most recent call last):
+  File "relative_the_remain.py", line 41, in <module>
+    mongo14 = MngoClient("10.15.0.14", 38000)
+NameError: name 'MngoClient' is not defined
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.261 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.261 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.293 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.271 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.383 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.298 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.276 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.268 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.275 seconds.
+Prefix dict has been built succesfully.
+Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+Loading model cost 0.257 seconds.
+Prefix dict has been built succesfully.
