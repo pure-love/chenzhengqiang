@@ -1,0 +1,2 @@
+[2017-11-01T17:12:52,568][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_hospital] creating index, cause [api], templates [], shards [3]/[0], mappings [jk_hospital]
+[2017-11-01T17:16:27,015][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_hospital/Z19iiFVnQWipjTmM19OVjQ] create_mapping [gather]

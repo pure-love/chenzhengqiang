@@ -1,0 +1,34 @@
+[2017-10-31T13:49:58,448][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-31T13:49:58,495][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalStateException: failed to obtain node locks, tried [[/data/elasticsearch/JK_SEARCH]] with lock id [0]; maybe these locations are not writable or multiple nodes were started without increasing [node.max_local_storage_nodes] (was [1])?
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:261) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-10-31T13:49:58,501][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [master] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: failed to obtain node locks, tried [[/data/elasticsearch/JK_SEARCH]] with lock id [0]; maybe these locations are not writable or multiple nodes were started without increasing [node.max_local_storage_nodes] (was [1])?
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalStateException: failed to obtain node locks, tried [[/data/elasticsearch/JK_SEARCH]] with lock id [0]; maybe these locations are not writable or multiple nodes were started without increasing [node.max_local_storage_nodes] (was [1])?
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:261) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more

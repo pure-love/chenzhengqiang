@@ -1,0 +1,515 @@
+[2017-10-25T12:57:11,169][WARN ][o.e.b.JNANatives         ] Unable to lock JVM Memory: error=12, reason=Cannot allocate memory
+[2017-10-25T12:57:11,171][WARN ][o.e.b.JNANatives         ] This can result in part of the JVM being swapped out.
+[2017-10-25T12:57:11,171][WARN ][o.e.b.JNANatives         ] Increase RLIMIT_MEMLOCK, soft limit: 65536, hard limit: 65536
+[2017-10-25T12:57:11,171][WARN ][o.e.b.JNANatives         ] These can be adjusted by modifying /etc/security/limits.conf, for example: 
+	# allow user 'backer' mlockall
+	backer soft memlock unlimited
+	backer hard memlock unlimited
+[2017-10-25T12:57:11,171][WARN ][o.e.b.JNANatives         ] If you are logged in interactively, you will have to re-login for the new limits to take effect.
+[2017-10-25T12:57:11,284][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T12:57:11,367][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.6gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T12:57:11,368][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T12:57:11,375][INFO ][o.e.n.Node               ] [master] node name [master], node ID [pTi7yfzcRMu59b5Y2MxWwA]
+[2017-10-25T12:57:11,376][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[11799], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T12:57:11,376][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T12:57:12,422][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T12:57:12,422][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T12:57:12,422][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T12:57:12,422][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T12:57:12,423][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T12:57:12,424][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T12:57:13,625][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T12:57:14,147][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T12:57:14,147][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T12:57:14,279][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T12:57:14,296][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T12:57:14,299][ERROR][o.e.b.Bootstrap          ] [master] node validation exception
+[1] bootstrap checks failed
+[1]: memory locking requested for elasticsearch process but memory is not locked
+[2017-10-25T12:57:14,301][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T12:57:14,323][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T12:57:14,323][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T12:57:14,334][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T13:00:30,794][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:00:30,856][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.6gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T13:00:30,856][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T13:00:30,863][INFO ][o.e.n.Node               ] [master] node name [master], node ID [pTi7yfzcRMu59b5Y2MxWwA]
+[2017-10-25T13:00:30,863][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[11935], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T13:00:30,863][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T13:00:31,555][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T13:00:31,556][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T13:00:31,557][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T13:00:32,750][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T13:00:33,227][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T13:00:33,227][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T13:00:33,353][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T13:00:33,362][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T13:00:36,410][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{pTi7yfzcRMu59b5Y2MxWwA}{jhecDwKsQj2BcpUpPAx9lg}{10.5.0.86}{10.5.0.86:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T13:00:36,427][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.86:9200}, bound_addresses {10.5.0.86:9200}
+[2017-10-25T13:00:36,427][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T13:00:36,455][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T13:00:36,456][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T13:00:36,818][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T13:00:37,156][INFO ][o.e.g.GatewayService     ] [master] recovered [1] indices into cluster_state
+[2017-10-25T13:00:37,384][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[hospitals][4]] ...]).
+[2017-10-25T13:00:48,129][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T13:00:48,267][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T13:00:48,268][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T13:00:48,274][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T13:35:08,504][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:35:08,562][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.6gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T13:35:08,562][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T13:35:08,569][INFO ][o.e.n.Node               ] [master] node name [master], node ID [pTi7yfzcRMu59b5Y2MxWwA]
+[2017-10-25T13:35:08,570][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[12275], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T13:35:08,570][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T13:35:09,276][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T13:35:09,277][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T13:35:10,338][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T13:35:10,967][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T13:35:10,967][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T13:35:11,103][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T13:35:11,113][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T13:35:14,156][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{pTi7yfzcRMu59b5Y2MxWwA}{UFipYXHvQLCh9yjMwpyMVA}{10.5.0.86}{10.5.0.86:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T13:35:14,174][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.86:9200}, bound_addresses {10.5.0.86:9200}
+[2017-10-25T13:35:14,174][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T13:35:14,208][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T13:35:14,209][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T13:35:14,392][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T13:35:14,653][INFO ][o.e.g.GatewayService     ] [master] recovered [1] indices into cluster_state
+[2017-10-25T13:35:14,830][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[hospitals][3]] ...]).
+[2017-10-25T13:35:33,356][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_search] creating index, cause [api], templates [], shards [5]/[1], mappings [jk_search]
+[2017-10-25T13:39:05,880][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_search/4nN56GM9QrOPj1tTjCNP3g] create_mapping [ask_question]
+[2017-10-25T13:43:15,459][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:43:15,473][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.node.Node.<init>(Node.java:267) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.nio.file.AccessDeniedException: /data/elasticsearch/nodes
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:84) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:?]
+	at sun.nio.fs.UnixFileSystemProvider.createDirectory(UnixFileSystemProvider.java:384) ~[?:?]
+	at java.nio.file.Files.createDirectory(Files.java:674) ~[?:1.8.0_144]
+	at java.nio.file.Files.createAndCheckIsDirectory(Files.java:781) ~[?:1.8.0_144]
+	at java.nio.file.Files.createDirectories(Files.java:767) ~[?:1.8.0_144]
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:221) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 11 more
+[2017-10-25T13:43:15,480][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [master] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.node.Node.<init>(Node.java:267) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+Caused by: java.nio.file.AccessDeniedException: /data/elasticsearch/nodes
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:84) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:?]
+	at sun.nio.fs.UnixFileSystemProvider.createDirectory(UnixFileSystemProvider.java:384) ~[?:?]
+	at java.nio.file.Files.createDirectory(Files.java:674) ~[?:1.8.0_144]
+	at java.nio.file.Files.createAndCheckIsDirectory(Files.java:781) ~[?:1.8.0_144]
+	at java.nio.file.Files.createDirectories(Files.java:767) ~[?:1.8.0_144]
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:221) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-10-25T13:43:39,928][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:43:39,942][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.node.Node.<init>(Node.java:267) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.nio.file.AccessDeniedException: /data/elasticsearch/nodes
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:84) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:?]
+	at sun.nio.fs.UnixFileSystemProvider.createDirectory(UnixFileSystemProvider.java:384) ~[?:?]
+	at java.nio.file.Files.createDirectory(Files.java:674) ~[?:1.8.0_144]
+	at java.nio.file.Files.createAndCheckIsDirectory(Files.java:781) ~[?:1.8.0_144]
+	at java.nio.file.Files.createDirectories(Files.java:767) ~[?:1.8.0_144]
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:221) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 11 more
+[2017-10-25T13:43:39,949][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [master] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalStateException: Failed to create node environment
+	at org.elasticsearch.node.Node.<init>(Node.java:267) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+Caused by: java.nio.file.AccessDeniedException: /data/elasticsearch/nodes
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:84) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:?]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:?]
+	at sun.nio.fs.UnixFileSystemProvider.createDirectory(UnixFileSystemProvider.java:384) ~[?:?]
+	at java.nio.file.Files.createDirectory(Files.java:674) ~[?:1.8.0_144]
+	at java.nio.file.Files.createAndCheckIsDirectory(Files.java:781) ~[?:1.8.0_144]
+	at java.nio.file.Files.createDirectories(Files.java:767) ~[?:1.8.0_144]
+	at org.elasticsearch.env.NodeEnvironment.<init>(NodeEnvironment.java:221) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-10-25T13:45:16,126][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:45:16,182][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.3gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T13:45:16,182][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T13:45:16,183][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T13:45:16,183][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[12672], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T13:45:16,183][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T13:45:16,868][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T13:45:16,868][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T13:45:16,868][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T13:45:16,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T13:45:16,870][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T13:45:16,870][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T13:45:17,935][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T13:45:18,471][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T13:45:18,471][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T13:45:18,587][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T13:45:18,596][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T13:45:21,636][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{z7_cgx3eQWSeGXqGptGmvw}{10.5.0.86}{10.5.0.86:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T13:45:21,650][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.86:9200}, bound_addresses {10.5.0.86:9200}
+[2017-10-25T13:45:21,650][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T13:45:21,661][INFO ][o.e.g.GatewayService     ] [master] recovered [0] indices into cluster_state
+[2017-10-25T13:45:24,913][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T13:45:24,926][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T13:45:24,927][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T13:45:24,934][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T13:45:30,838][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T13:45:30,895][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.3gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T13:45:30,895][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T13:45:30,896][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T13:45:30,896][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[12803], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T13:45:30,896][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T13:45:31,577][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T13:45:31,578][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T13:45:31,578][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T13:45:31,578][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T13:45:31,578][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T13:45:32,629][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T13:45:33,211][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T13:45:33,211][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T13:45:33,335][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T13:45:33,343][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T13:45:36,381][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{B7YNso82SUe1Z8tCzkzbmA}{10.5.0.86}{10.5.0.86:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T13:45:36,397][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.86:9200}, bound_addresses {10.5.0.86:9200}
+[2017-10-25T13:45:36,397][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T13:45:36,405][INFO ][o.e.g.GatewayService     ] [master] recovered [0] indices into cluster_state
+[2017-10-25T13:47:09,409][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T13:47:09,410][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T13:47:09,585][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T13:47:09,730][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_search] creating index, cause [api], templates [], shards [5]/[1], mappings [jk_search]
+[2017-10-25T13:47:22,716][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_search/uQJ3P8JCT9Cr0V6gR1NeMw] create_mapping [ask_question]
+[2017-10-25T13:51:08,780][WARN ][o.e.m.j.JvmGcMonitorService] [master] [gc][335] overhead, spent [583ms] collecting in the last [1s]
+[2017-10-25T15:11:07,335][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_baike] creating index, cause [api], templates [], shards [3]/[1], mappings [jk_baike]
+[2017-10-25T15:11:07,434][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_zz] creating index, cause [api], templates [], shards [3]/[0], mappings [jk_zz]
+[2017-10-25T15:12:15,780][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_baike/_6XFnDEsTAmCgLPt13YJeg] create_mapping [gather]
+[2017-10-25T15:14:21,054][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_zz/p-Vdd1CbQyGeczLPrsqKxg] create_mapping [gather]
+[2017-10-25T16:52:17,595][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T16:52:17,707][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [28.9gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-10-25T16:52:17,707][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T16:52:17,727][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T16:52:17,727][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[28121], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T16:52:17,727][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T16:52:18,804][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T16:52:18,805][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T16:52:20,227][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T16:52:20,839][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T16:52:20,839][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T16:52:21,025][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.86:9300}, bound_addresses {10.5.0.86:9300}
+[2017-10-25T16:52:21,033][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T16:52:24,080][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{JNb06yNRR5u3GACFwASW-A}{10.5.0.86}{10.5.0.86:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T16:52:24,095][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.86:9200}, bound_addresses {10.5.0.86:9200}
+[2017-10-25T16:52:24,095][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T16:52:24,126][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T16:52:24,129][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T16:52:24,538][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T16:52:24,871][INFO ][o.e.g.GatewayService     ] [master] recovered [3] indices into cluster_state
+[2017-10-25T16:52:26,031][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[jk_search][4]] ...]).
+[2017-10-25T19:08:10,408][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T19:08:10,534][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T19:08:10,534][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T19:08:10,547][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T20:28:32,045][WARN ][o.e.b.JNANatives         ] Unable to lock JVM Memory: error=12, reason=Cannot allocate memory
+[2017-10-25T20:28:32,054][WARN ][o.e.b.JNANatives         ] This can result in part of the JVM being swapped out.
+[2017-10-25T20:28:32,054][WARN ][o.e.b.JNANatives         ] Increase RLIMIT_MEMLOCK, soft limit: 65536, hard limit: 65536
+[2017-10-25T20:28:32,055][WARN ][o.e.b.JNANatives         ] These can be adjusted by modifying /etc/security/limits.conf, for example: 
+	# allow user 'backer' mlockall
+	backer soft memlock unlimited
+	backer hard memlock unlimited
+[2017-10-25T20:28:32,055][WARN ][o.e.b.JNANatives         ] If you are logged in interactively, you will have to re-login for the new limits to take effect.
+[2017-10-25T20:28:32,183][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T20:28:32,249][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/data (/dev/vdb1)]], net usable_space [73.3gb], net total_space [102.2gb], spins? [possibly], types [ext4]
+[2017-10-25T20:28:32,250][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T20:28:32,262][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T20:28:32,262][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[9276], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T20:28:32,262][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T20:28:33,403][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T20:28:33,404][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T20:28:33,405][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T20:28:33,405][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T20:28:34,824][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T20:28:35,349][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T20:28:35,349][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T20:28:35,619][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.8:9300}, bound_addresses {10.5.0.8:9300}
+[2017-10-25T20:28:35,628][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T20:28:35,631][ERROR][o.e.b.Bootstrap          ] [master] node validation exception
+[1] bootstrap checks failed
+[1]: memory locking requested for elasticsearch process but memory is not locked
+[2017-10-25T20:28:35,634][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T20:28:35,656][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T20:28:35,656][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T20:28:35,665][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T20:33:43,547][WARN ][o.e.b.JNANatives         ] Unable to lock JVM Memory: error=12, reason=Cannot allocate memory
+[2017-10-25T20:33:43,549][WARN ][o.e.b.JNANatives         ] This can result in part of the JVM being swapped out.
+[2017-10-25T20:33:43,549][WARN ][o.e.b.JNANatives         ] Increase RLIMIT_MEMLOCK, soft limit: 65536, hard limit: 65536
+[2017-10-25T20:33:43,549][WARN ][o.e.b.JNANatives         ] These can be adjusted by modifying /etc/security/limits.conf, for example: 
+	# allow user 'backer' mlockall
+	backer soft memlock unlimited
+	backer hard memlock unlimited
+[2017-10-25T20:33:43,549][WARN ][o.e.b.JNANatives         ] If you are logged in interactively, you will have to re-login for the new limits to take effect.
+[2017-10-25T20:33:43,618][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T20:33:43,672][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/data (/dev/vdb1)]], net usable_space [73.3gb], net total_space [102.2gb], spins? [possibly], types [ext4]
+[2017-10-25T20:33:43,672][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T20:33:43,684][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T20:33:43,685][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[9387], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T20:33:43,685][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T20:33:44,350][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T20:33:44,351][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T20:33:45,620][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T20:33:46,107][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T20:33:46,107][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T20:33:46,233][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.8:9300}, bound_addresses {10.5.0.8:9300}
+[2017-10-25T20:33:46,243][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T20:33:46,246][ERROR][o.e.b.Bootstrap          ] [master] node validation exception
+[1] bootstrap checks failed
+[1]: memory locking requested for elasticsearch process but memory is not locked
+[2017-10-25T20:33:46,248][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T20:33:46,263][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T20:33:46,264][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T20:33:46,272][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T20:34:47,421][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T20:34:47,475][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/data (/dev/vdb1)]], net usable_space [73.3gb], net total_space [102.2gb], spins? [possibly], types [ext4]
+[2017-10-25T20:34:47,476][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T20:34:47,488][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T20:34:47,488][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[9493], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T20:34:47,488][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T20:34:48,153][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T20:34:48,154][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T20:34:48,155][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T20:34:48,155][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T20:34:48,155][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T20:34:49,383][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T20:34:49,941][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T20:34:49,942][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T20:34:50,072][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.8:9300}, bound_addresses {10.5.0.8:9300}
+[2017-10-25T20:34:50,092][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T20:34:53,136][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{PIXSnc7lQ-yP7NqO8UjM9w}{10.5.0.8}{10.5.0.8:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T20:34:53,156][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.8:9200}, bound_addresses {10.5.0.8:9200}
+[2017-10-25T20:34:53,156][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T20:34:53,185][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T20:34:53,186][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T20:34:53,559][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T20:34:53,874][INFO ][o.e.g.GatewayService     ] [master] recovered [3] indices into cluster_state
+[2017-10-25T20:34:55,960][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T20:34:55,987][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[jk_search][1], [jk_search][4]] ...]).
+[2017-10-25T20:34:56,021][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T20:34:56,021][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T20:34:56,028][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T20:49:04,271][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T20:49:04,325][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/data (/dev/vdb1)]], net usable_space [73.3gb], net total_space [102.2gb], spins? [possibly], types [ext4]
+[2017-10-25T20:49:04,325][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T20:49:04,337][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T20:49:04,337][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[9696], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T20:49:04,337][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T20:49:05,017][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T20:49:05,018][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T20:49:05,018][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T20:49:05,018][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T20:49:06,325][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T20:49:06,783][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T20:49:06,784][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T20:49:06,922][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.8:9300}, bound_addresses {10.5.0.8:9300}
+[2017-10-25T20:49:06,931][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T20:49:09,973][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{6Hk1bNOLQ6avdwwsjQD0Nw}{10.5.0.8}{10.5.0.8:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T20:49:09,991][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.8:9200}, bound_addresses {10.5.0.8:9200}
+[2017-10-25T20:49:09,991][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T20:49:10,019][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T20:49:10,020][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T20:49:10,241][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T20:49:10,476][INFO ][o.e.g.GatewayService     ] [master] recovered [3] indices into cluster_state
+[2017-10-25T20:49:10,871][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[jk_search][0]] ...]).
+[2017-10-25T20:49:37,094][INFO ][o.e.n.Node               ] [master] stopping ...
+[2017-10-25T20:49:37,128][INFO ][o.e.n.Node               ] [master] stopped
+[2017-10-25T20:49:37,129][INFO ][o.e.n.Node               ] [master] closing ...
+[2017-10-25T20:49:37,137][INFO ][o.e.n.Node               ] [master] closed
+[2017-10-25T20:49:43,119][INFO ][o.e.n.Node               ] [master] initializing ...
+[2017-10-25T20:49:43,175][INFO ][o.e.e.NodeEnvironment    ] [master] using [1] data paths, mounts [[/data (/dev/vdb1)]], net usable_space [73.3gb], net total_space [102.2gb], spins? [possibly], types [ext4]
+[2017-10-25T20:49:43,175][INFO ][o.e.e.NodeEnvironment    ] [master] heap size [7.9gb], compressed ordinary object pointers [true]
+[2017-10-25T20:49:43,187][INFO ][o.e.n.Node               ] [master] node name [master], node ID [9dszmQNTT3q3KPHYldQZrg]
+[2017-10-25T20:49:43,187][INFO ][o.e.n.Node               ] [master] version[5.5.2], pid[9843], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-693.2.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-10-25T20:49:43,187][INFO ][o.e.n.Node               ] [master] JVM arguments [-Xms8g, -Xmx8g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-10-25T20:49:43,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [aggs-matrix-stats]
+[2017-10-25T20:49:43,869][INFO ][o.e.p.PluginsService     ] [master] loaded module [ingest-common]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-expression]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-groovy]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-mustache]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [lang-painless]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [parent-join]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [percolator]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [reindex]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty3]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded module [transport-netty4]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [analysis-ik]
+[2017-10-25T20:49:43,871][INFO ][o.e.p.PluginsService     ] [master] loaded plugin [elasticsearch-jakes-similarity]
+[2017-10-25T20:49:45,155][INFO ][o.e.d.DiscoveryModule    ] [master] using discovery type [zen]
+[2017-10-25T20:49:45,694][INFO ][o.e.n.Node               ] [master] initialized
+[2017-10-25T20:49:45,694][INFO ][o.e.n.Node               ] [master] starting ...
+[2017-10-25T20:49:45,832][INFO ][o.e.t.TransportService   ] [master] publish_address {10.5.0.8:9300}, bound_addresses {10.5.0.8:9300}
+[2017-10-25T20:49:45,842][INFO ][o.e.b.BootstrapChecks    ] [master] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-10-25T20:49:48,891][INFO ][o.e.c.s.ClusterService   ] [master] new_master {master}{9dszmQNTT3q3KPHYldQZrg}{qDpu_tn-RXKvht4ds9Hjhg}{10.5.0.8}{10.5.0.8:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-10-25T20:49:48,909][INFO ][o.e.h.n.Netty4HttpServerTransport] [master] publish_address {10.5.0.8:9200}, bound_addresses {10.5.0.8:9200}
+[2017-10-25T20:49:48,909][INFO ][o.e.n.Node               ] [master] started
+[2017-10-25T20:49:48,970][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-10-25T20:49:48,970][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-10-25T20:49:49,151][INFO ][o.w.a.d.Monitor          ] [Dict Loading] custom/jk_lexicon.dic
+[2017-10-25T20:49:49,368][INFO ][o.e.g.GatewayService     ] [master] recovered [3] indices into cluster_state
+[2017-10-25T20:49:49,762][INFO ][o.e.c.r.a.AllocationService] [master] Cluster health status changed from [RED] to [YELLOW] (reason: [shards started [[jk_search][1]] ...]).

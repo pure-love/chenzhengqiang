@@ -1,0 +1,1178 @@
+[2017-09-11T10:44:43,747][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: org.elasticsearch.bootstrap.BootstrapException: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/plugin-descriptor.properties/plugin-descriptor.properties: Not a directory
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: org.elasticsearch.bootstrap.BootstrapException: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/plugin-descriptor.properties/plugin-descriptor.properties: Not a directory
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:169) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+Caused by: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/plugin-descriptor.properties/plugin-descriptor.properties: Not a directory
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:91) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:214) ~[?:1.8.0_101]
+	at java.nio.file.Files.newByteChannel(Files.java:361) ~[?:1.8.0_101]
+	at java.nio.file.Files.newByteChannel(Files.java:407) ~[?:1.8.0_101]
+	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:384) ~[?:1.8.0_101]
+	at java.nio.file.Files.newInputStream(Files.java:152) ~[?:1.8.0_101]
+	at org.elasticsearch.plugins.PluginInfo.readFromProperties(PluginInfo.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Spawner.spawnNativePluginControllers(Spawner.java:76) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:167) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-11T11:28:31,203][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Bootstrap.initializeNatives(Bootstrap.java:106) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:194) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-11T11:28:31,213][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Bootstrap.initializeNatives(Bootstrap.java:106) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:194) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-11T11:30:29,063][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-11T11:30:29,257][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (/dev/vda1)]], net usable_space [4.3gb], net total_space [39.2gb], spins? [possibly], types [ext4]
+[2017-09-11T11:30:29,258][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-11T11:30:29,259][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-11T11:30:29,259][INFO ][o.e.n.Node               ] version[5.5.2], pid[5501], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.13.0-86-generic/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_101/25.101-b13]
+[2017-09-11T11:30:29,259][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-11T11:30:30,385][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-11T11:30:30,385][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-11T11:30:30,385][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-11T11:30:30,386][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-11T11:30:30,387][INFO ][o.e.p.PluginsService     ] [pTi7yfz] no plugins loaded
+[2017-09-11T11:30:32,714][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-11T11:30:33,313][INFO ][o.e.n.Node               ] initialized
+[2017-09-11T11:30:33,313][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-11T11:30:33,597][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9301}, bound_addresses {127.0.0.1:9301}
+[2017-09-11T11:30:33,610][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-11T11:30:33,610][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-11T11:30:36,679][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{AzYn1sceSZi8ar0EtQvPqg}{127.0.0.1}{127.0.0.1:9301}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-11T11:30:36,701][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9201}, bound_addresses {127.0.0.1:9201}
+[2017-09-11T11:30:36,702][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-11T11:30:36,712][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-11T11:30:45,186][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-11T11:30:45,214][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-11T11:30:45,215][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-11T11:30:45,227][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-11T11:32:38,040][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: org.elasticsearch.bootstrap.BootstrapException: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/elasticsearch-analysis-ik-5.5.2.zip/plugin-descriptor.properties: Not a directory
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: org.elasticsearch.bootstrap.BootstrapException: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/elasticsearch-analysis-ik-5.5.2.zip/plugin-descriptor.properties: Not a directory
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:169) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+Caused by: java.nio.file.FileSystemException: /usr/local/elasticsearch-5.5.2/plugins/elasticsearch-analysis-ik-5.5.2.zip/plugin-descriptor.properties: Not a directory
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:91) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107) ~[?:1.8.0_101]
+	at sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:214) ~[?:1.8.0_101]
+	at java.nio.file.Files.newByteChannel(Files.java:361) ~[?:1.8.0_101]
+	at java.nio.file.Files.newByteChannel(Files.java:407) ~[?:1.8.0_101]
+	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:384) ~[?:1.8.0_101]
+	at java.nio.file.Files.newInputStream(Files.java:152) ~[?:1.8.0_101]
+	at org.elasticsearch.plugins.PluginInfo.readFromProperties(PluginInfo.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Spawner.spawnNativePluginControllers(Spawner.java:76) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:167) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-11T11:33:28,826][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-11T11:33:28,909][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (/dev/vda1)]], net usable_space [4.3gb], net total_space [39.2gb], spins? [possibly], types [ext4]
+[2017-09-11T11:33:28,909][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-11T11:33:28,910][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-11T11:33:28,911][INFO ][o.e.n.Node               ] version[5.5.2], pid[5753], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.13.0-86-generic/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_101/25.101-b13]
+[2017-09-11T11:33:28,911][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-11T11:33:29,796][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-11T11:33:29,796][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-11T11:33:29,796][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-11T11:33:29,796][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-11T11:33:29,797][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-11T11:33:29,798][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-11T11:33:31,322][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-11T11:33:32,095][INFO ][o.e.n.Node               ] initialized
+[2017-09-11T11:33:32,096][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-11T11:33:32,282][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9301}, bound_addresses {127.0.0.1:9301}
+[2017-09-11T11:33:32,297][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-11T11:33:32,297][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-11T11:33:35,365][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{iFW10UE-TLuVYCzMyjxSJA}{127.0.0.1}{127.0.0.1:9301}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-11T11:33:35,397][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-11T11:33:35,398][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9201}, bound_addresses {127.0.0.1:9201}
+[2017-09-11T11:33:35,398][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-11T11:33:57,282][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-11T11:33:57,305][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-11T11:33:57,305][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-11T11:33:57,314][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-11T14:21:19,964][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: plugin [elasticsearch-jakes-similarity] is incompatible with version [5.5.2]; was designed for version [5.4.0]
+	at org.elasticsearch.plugins.PluginInfo.readFromProperties(PluginInfo.java:146) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Spawner.spawnNativePluginControllers(Spawner.java:76) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:167) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-11T14:21:19,972][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: plugin [elasticsearch-jakes-similarity] is incompatible with version [5.5.2]; was designed for version [5.4.0]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: plugin [elasticsearch-jakes-similarity] is incompatible with version [5.5.2]; was designed for version [5.4.0]
+	at org.elasticsearch.plugins.PluginInfo.readFromProperties(PluginInfo.java:146) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Spawner.spawnNativePluginControllers(Spawner.java:76) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:167) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-11T14:22:29,409][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-11T14:22:29,484][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (/dev/vda1)]], net usable_space [4.3gb], net total_space [39.2gb], spins? [possibly], types [ext4]
+[2017-09-11T14:22:29,484][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-11T14:22:29,485][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-11T14:22:29,486][INFO ][o.e.n.Node               ] version[5.5.2], pid[9920], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.13.0-86-generic/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_101/25.101-b13]
+[2017-09-11T14:22:29,486][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-11T14:22:30,337][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-11T14:22:30,338][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-11T14:22:30,339][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-11T14:22:31,714][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-11T14:22:32,376][INFO ][o.e.n.Node               ] initialized
+[2017-09-11T14:22:32,376][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-11T14:22:32,561][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9301}, bound_addresses {127.0.0.1:9301}
+[2017-09-11T14:22:32,576][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-11T14:22:32,577][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-11T14:22:34,268][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-11T14:22:34,291][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-11T14:22:34,291][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-11T14:22:34,302][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9201}, bound_addresses {127.0.0.1:9201}
+[2017-09-11T14:22:34,305][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-11T14:22:34,305][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] Exception
+java.lang.IllegalStateException: Can't move to started state when closed
+	at org.elasticsearch.common.component.Lifecycle.moveToStarted(Lifecycle.java:129) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.component.AbstractLifecycleComponent.start(AbstractLifecycleComponent.java:70) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.start(Node.java:743) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.start(Bootstrap.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:360) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-11T14:25:23,992][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-11T14:25:24,083][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (/dev/vda1)]], net usable_space [4.3gb], net total_space [39.2gb], spins? [possibly], types [ext4]
+[2017-09-11T14:25:24,084][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-11T14:25:24,085][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-11T14:25:24,085][INFO ][o.e.n.Node               ] version[5.5.2], pid[10137], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.13.0-86-generic/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_101/25.101-b13]
+[2017-09-11T14:25:24,086][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-11T14:25:24,988][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-11T14:25:24,989][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-11T14:25:24,990][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-11T14:25:24,990][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-11T14:25:24,990][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-11T14:25:24,990][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-11T14:25:25,668][WARN ][o.e.c.s.SettingsModule   ] [pTi7yfz] 
+*************************************************************************************
+Found index level settings on node level configuration.
+
+Since elasticsearch 5.x index level settings can NOT be set on the nodes 
+configuration like the elasticsearch.yaml, in system properties or command line 
+arguments.In order to upgrade all indices the settings must be updated via the 
+/${index}/_settings API. Unless all settings are dynamic all indices must be closed 
+in order to apply the upgradeIndices created in the future should use index templates 
+to set default values. 
+
+Please ensure all required values are updated on all indices by executing: 
+
+curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+  "index.analysis.analyzer.ik.type" : "ik"
+}'
+*************************************************************************************
+
+[2017-09-11T14:25:25,674][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-11T14:25:25,681][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T10:34:46,929][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Bootstrap.initializeNatives(Bootstrap.java:106) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:194) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-12T10:34:46,935][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.RuntimeException: can not run elasticsearch as root
+	at org.elasticsearch.bootstrap.Bootstrap.initializeNatives(Bootstrap.java:106) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:194) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T10:37:36,266][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T10:37:36,325][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T10:37:36,325][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T10:37:36,327][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T10:37:36,327][INFO ][o.e.n.Node               ] version[5.5.2], pid[23003], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T10:37:36,327][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T10:37:36,967][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T10:37:36,968][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T10:37:36,969][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T10:37:36,969][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T10:37:37,463][WARN ][o.e.c.s.SettingsModule   ] [pTi7yfz] 
+*************************************************************************************
+Found index level settings on node level configuration.
+
+Since elasticsearch 5.x index level settings can NOT be set on the nodes 
+configuration like the elasticsearch.yaml, in system properties or command line 
+arguments.In order to upgrade all indices the settings must be updated via the 
+/${index}/_settings API. Unless all settings are dynamic all indices must be closed 
+in order to apply the upgradeIndices created in the future should use index templates 
+to set default values. 
+
+Please ensure all required values are updated on all indices by executing: 
+
+curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+  "index.analysis.analyzer.ik.type" : "ik"
+}'
+*************************************************************************************
+
+[2017-09-12T10:37:37,465][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-12T10:37:37,470][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T10:39:05,284][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T10:39:05,343][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T10:39:05,343][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T10:39:05,344][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T10:39:05,344][INFO ][o.e.n.Node               ] version[5.5.2], pid[23075], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T10:39:05,345][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T10:39:05,961][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T10:39:05,961][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T10:39:05,961][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T10:39:05,961][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T10:39:05,962][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T10:39:05,963][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T10:39:06,440][WARN ][o.e.c.s.SettingsModule   ] [pTi7yfz] 
+*************************************************************************************
+Found index level settings on node level configuration.
+
+Since elasticsearch 5.x index level settings can NOT be set on the nodes 
+configuration like the elasticsearch.yaml, in system properties or command line 
+arguments.In order to upgrade all indices the settings must be updated via the 
+/${index}/_settings API. Unless all settings are dynamic all indices must be closed 
+in order to apply the upgradeIndices created in the future should use index templates 
+to set default values. 
+
+Please ensure all required values are updated on all indices by executing: 
+
+curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+  "index.analysis.analyzer.ik.type" : "ik"
+}'
+*************************************************************************************
+
+[2017-09-12T10:39:06,445][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-12T10:39:06,450][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T10:39:58,810][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T10:39:58,869][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T10:39:58,869][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T10:39:58,870][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T10:39:58,870][INFO ][o.e.n.Node               ] version[5.5.2], pid[23137], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T10:39:58,870][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T10:39:59,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T10:39:59,572][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T10:39:59,573][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T10:39:59,573][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T10:39:59,573][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T10:40:00,070][WARN ][o.e.c.s.SettingsModule   ] [pTi7yfz] 
+*************************************************************************************
+Found index level settings on node level configuration.
+
+Since elasticsearch 5.x index level settings can NOT be set on the nodes 
+configuration like the elasticsearch.yaml, in system properties or command line 
+arguments.In order to upgrade all indices the settings must be updated via the 
+/${index}/_settings API. Unless all settings are dynamic all indices must be closed 
+in order to apply the upgradeIndices created in the future should use index templates 
+to set default values. 
+
+Please ensure all required values are updated on all indices by executing: 
+
+curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+  "index.analysis.analyzer.ik.type" : "ik"
+}'
+*************************************************************************************
+
+[2017-09-12T10:40:00,072][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-12T10:40:00,076][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T10:42:09,760][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T10:42:09,818][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T10:42:09,818][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T10:42:09,819][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T10:42:09,819][INFO ][o.e.n.Node               ] version[5.5.2], pid[23207], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T10:42:09,819][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T10:42:10,489][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T10:42:10,489][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T10:42:10,490][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T10:42:10,491][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T10:42:10,491][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T10:42:11,678][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T10:42:12,095][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T10:42:12,095][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T10:42:12,208][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9300}, bound_addresses {127.0.0.1:9300}
+[2017-09-12T10:42:12,218][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T10:42:12,218][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T10:42:15,260][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{QZHK6E9TQ_CTuivXeiQv7A}{127.0.0.1}{127.0.0.1:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T10:42:15,276][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9200}, bound_addresses {127.0.0.1:9200}
+[2017-09-12T10:42:15,276][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T10:42:15,285][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T10:42:39,461][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T10:42:39,476][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T10:42:39,476][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T10:42:39,483][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T11:31:54,840][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T11:31:54,899][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T11:31:54,899][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T11:31:54,900][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T11:31:54,901][INFO ][o.e.n.Node               ] version[5.5.2], pid[23608], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T11:31:54,901][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T11:31:55,550][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T11:31:55,550][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T11:31:55,550][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T11:31:55,551][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T11:31:55,552][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T11:31:55,552][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T11:31:56,712][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T11:31:57,202][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T11:31:57,202][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T11:31:57,331][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9300}, bound_addresses {127.0.0.1:9300}
+[2017-09-12T11:31:57,341][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T11:31:57,341][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T11:32:00,386][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{Cf6Nd-6KSgSvWBqbrFYmeg}{127.0.0.1}{127.0.0.1:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T11:32:00,403][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9200}, bound_addresses {127.0.0.1:9200}
+[2017-09-12T11:32:00,403][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T11:32:00,410][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T11:32:02,127][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T11:32:02,143][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T11:32:02,143][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T11:32:02,153][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T11:32:14,381][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T11:32:14,442][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T11:32:14,442][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T11:32:14,444][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T11:32:14,444][INFO ][o.e.n.Node               ] version[5.5.2], pid[23706], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T11:32:14,444][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T11:32:15,097][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T11:32:15,098][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T11:32:15,610][WARN ][o.e.c.s.SettingsModule   ] [pTi7yfz] 
+*************************************************************************************
+Found index level settings on node level configuration.
+
+Since elasticsearch 5.x index level settings can NOT be set on the nodes 
+configuration like the elasticsearch.yaml, in system properties or command line 
+arguments.In order to upgrade all indices the settings must be updated via the 
+/${index}/_settings API. Unless all settings are dynamic all indices must be closed 
+in order to apply the upgradeIndices created in the future should use index templates 
+to set default values. 
+
+Please ensure all required values are updated on all indices by executing: 
+
+curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+  "index.analysis.analyzer.ik.type" : "ik"
+}'
+*************************************************************************************
+
+[2017-09-12T11:32:15,615][ERROR][o.e.b.Bootstrap          ] Exception
+java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+[2017-09-12T11:32:15,619][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.lang.IllegalArgumentException: node settings must not contain any index level settings
+	at org.elasticsearch.common.settings.SettingsModule.<init>(SettingsModule.java:132) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:343) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.<init>(Node.java:244) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap$5.<init>(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.setup(Bootstrap.java:232) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:351) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+[2017-09-12T11:57:34,150][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T11:57:34,208][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T11:57:34,209][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T11:57:34,209][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T11:57:34,210][INFO ][o.e.n.Node               ] version[5.5.2], pid[23916], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T11:57:34,210][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T11:57:34,873][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T11:57:34,873][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T11:57:34,873][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T11:57:34,873][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T11:57:34,874][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T11:57:34,875][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T11:57:34,875][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T11:57:36,070][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T11:57:36,565][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T11:57:36,565][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T11:57:36,714][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9300}, bound_addresses {127.0.0.1:9300}
+[2017-09-12T11:57:36,724][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T11:57:36,724][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T11:57:39,770][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{SfPiy33jSc6ZzveV7RWiUQ}{127.0.0.1}{127.0.0.1:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T11:57:39,785][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9200}, bound_addresses {127.0.0.1:9200}
+[2017-09-12T11:57:39,785][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T11:57:39,802][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T11:57:46,194][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T11:57:46,207][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T11:57:46,207][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T11:57:46,217][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T11:57:51,710][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T11:57:51,769][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T11:57:51,769][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T11:57:51,770][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T11:57:51,771][INFO ][o.e.n.Node               ] version[5.5.2], pid[24045], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T11:57:51,771][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T11:57:52,470][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T11:57:52,470][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T11:57:52,470][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T11:57:52,471][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T11:57:53,711][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T11:57:54,184][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T11:57:54,184][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T11:57:54,316][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9300}, bound_addresses {127.0.0.1:9300}
+[2017-09-12T11:57:54,326][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T11:57:54,326][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T11:57:57,375][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{1liyTQvTSq68I7biOchD2g}{127.0.0.1}{127.0.0.1:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T11:57:57,397][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9200}, bound_addresses {127.0.0.1:9200}
+[2017-09-12T11:57:57,397][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T11:57:57,410][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T13:54:40,103][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T13:54:40,116][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T13:54:40,116][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T13:54:40,122][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T13:55:06,699][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T13:55:06,761][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T13:55:06,761][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T13:55:06,763][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T13:55:06,763][INFO ][o.e.n.Node               ] version[5.5.2], pid[24878], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T13:55:06,763][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T13:55:07,462][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T13:55:07,463][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T13:55:07,463][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T13:55:07,463][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T13:55:07,463][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T13:55:08,676][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T13:55:09,106][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T13:55:09,107][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T13:55:09,241][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T13:55:09,250][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T13:55:09,253][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T13:55:09,255][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T13:55:09,265][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T13:55:09,265][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T13:55:09,275][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T13:56:11,385][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T13:56:11,443][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T13:56:11,443][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T13:56:11,444][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T13:56:11,444][INFO ][o.e.n.Node               ] version[5.5.2], pid[24958], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T13:56:11,445][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T13:56:12,094][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T13:56:12,095][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T13:56:13,266][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T13:56:13,756][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T13:56:13,756][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T13:56:13,920][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] Exception
+org.elasticsearch.transport.BindTransportException: Failed to bind to [9300-9400]
+	at org.elasticsearch.transport.TcpTransport.bindToPort(TcpTransport.java:793) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TcpTransport.bindServer(TcpTransport.java:758) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.netty4.Netty4Transport.doStart(Netty4Transport.java:173) ~[?:?]
+	at org.elasticsearch.common.component.AbstractLifecycleComponent.start(AbstractLifecycleComponent.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TransportService.doStart(TransportService.java:209) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.component.AbstractLifecycleComponent.start(AbstractLifecycleComponent.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.start(Node.java:692) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.start(Bootstrap.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:360) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) [elasticsearch-5.5.2.jar:5.5.2]
+Caused by: java.net.BindException: Cannot assign requested address
+	at sun.nio.ch.Net.bind0(Native Method) ~[?:?]
+	at sun.nio.ch.Net.bind(Net.java:433) ~[?:?]
+	at sun.nio.ch.Net.bind(Net.java:425) ~[?:?]
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:223) ~[?:?]
+	at io.netty.channel.socket.nio.NioServerSocketChannel.doBind(NioServerSocketChannel.java:128) ~[?:?]
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.bind(AbstractChannel.java:554) ~[?:?]
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.bind(DefaultChannelPipeline.java:1258) ~[?:?]
+	at io.netty.channel.AbstractChannelHandlerContext.invokeBind(AbstractChannelHandlerContext.java:501) ~[?:?]
+	at io.netty.channel.AbstractChannelHandlerContext.bind(AbstractChannelHandlerContext.java:486) ~[?:?]
+	at io.netty.channel.DefaultChannelPipeline.bind(DefaultChannelPipeline.java:980) ~[?:?]
+	at io.netty.channel.AbstractChannel.bind(AbstractChannel.java:250) ~[?:?]
+	at io.netty.bootstrap.AbstractBootstrap$2.run(AbstractBootstrap.java:365) ~[?:?]
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163) ~[?:?]
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:403) ~[?:?]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:462) ~[?:?]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:858) ~[?:?]
+	at java.lang.Thread.run(Thread.java:748) ~[?:1.8.0_144]
+[2017-09-12T13:56:13,928][WARN ][o.e.b.ElasticsearchUncaughtExceptionHandler] [] uncaught exception in thread [main]
+org.elasticsearch.bootstrap.StartupException: BindTransportException[Failed to bind to [9300-9400]]; nested: BindException[Cannot assign requested address];
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:127) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.execute(Elasticsearch.java:114) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.EnvironmentAwareCommand.execute(EnvironmentAwareCommand.java:67) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.mainWithoutErrorHandling(Command.java:122) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cli.Command.main(Command.java:88) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.main(Elasticsearch.java:84) ~[elasticsearch-5.5.2.jar:5.5.2]
+Caused by: org.elasticsearch.transport.BindTransportException: Failed to bind to [9300-9400]
+	at org.elasticsearch.transport.TcpTransport.bindToPort(TcpTransport.java:793) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TcpTransport.bindServer(TcpTransport.java:758) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.netty4.Netty4Transport.doStart(Netty4Transport.java:173) ~[?:?]
+	at org.elasticsearch.common.component.AbstractLifecycleComponent.start(AbstractLifecycleComponent.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TransportService.doStart(TransportService.java:209) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.component.AbstractLifecycleComponent.start(AbstractLifecycleComponent.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.node.Node.start(Node.java:692) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.start(Bootstrap.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Bootstrap.init(Bootstrap.java:360) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.bootstrap.Elasticsearch.init(Elasticsearch.java:123) ~[elasticsearch-5.5.2.jar:5.5.2]
+	... 6 more
+Caused by: java.net.BindException: Cannot assign requested address
+	at sun.nio.ch.Net.bind0(Native Method) ~[?:?]
+	at sun.nio.ch.Net.bind(Net.java:433) ~[?:?]
+	at sun.nio.ch.Net.bind(Net.java:425) ~[?:?]
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:223) ~[?:?]
+	at io.netty.channel.socket.nio.NioServerSocketChannel.doBind(NioServerSocketChannel.java:128) ~[?:?]
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.bind(AbstractChannel.java:554) ~[?:?]
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.bind(DefaultChannelPipeline.java:1258) ~[?:?]
+	at io.netty.channel.AbstractChannelHandlerContext.invokeBind(AbstractChannelHandlerContext.java:501) ~[?:?]
+	at io.netty.channel.AbstractChannelHandlerContext.bind(AbstractChannelHandlerContext.java:486) ~[?:?]
+	at io.netty.channel.DefaultChannelPipeline.bind(DefaultChannelPipeline.java:980) ~[?:?]
+	at io.netty.channel.AbstractChannel.bind(AbstractChannel.java:250) ~[?:?]
+	at io.netty.bootstrap.AbstractBootstrap$2.run(AbstractBootstrap.java:365) ~[?:?]
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163) ~[?:?]
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:403) ~[?:?]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:462) ~[?:?]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:858) ~[?:?]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_144]
+[2017-09-12T13:56:14,790][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T13:56:14,792][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T13:56:14,792][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T13:56:14,801][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T13:59:21,694][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T13:59:21,752][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T13:59:21,753][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T13:59:21,754][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T13:59:21,754][INFO ][o.e.n.Node               ] version[5.5.2], pid[25050], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T13:59:21,754][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T13:59:22,397][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T13:59:22,398][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T13:59:22,398][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T13:59:22,398][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T13:59:23,594][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T13:59:24,001][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T13:59:24,001][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T13:59:24,113][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {10.15.0.14:9300}
+[2017-09-12T13:59:24,122][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T13:59:24,125][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T13:59:24,127][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T13:59:24,140][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T13:59:24,140][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T13:59:24,149][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:00:12,373][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:00:12,432][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:00:12,432][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:00:12,433][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:00:12,433][INFO ][o.e.n.Node               ] version[5.5.2], pid[25186], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:00:12,433][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:00:13,117][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:00:13,118][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:00:13,118][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:00:13,118][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:00:13,118][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:00:13,118][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:00:13,119][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:00:13,119][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:00:14,311][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:00:14,760][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:00:14,760][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:00:14,886][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {127.0.0.1:9300}, bound_addresses {127.0.0.1:9300}
+[2017-09-12T14:00:14,896][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T14:00:14,897][WARN ][o.e.b.BootstrapChecks    ] [pTi7yfz] max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T14:00:17,940][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{iHWA3ib-Q168l9ZzY2NQdg}{127.0.0.1}{127.0.0.1:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T14:00:17,954][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {127.0.0.1:9200}, bound_addresses {127.0.0.1:9200}
+[2017-09-12T14:00:17,954][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T14:00:17,962][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T14:02:14,999][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:02:15,012][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:02:15,013][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:02:15,020][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:07:24,027][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:07:24,086][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:07:24,086][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:07:24,087][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:07:24,087][INFO ][o.e.n.Node               ] version[5.5.2], pid[25382], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:07:24,088][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:07:24,744][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:07:24,744][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:07:24,744][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:07:24,745][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:07:24,746][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:07:24,746][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:07:25,938][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:07:26,348][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:07:26,348][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:07:26,463][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:07:26,472][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:07:26,475][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T14:07:26,477][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:07:26,491][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:07:26,491][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:07:26,498][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:09:10,867][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:09:10,925][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.8gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:09:10,925][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:09:10,926][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:09:10,926][INFO ][o.e.n.Node               ] version[5.5.2], pid[25469], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:09:10,926][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:09:11,570][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:09:11,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:09:11,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:09:11,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:09:11,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:09:11,571][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:09:12,750][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:09:13,214][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:09:13,214][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:09:13,348][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:09:13,357][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:09:13,360][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T14:09:13,362][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:09:13,378][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:09:13,378][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:09:13,388][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:27:30,592][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:27:30,650][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.7gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:27:30,650][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:27:30,651][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:27:30,651][INFO ][o.e.n.Node               ] version[5.5.2], pid[25761], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:27:30,652][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:27:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:27:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:27:31,302][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:27:31,303][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:27:31,303][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:27:32,462][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:27:32,921][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:27:32,921][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:27:33,056][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:27:33,065][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:27:33,068][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[2017-09-12T14:27:33,070][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:27:33,084][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:27:33,084][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:27:33,093][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:29:30,598][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:29:30,655][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.7gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:29:30,655][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:29:30,656][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:29:30,656][INFO ][o.e.n.Node               ] version[5.5.2], pid[25847], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:29:30,657][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:29:31,300][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:29:31,301][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:29:32,453][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:29:32,950][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:29:32,950][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:29:33,093][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:29:33,102][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:29:33,106][ERROR][o.e.b.Bootstrap          ] [pTi7yfz] node validation exception
+[1] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2017-09-12T14:29:33,109][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:29:33,130][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:29:33,130][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:29:33,139][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:40:14,728][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:40:14,790][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.7gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:40:14,790][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:40:14,791][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:40:14,791][INFO ][o.e.n.Node               ] version[5.5.2], pid[26066], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:40:14,791][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:40:15,518][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:40:15,519][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:40:15,519][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:40:15,519][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:40:15,519][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:40:16,785][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:40:17,232][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:40:17,233][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:40:17,355][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:40:17,363][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:40:20,401][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{qIUKduy5Q-qL9tZWtC1P2A}{10.15.0.14}{10.15.0.14:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T14:40:20,414][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {10.15.0.14:9200}, bound_addresses {0.0.0.0:9200}
+[2017-09-12T14:40:20,414][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T14:40:20,423][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T14:40:22,075][INFO ][o.e.n.Node               ] [pTi7yfz] stopping ...
+[2017-09-12T14:40:22,090][INFO ][o.e.n.Node               ] [pTi7yfz] stopped
+[2017-09-12T14:40:22,090][INFO ][o.e.n.Node               ] [pTi7yfz] closing ...
+[2017-09-12T14:40:22,097][INFO ][o.e.n.Node               ] [pTi7yfz] closed
+[2017-09-12T14:40:25,163][INFO ][o.e.n.Node               ] [] initializing ...
+[2017-09-12T14:40:25,225][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] using [1] data paths, mounts [[/ (rootfs)]], net usable_space [34.7gb], net total_space [39.2gb], spins? [unknown], types [rootfs]
+[2017-09-12T14:40:25,225][INFO ][o.e.e.NodeEnvironment    ] [pTi7yfz] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-12T14:40:25,226][INFO ][o.e.n.Node               ] node name [pTi7yfz] derived from node ID [pTi7yfzcRMu59b5Y2MxWwA]; set [node.name] to override
+[2017-09-12T14:40:25,226][INFO ][o.e.n.Node               ] version[5.5.2], pid[26197], build[b2f0c09/2017-08-14T12:33:14.154Z], OS[Linux/3.10.0-514.26.2.el7.x86_64/amd64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_144/25.144-b01]
+[2017-09-12T14:40:25,226][INFO ][o.e.n.Node               ] JVM arguments [-Xms2g, -Xmx2g, -XX:+UseConcMarkSweepGC, -XX:CMSInitiatingOccupancyFraction=75, -XX:+UseCMSInitiatingOccupancyOnly, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djdk.io.permissionsUseCanonicalPath=true, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j.skipJansi=true, -XX:+HeapDumpOnOutOfMemoryError, -Des.path.home=/usr/local/elasticsearch-5.5.2]
+[2017-09-12T14:40:25,879][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [aggs-matrix-stats]
+[2017-09-12T14:40:25,879][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [ingest-common]
+[2017-09-12T14:40:25,879][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-expression]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-groovy]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-mustache]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [lang-painless]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [parent-join]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [percolator]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [reindex]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty3]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded module [transport-netty4]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [analysis-ik]
+[2017-09-12T14:40:25,880][INFO ][o.e.p.PluginsService     ] [pTi7yfz] loaded plugin [elasticsearch-jakes-similarity]
+[2017-09-12T14:40:27,068][INFO ][o.e.d.DiscoveryModule    ] [pTi7yfz] using discovery type [zen]
+[2017-09-12T14:40:27,559][INFO ][o.e.n.Node               ] initialized
+[2017-09-12T14:40:27,559][INFO ][o.e.n.Node               ] [pTi7yfz] starting ...
+[2017-09-12T14:40:27,683][INFO ][o.e.t.TransportService   ] [pTi7yfz] publish_address {10.15.0.14:9300}, bound_addresses {0.0.0.0:9300}
+[2017-09-12T14:40:27,691][INFO ][o.e.b.BootstrapChecks    ] [pTi7yfz] bound or publishing to a non-loopback or non-link-local address, enforcing bootstrap checks
+[2017-09-12T14:40:30,732][INFO ][o.e.c.s.ClusterService   ] [pTi7yfz] new_master {pTi7yfz}{pTi7yfzcRMu59b5Y2MxWwA}{NmzPukSzTAuxJgQ2q9C5Sw}{10.15.0.14}{10.15.0.14:9300}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-12T14:40:30,745][INFO ][o.e.h.n.Netty4HttpServerTransport] [pTi7yfz] publish_address {10.15.0.14:9200}, bound_addresses {0.0.0.0:9200}
+[2017-09-12T14:40:30,745][INFO ][o.e.n.Node               ] [pTi7yfz] started
+[2017-09-12T14:40:30,753][INFO ][o.e.g.GatewayService     ] [pTi7yfz] recovered [0] indices into cluster_state
+[2017-09-12T16:13:12,776][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/config/analysis-ik/IKAnalyzer.cfg.xml
+[2017-09-12T16:13:12,776][INFO ][o.w.a.d.Monitor          ] try load config from /usr/local/elasticsearch-5.5.2/plugins/elasticsearch/config/IKAnalyzer.cfg.xml
+[2017-09-12T16:13:12,993][INFO ][o.e.c.m.MetaDataCreateIndexService] [pTi7yfz] [hospitals] creating index, cause [api], templates [], shards [5]/[1], mappings []
+[2017-09-12T16:13:13,203][DEBUG][o.e.a.a.i.m.p.TransportPutMappingAction] [pTi7yfz] failed to put mappings on indices [[[hospitals/SHj1kl3yRYCH4PGAf0Vi2A]]], type [aggreation]
+java.lang.IllegalArgumentException: The [string] type is removed in 5.0 and automatic upgrade failed because parameters [term_vector] are not supported for automatic upgrades. You should now use either a [text] or [keyword] field instead for field [ksname]
+	at org.elasticsearch.index.mapper.StringFieldMapper$TypeParser.parse(StringFieldMapper.java:270) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseProperties(ObjectMapper.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseObjectOrDocumentTypeProperties(ObjectMapper.java:199) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parse(ObjectMapper.java:173) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseProperties(ObjectMapper.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseObjectOrDocumentTypeProperties(ObjectMapper.java:199) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.RootObjectMapper$TypeParser.parse(RootObjectMapper.java:102) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.DocumentMapperParser.parse(DocumentMapperParser.java:111) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.DocumentMapperParser.parse(DocumentMapperParser.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.MapperService.parse(MapperService.java:644) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.metadata.MetaDataMappingService$PutMappingExecutor.applyRequest(MetaDataMappingService.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.metadata.MetaDataMappingService$PutMappingExecutor.execute(MetaDataMappingService.java:230) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.executeTasks(ClusterService.java:634) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.calculateTaskOutputs(ClusterService.java:612) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.runTasks(ClusterService.java:571) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService$ClusterServiceTaskBatcher.run(ClusterService.java:263) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:150) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:188) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:569) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.PrioritizedEsThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedEsThreadPoolExecutor.java:247) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.PrioritizedEsThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedEsThreadPoolExecutor.java:210) [elasticsearch-5.5.2.jar:5.5.2]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_144]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_144]
+[2017-09-12T16:16:23,850][INFO ][o.e.c.m.MetaDataDeleteIndexService] [pTi7yfz] [hospitals/SHj1kl3yRYCH4PGAf0Vi2A] deleting index
+[2017-09-12T16:16:27,324][INFO ][o.e.c.m.MetaDataCreateIndexService] [pTi7yfz] [hospitals] creating index, cause [api], templates [], shards [5]/[1], mappings []
+[2017-09-12T16:16:27,434][INFO ][o.e.c.m.MetaDataMappingService] [pTi7yfz] [hospitals/Frz-MsegQQimhZaacqmZIA] create_mapping [aggreation]
+[2017-09-12T16:54:49,404][INFO ][o.e.c.m.MetaDataDeleteIndexService] [pTi7yfz] [hospitals/Frz-MsegQQimhZaacqmZIA] deleting index
+[2017-09-12T16:56:54,903][INFO ][o.e.c.m.MetaDataCreateIndexService] [pTi7yfz] [hospitals] creating index, cause [api], templates [], shards [5]/[1], mappings []
+[2017-09-12T16:56:54,980][DEBUG][o.e.a.a.i.m.p.TransportPutMappingAction] [pTi7yfz] failed to put mappings on indices [[[hospitals/5i4CySqGT3SgwvJnuH-VHQ]]], type [aggreation]
+java.lang.IllegalArgumentException: The [string] type is removed in 5.0 and automatic upgrade failed because parameters [term_vector] are not supported for automatic upgrades. You should now use either a [text] or [keyword] field instead for field [ksname]
+	at org.elasticsearch.index.mapper.StringFieldMapper$TypeParser.parse(StringFieldMapper.java:270) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseProperties(ObjectMapper.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseObjectOrDocumentTypeProperties(ObjectMapper.java:199) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parse(ObjectMapper.java:173) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseProperties(ObjectMapper.java:277) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.ObjectMapper$TypeParser.parseObjectOrDocumentTypeProperties(ObjectMapper.java:199) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.RootObjectMapper$TypeParser.parse(RootObjectMapper.java:102) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.DocumentMapperParser.parse(DocumentMapperParser.java:111) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.DocumentMapperParser.parse(DocumentMapperParser.java:91) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.index.mapper.MapperService.parse(MapperService.java:644) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.metadata.MetaDataMappingService$PutMappingExecutor.applyRequest(MetaDataMappingService.java:264) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.metadata.MetaDataMappingService$PutMappingExecutor.execute(MetaDataMappingService.java:230) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.executeTasks(ClusterService.java:634) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.calculateTaskOutputs(ClusterService.java:612) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService.runTasks(ClusterService.java:571) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.ClusterService$ClusterServiceTaskBatcher.run(ClusterService.java:263) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:150) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:188) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:569) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.PrioritizedEsThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedEsThreadPoolExecutor.java:247) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.PrioritizedEsThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedEsThreadPoolExecutor.java:210) [elasticsearch-5.5.2.jar:5.5.2]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_144]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_144]
+[2017-09-12T17:03:37,898][INFO ][o.e.c.m.MetaDataDeleteIndexService] [pTi7yfz] [hospitals/5i4CySqGT3SgwvJnuH-VHQ] deleting index
+[2017-09-12T17:04:51,203][INFO ][o.e.c.m.MetaDataCreateIndexService] [pTi7yfz] [hospitals] creating index, cause [api], templates [], shards [5]/[1], mappings []
+[2017-09-12T17:04:51,298][INFO ][o.e.c.m.MetaDataMappingService] [pTi7yfz] [hospitals/o75rqybFTqidqA3hlfcx3w] create_mapping [aggreation]

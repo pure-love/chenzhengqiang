@@ -1,0 +1,118 @@
+[2017-11-08T11:27:58,595][INFO ][o.e.c.r.a.DiskThresholdMonitor] [master] low disk watermark [85%] exceeded on [9dszmQNTT3q3KPHYldQZrg][master][/data/elasticsearch/nodes/0] free: 14.9gb[14.6%], replicas will not be assigned to this node
+[2017-11-08T11:28:28,644][INFO ][o.e.c.r.a.DiskThresholdMonitor] [master] low disk watermark [85%] exceeded on [9dszmQNTT3q3KPHYldQZrg][master][/data/elasticsearch/nodes/0] free: 14.8gb[14.5%], replicas will not be assigned to this node
+[2017-11-08T11:28:58,667][INFO ][o.e.c.r.a.DiskThresholdMonitor] [master] low disk watermark [85%] exceeded on [9dszmQNTT3q3KPHYldQZrg][master][/data/elasticsearch/nodes/0] free: 14.4gb[14%], replicas will not be assigned to this node
+[2017-11-08T11:29:28,708][INFO ][o.e.c.r.a.DiskThresholdMonitor] [master] low disk watermark [85%] exceeded on [9dszmQNTT3q3KPHYldQZrg][master][/data/elasticsearch/nodes/0] free: 14.7gb[14.4%], replicas will not be assigned to this node
+[2017-11-08T11:29:58,731][INFO ][o.e.c.r.a.DiskThresholdMonitor] [master] rerouting shards: [one or more nodes has gone under the high or low watermark]
+[2017-11-08T13:31:10,241][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][758740] overhead, spent [254ms] collecting in the last [1s]
+[2017-11-08T19:19:15,081][INFO ][o.e.c.m.MetaDataDeleteIndexService] [master] [jk_search/F_5gcwfDSTauccr4wy744A] deleting index
+[2017-11-08T19:20:58,006][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_search] creating index, cause [api], templates [], shards [1]/[0], mappings [jk_search]
+[2017-11-08T19:22:13,836][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_search/0Jpba-2QSUiDiMtyHrJa4Q] create_mapping [gather]
+[2017-11-08T19:40:48,769][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][780863] overhead, spent [258ms] collecting in the last [1s]
+[2017-11-08T19:42:28,508][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][780962] overhead, spent [255ms] collecting in the last [1s]
+[2017-11-08T20:13:01,680][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][782782] overhead, spent [257ms] collecting in the last [1s]
+[2017-11-08T20:15:06,699][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][782906] overhead, spent [371ms] collecting in the last [1s]
+[2017-11-08T20:16:30,192][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][782989] overhead, spent [256ms] collecting in the last [1s]
+[2017-11-08T20:16:45,279][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][783004] overhead, spent [252ms] collecting in the last [1s]
+[2017-11-08T21:00:31,659][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][785612] overhead, spent [263ms] collecting in the last [1s]
+[2017-11-08T21:13:10,628][DEBUG][o.e.a.s.TransportSearchAction] [master] [jk_search][0], node[9dszmQNTT3q3KPHYldQZrg], [P], s[STARTED], a[id=wsLekymjQuWDWTSSLV2wvw]: Failed to execute [SearchRequest{searchType=QUERY_THEN_FETCH, indices=[jk_search], indicesOptions=IndicesOptions[id=38, ignore_unavailable=false, allow_no_indices=true, expand_wildcards_open=true, expand_wildcards_closed=false, allow_alisases_to_multiple_indices=true, forbid_closed_indices=true], types=[], routing='null', preference='null', requestCache=null, scroll=null, source={
+  "from" : 0,
+  "size" : 1,
+  "query" : {
+    "bool" : {
+      "must" : [
+        {
+          "multi_match" : {
+            "query" : "碘131治疗需要停药吗",
+            "fields" : [
+              "title^1.0"
+            ],
+            "type" : "most_fields",
+            "operator" : "OR",
+            "slop" : 0,
+            "prefix_length" : 0,
+            "max_expansions" : 50,
+            "minimum_should_match" : "60%",
+            "lenient" : false,
+            "zero_terms_query" : "NONE",
+            "boost" : 1.0
+          }
+        }
+      ],
+      "disable_coord" : false,
+      "adjust_pure_negative" : true,
+      "boost" : 1.0
+    }
+  },
+  "_source" : {
+    "includes" : [
+      "title",
+      "id",
+      "answers"
+    ],
+    "excludes" : [ ]
+  },
+  "sort" : [
+    {
+      "_score" : {
+        "order" : "desc"
+      }
+    },
+    {
+      "score" : {
+        "order" : "desc"
+      }
+    },
+    {
+      "answers" : {
+        "order" : "desc"
+      }
+    }
+  ]
+}}]
+org.elasticsearch.transport.RemoteTransportException: [master][10.5.0.8:9300][indices:data/read/search[phase/query]]
+Caused by: org.elasticsearch.index.query.QueryShardException: No mapping found for [score] in order to sort on
+	at org.elasticsearch.search.sort.FieldSortBuilder.build(FieldSortBuilder.java:262) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.sort.SortBuilder.buildSort(SortBuilder.java:156) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.parseSource(SearchService.java:630) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.createContext(SearchService.java:481) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.createAndPutContext(SearchService.java:457) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.executeQueryPhase(SearchService.java:253) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.action.search.SearchTransportService$6.messageReceived(SearchTransportService.java:330) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.action.search.SearchTransportService$6.messageReceived(SearchTransportService.java:327) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.RequestHandlerRegistry.processMessageReceived(RequestHandlerRegistry.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TransportService$7.doRun(TransportService.java:644) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingAbstractRunnable.doRun(ThreadContext.java:638) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.AbstractRunnable.run(AbstractRunnable.java:37) [elasticsearch-5.5.2.jar:5.5.2]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_144]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_144]
+[2017-11-08T21:13:10,678][DEBUG][o.e.a.s.TransportSearchAction] [master] All shards failed for phase: [query]
+org.elasticsearch.index.query.QueryShardException: No mapping found for [score] in order to sort on
+	at org.elasticsearch.search.sort.FieldSortBuilder.build(FieldSortBuilder.java:262) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.sort.SortBuilder.buildSort(SortBuilder.java:156) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.parseSource(SearchService.java:630) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.createContext(SearchService.java:481) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.createAndPutContext(SearchService.java:457) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.search.SearchService.executeQueryPhase(SearchService.java:253) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.action.search.SearchTransportService$6.messageReceived(SearchTransportService.java:330) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.action.search.SearchTransportService$6.messageReceived(SearchTransportService.java:327) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.RequestHandlerRegistry.processMessageReceived(RequestHandlerRegistry.java:69) ~[elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.transport.TransportService$7.doRun(TransportService.java:644) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingAbstractRunnable.doRun(ThreadContext.java:638) [elasticsearch-5.5.2.jar:5.5.2]
+	at org.elasticsearch.common.util.concurrent.AbstractRunnable.run(AbstractRunnable.java:37) [elasticsearch-5.5.2.jar:5.5.2]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [?:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [?:1.8.0_144]
+	at java.lang.Thread.run(Thread.java:748) [?:1.8.0_144]
+[2017-11-08T21:19:27,534][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_search/0Jpba-2QSUiDiMtyHrJa4Q] update_mapping [gather]
+[2017-11-08T21:22:21,831][INFO ][o.e.c.m.MetaDataDeleteIndexService] [master] [jk_search/0Jpba-2QSUiDiMtyHrJa4Q] deleting index
+[2017-11-08T21:23:22,797][INFO ][o.e.c.m.MetaDataCreateIndexService] [master] [jk_search] creating index, cause [api], templates [], shards [1]/[0], mappings [jk_search]
+[2017-11-08T21:23:52,377][INFO ][o.e.c.m.MetaDataMappingService] [master] [jk_search/deUQ42j6TnaRzoekICiwZw] create_mapping [gather]
+[2017-11-08T21:43:40,728][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][788184] overhead, spent [272ms] collecting in the last [1s]
+[2017-11-08T22:27:15,379][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][790780] overhead, spent [269ms] collecting in the last [1s]
+[2017-11-08T23:03:01,532][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][792909] overhead, spent [251ms] collecting in the last [1s]
+[2017-11-08T23:13:51,453][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][793554] overhead, spent [253ms] collecting in the last [1s]
+[2017-11-08T23:14:22,616][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][793585] overhead, spent [253ms] collecting in the last [1s]
+[2017-11-08T23:22:04,622][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][794044] overhead, spent [263ms] collecting in the last [1s]
+[2017-11-08T23:32:38,024][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][794672] overhead, spent [250ms] collecting in the last [1s]
+[2017-11-08T23:55:25,163][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][796028] overhead, spent [252ms] collecting in the last [1s]
+[2017-11-08T23:58:43,708][INFO ][o.e.m.j.JvmGcMonitorService] [master] [gc][796225] overhead, spent [260ms] collecting in the last [1s]
