@@ -1,0 +1,5 @@
+#dependencies
+pip install celery==3.1
+pip install pika==0.9.14
+pip install tornado-celery==0.3.5
+yum install rabbitmq-server
